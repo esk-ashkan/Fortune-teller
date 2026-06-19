@@ -1,19 +1,30 @@
-import { useEffect } from 'react';
+import { Container, Row, Col } from "react-bootstrap";
+import SelectComponent from "./components/Select";
+import "./App.css";
 
 function App() {
-  useEffect(() => {
-    console.log("🚀 App component mounted successfully!");
-    document.body.style.background = "purple";
-  }, []);
-
   return (
-    <div>
-      <h1 style={{ color: "white", textAlign: "center", paddingTop: "100px", fontSize: "3rem" }}>
-        HELLO WORLD
-      </h1>
-      <p style={{ color: "white", textAlign: "center" }}>
-        If you see this text, React is working.
-      </p>
+    <div className="cosmic-bg">
+      <div className="hero-overlay">
+        <Container className="text-center pt-5">
+          <h1 className="hero-title">فال‌نامه کیهانی</h1>
+          <p className="hero-subtitle">
+            سفری میان ستارگان، اسطوره‌ها و رازهای کهن ایرانی
+          </p>
+
+          <Row className="mt-5">
+            <Col className="d-flex justify-content-center">
+              <SelectComponent text="فال تاروت" color="primary" />
+            </Col>
+            <Col className="d-flex justify-content-center">
+              <SelectComponent text="فال قهوه" color="danger" />
+            </Col>
+            <Col className="d-flex justify-content-center">
+              <SelectComponent text="فال نجوم" color="success" />
+            </Col>
+          </Row>
+        </Container>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,57 @@
+/* Cosmic Persian Background */
+.cosmic-bg {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 20%, #6a00ff, #2b0057, #0d001f);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Floating Persian geometric particles */
+.cosmic-bg::before,
+.cosmic-bg::after {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: url('/persian-pattern.svg') no-repeat center/contain;
+  opacity: 0.08;
+  animation: float 18s infinite ease-in-out;
+}
+
+.cosmic-bg::before {
+  top: -100px;
+  left: -150px;
+}
+
+.cosmic-bg::after {
+  bottom: -120px;
+  right: -150px;
+  animation-delay: 4s;
+}
+
+@keyframes float {
+  0% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.05) translateY(-20px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+/* Hero overlay */
+.hero-overlay {
+  backdrop-filter: blur(6px);
+  padding-bottom: 80px;
+}
+
+/* Typography */
+.hero-title {
+  font-size: 4rem;
+  color: #ffd700;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+  font-family: "Nastaliq", serif;
+}
+
+.hero-subtitle {
+  font-size: 1.6rem;
+  color: #e8d7ff;
+  margin-top: 10px;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
