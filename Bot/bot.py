@@ -6,7 +6,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = "https://khaki-pears-beam.loca.lt"
+WEBAPP_URL = os.getenv("WEB_APP_URL")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
