@@ -6,11 +6,11 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = os.getenv("WEB_APP_URL")
+WEB_APP_URL = os.getenv("WEB_APP_URL")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("✨ Open Mystic Oracle ✨", web_app={"url": WEBAPP_URL})]
+        [InlineKeyboardButton("✨ Open Mystic Oracle ✨", web_app={"url": WEB_APP_URL})]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 

@@ -2,27 +2,30 @@
   font-size: 1.4rem;
   padding: 14px 28px;
   border-radius: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
-  color: white;
+
+  background: rgba(5, 5, 20, 0.85) !important;
+  border: 2px solid rgba(255, 215, 0, 0.7) !important;
+
+  color: #FFD700 !important;
+  text-shadow: 0 0 6px rgba(0,0,0,0.9);
+
   transition: all 0.25s ease;
-  letter-spacing: 1px;
-  font-weight: 500;
-  text-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+  font-weight: 600;
 }
 
 .mystic-btn:hover {
   transform: scale(1.08);
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.8);
 }
 
-/* Color auras */
-.mystic-primary { box-shadow: 0 0 12px rgba(0, 123, 255, 0.4); }
-.mystic-danger { box-shadow: 0 0 12px rgba(255, 0, 72, 0.4); }
-.mystic-success { box-shadow: 0 0 12px rgba(0, 255, 140, 0.4); }
+.icon-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-.mystic-primary:hover { box-shadow: 0 0 22px rgba(0, 123, 255, 0.8); }
-.mystic-danger:hover { box-shadow: 0 0 22px rgba(255, 0, 72, 0.8); }
-.mystic-success:hover { box-shadow: 0 0 22px rgba(0, 255, 140, 0.8); }
+.icon {
+  font-size: 1.7rem;
+  color: #FFD700 !important;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
+}

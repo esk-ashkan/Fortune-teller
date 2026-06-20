@@ -1,13 +1,10 @@
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import 'bootstrap/dist/css/bootstrap.min.css';
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-
-console.log("main.tsx loaded");
-
-const rootElement = document.getElementById("root");
-console.log(rootElement);
-
-ReactDOM.createRoot(rootElement!).render(
-  <App />
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
 );
