@@ -1,3 +1,9 @@
+import { Container } from "react-bootstrap";
+
 export default function Stars() {
-  return <h1>صفحه فال نجوم</h1>;
+  return (
+    <Container>
+      Stars page
+    </Container>
+  );
 }
