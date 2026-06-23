@@ -58,7 +58,7 @@ function Tarot() {
       <Container className="py-4">
         {/* Header */}
         <div
-          className="p-4 mb-4"
+          className="p-1 mb-4"
           style={{
             border: "1px solid rgba(110, 70, 25, 0.35)",
             borderRadius: 18,
@@ -179,19 +179,12 @@ function Tarot() {
         <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: "12px",
               justifyItems: "center",
             }}
           >
-          <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "12px",
-            justifyItems: "center",
-          }}
-        >
+          
           {cardsList.map((name, idx) => (
             <CardsComponent
               key={`${name}-${idx}`}
@@ -201,7 +194,7 @@ function Tarot() {
               }}
             />
           ))}
-        </div>
+        
         </div>
         <div
           style={{
