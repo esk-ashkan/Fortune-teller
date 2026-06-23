@@ -40,7 +40,6 @@ function Tarot() {
 
       if (next === maxNumOfCards) {
         console.log("----->Now, It's time to tell you everything");
-        // TODO: show your reading UI here
       }
       return next;
     });
@@ -181,37 +180,14 @@ function Tarot() {
 
         <Row style={{ justifyContent: "center" }}>
           {cardsList.map((name, idx) => {
-            const disabled =
-              !maxNumOfCards || selectedCount >= maxNumOfCards;
-
             return (
-              <Col
-                key={`${name}-${idx}`}
-                xs={12}
-                sm={6}
-                md={4}
-                lg={3}
-                className="mb-1"
-                style={{
-                  cursor: disabled ? "not-allowed" : "pointer",
-                  opacity: disabled ? 0.65 : 1,
-                }}
-                onClick={() => {
-                  if (disabled) return;
-                  handleSelectedCard(name);
-                }}
-              >
-                
-                  <CardsComponent />
-                  <div
-                    style={{
-                      marginTop: 10,
-                      height: 1,
-                      background:
-                        "linear-gradient(90deg, transparent, rgba(241, 237, 232, 0.35), transparent)",
-                      opacity: 0.7,
-                    }}
-                  />
+              <Col key={`${name}-${idx}`} xs={12} sm={6} md={4} lg={3}>
+                <CardsComponent
+                  onSelect={() => {
+                    if (!maxNumOfCards || selectedCount >= maxNumOfCards) return;
+                    handleSelectedCard(name);
+                  }}
+                />
               </Col>
             );
           })}

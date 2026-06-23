@@ -1,13 +1,16 @@
-import Card from 'react-bootstrap/Card';
+import Card from "react-bootstrap/Card";
 import tarotImg from "../assets/tarot.png";
 
-//interface CardInterface{
-//    name: string;
-//}
+interface CardProps {
+  onSelect?: () => void;
+}
 
-function CardsComponent() {
+function CardsComponent({ onSelect }: CardProps) {
   return (
-    <Card style={{ width: '100px' }}>
+    <Card
+      style={{ width: "100px", cursor: "pointer" }}
+      onClick={onSelect}
+    >
       <Card.Img variant="top" src={tarotImg} />
     </Card>
   );
