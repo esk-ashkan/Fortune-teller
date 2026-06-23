@@ -1,5 +1,5 @@
 import Card from 'react-bootstrap/Card';
-import card1 from "../assets/card1.png";
+import tarotImg from "../assets/tarot.png";
 
 //interface CardInterface{
 //    name: string;
@@ -8,7 +8,7 @@ import card1 from "../assets/card1.png";
 function CardsComponent() {
   return (
     <Card style={{ width: '100px' }}>
-      <Card.Img variant="top" src={card1} />
+      <Card.Img variant="top" src={tarotImg} />
     </Card>
   );
 }
