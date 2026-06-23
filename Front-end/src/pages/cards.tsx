@@ -8,7 +8,7 @@ interface CardProps {
 function CardsComponent({ onSelect }: CardProps) {
   return (
     <Card
-      style={{ width: "100px", cursor: "pointer" }}
+      style={{ width: "100px"}}
       onClick={onSelect}
     >
       <Card.Img variant="top" src={tarotImg} />
