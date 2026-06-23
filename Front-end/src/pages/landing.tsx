@@ -6,7 +6,6 @@ import "../components/landing.css";
 import { useNavigate } from "react-router";
 
 function landing() {
-  const navigate = useNavigate();
   return (
     <div className="cosmic-bg">
       <div className="hero-overlay">

@@ -1,6 +1,4 @@
 import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import { tarotCards } from "./tarot_cards";
 import CardsComponent from "./cards";
 import { useEffect, useMemo, useState } from "react";
