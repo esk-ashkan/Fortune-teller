@@ -11,7 +11,7 @@ function Tarot() {
   const [maxNumOfCards, setMaxNumOfCards] = useState<number>(0);
   const [selectedCount, setSelectedCount] = useState<number>(0);
 
-  // keep “source” hand stable until user changes spread size
+
   const hand = useMemo(() => {
     const picked = new Set<number>();
     while (picked.size < 21) picked.add(Math.floor(Math.random() * tarotCards.length));
@@ -19,7 +19,6 @@ function Tarot() {
   }, []);
 
   useEffect(() => {
-    // show 21-card hand initially (you can change this if you want fewer visible cards)
     setCardsList(hand);
     setSelectedCount(0);
   }, [hand]);
