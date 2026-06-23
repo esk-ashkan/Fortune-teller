@@ -3,7 +3,6 @@ import SelectComponent from "../components/selectcomponent";
 import { GiStarSattelites , GiCardPickup } from "react-icons/gi";
 import { FaCoffee } from "react-icons/fa";
 import "../components/landing.css";
-import { useNavigate } from "react-router";
 
 function landing() {
   return (
