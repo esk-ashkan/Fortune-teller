@@ -23,7 +23,7 @@ function landing() {
                 color="primary"
                 icon={<GiCardPickup />}
                 to='/tarot'
-                onSelect={() => navigate('/tarot')}
+                onSelect={() => window.location.href = '/tarot'}
               />
             </Col>
             <Col className="d-flex justify-content-center">
@@ -32,7 +32,7 @@ function landing() {
                 color="danger"
                 icon={<FaCoffee />}
                 to="/coffee"
-                onSelect={() => navigate("/coffee")}
+                onSelect={() => window.location.href = "/coffee"}
               />
             </Col>
             <Col className="d-flex justify-content-center">
@@ -41,7 +41,7 @@ function landing() {
                 color="success"
                 icon={<GiStarSattelites />}
                 to="/stars"
-                onSelect={() => navigate("/stars")}
+                onSelect={() => window.location.href = "/stars"}
               />
             </Col>
           </Row>
