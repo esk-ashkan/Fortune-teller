@@ -25,10 +25,10 @@ function landing() {
             </Col>
             <Col className="d-flex justify-content-center">
               <SelectComponent
-              text="فال قهوه"
-              color="danger"
-              icon={<FaCoffee />}
-              to="/coffee"
+                text="فال قهوه"
+                color="danger"
+                icon={<FaCoffee />}
+                to="/coffee"
               />
             </Col>
             <Col className="d-flex justify-content-center">
