@@ -203,7 +203,7 @@ function Tarot() {
                 }}
               >
                 
-                  <CardsComponent name={name} />
+                  <CardsComponent />
                   <div
                     style={{
                       marginTop: 10,
