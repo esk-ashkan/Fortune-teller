@@ -178,20 +178,33 @@ function Tarot() {
           </div>
         </div>
 
-        <Row style={{ justifyContent: "center" }}>
-          {cardsList.map((name, idx) => {
-            return (
-              <Col key={`${name}-${idx}`} xs={12} sm={6} md={4} lg={3}>
-                <CardsComponent
-                  onSelect={() => {
-                    if (!maxNumOfCards || selectedCount >= maxNumOfCards) return;
-                    handleSelectedCard(name);
-                  }}
-                />
-              </Col>
-            );
-          })}
-        </Row>
+        <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "12px",
+              justifyItems: "center",
+            }}
+          >
+          <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "12px",
+            justifyItems: "center",
+          }}
+        >
+          {cardsList.map((name, idx) => (
+            <CardsComponent
+              key={`${name}-${idx}`}
+              onSelect={() => {
+                if (!maxNumOfCards || selectedCount >= maxNumOfCards) return;
+                handleSelectedCard(name);
+              }}
+            />
+          ))}
+        </div>
+        </div>
         <div
           style={{
             marginTop: 8,
