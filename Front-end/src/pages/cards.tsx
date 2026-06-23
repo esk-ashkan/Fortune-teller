@@ -1,10 +1,10 @@
 import Card from 'react-bootstrap/Card';
 
-interface CardInterface{
-    name: string;
-}
+//interface CardInterface{
+//    name: string;
+//}
 
-function CardsComponent({name}: CardInterface) {
+function CardsComponent() {
   return (
     <Card style={{ width: '100px' }}>
       <Card.Img variant="top" src="../../assets/tarot.png" />
