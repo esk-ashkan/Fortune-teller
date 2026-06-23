@@ -3,8 +3,10 @@ import SelectComponent from "../components/selectcomponent";
 import { GiStarSattelites , GiCardPickup } from "react-icons/gi";
 import { FaCoffee } from "react-icons/fa";
 import "../components/landing.css";
+import { useNavigate } from "react-router";
 
 function landing() {
+  const navigate = useNavigate();
   return (
     <div className="cosmic-bg">
       <div className="hero-overlay">
@@ -21,6 +23,7 @@ function landing() {
                 color="primary"
                 icon={<GiCardPickup />}
                 to='/tarot'
+                onSelect={() => navigate('/tarot')}
               />
             </Col>
             <Col className="d-flex justify-content-center">
@@ -29,6 +32,7 @@ function landing() {
                 color="danger"
                 icon={<FaCoffee />}
                 to="/coffee"
+                onSelect={() => navigate("/coffee")}
               />
             </Col>
             <Col className="d-flex justify-content-center">
@@ -37,6 +41,7 @@ function landing() {
                 color="success"
                 icon={<GiStarSattelites />}
                 to="/stars"
+                onSelect={() => navigate("/stars")}
               />
             </Col>
           </Row>
