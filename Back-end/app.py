@@ -65,7 +65,7 @@ def tarot():
     """
 
     payload = {
-        "model": "meta-llama/Llama-3.3-70B-Instruct",
+        "model": "meta-llama/Llama-3.1-70B-Instruct",
         "messages": [
             {"role": "user", "content": prompt}
         ]
