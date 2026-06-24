@@ -1,8 +1,9 @@
-from flask import Flask 
+
 from flask_cors import CORS 
 import os 
-from dotenv import load_dotenv 
-import requests
+from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+import os, requests, time
  
 load_dotenv() 
  
@@ -13,22 +14,23 @@ CORS(app)
 def home(): 
     return "Fortune Teller Backend is running!" 
 
-from flask import Flask, request, jsonify
-import os, requests, time
 
 app = Flask(__name__)
 
-API_URL = "https://router.huggingface.co/v1/chat/completions"
-headers = {
-    "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
-}
 
 def query(payload, retries=3, delay=2):
     """Send request to Hugging Face with retry logic."""
+    API_URL = "https://router.huggingface.co/v1/chat/completions"
+    token = os.environ.get("HF_TOKEN")
+    if not token:
+        return jsonify({"error": "HF_TOKEN is not set"}), 500
+
+    headers = {"Authorization": f"Bearer {token}"}
+
     for attempt in range(retries):
         try:
             response = requests.post(API_URL, headers=headers, json=payload, timeout=20)
-            response.raise_for_status()  # raise if HTTP error
+            response.raise_for_status()
             return response.json()
         except Exception as e:
             if attempt < retries - 1:
@@ -55,7 +57,7 @@ def tarot():
     - Frame difficulties as opportunities for growth, reflection, or transformation.
     - Avoid alarming or discouraging phrasing; instead, highlight resilience, hope, and constructive paths forward.
     - Keep the tone mystical yet reassuring, so the customer feels guided rather than judged.
-    
+
     Cards drawn: {cards_list}
     """
 
