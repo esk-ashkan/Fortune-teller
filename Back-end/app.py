@@ -8,14 +8,9 @@ import os, requests, time
 load_dotenv() 
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "https://futureteller.netlify.app",
-            "http://localhost:5173"
-        ]
-    }
-})
+
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 
 
  
@@ -23,8 +18,6 @@ CORS(app, resources={
 def home(): 
     return "Fortune Teller Backend is running!" 
 
-
-app = Flask(__name__)
 
 
 def query(payload, retries=3, delay=2):
