@@ -1,48 +1,62 @@
-
 from flask_cors import CORS 
-import os 
+import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
-import os, requests, time
- 
+import requests
+import time
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 load_dotenv() 
 
 app = Flask(__name__)
-
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-
-
- 
 @app.route('/') 
 def home(): 
     return "Fortune Teller Backend is running!" 
-
-
 
 def query(payload, retries=3, delay=2):
     API_URL = "https://router.huggingface.co/v1/chat/completions"
     token = os.environ.get("HF_TOKEN")
 
     if not token:
+        logger.error("HF_TOKEN is not set")
         return {"error": "HF_TOKEN is not set"}
 
     headers = {"Authorization": f"Bearer {token}"}
 
     for attempt in range(retries):
         try:
-            response = requests.post(API_URL, headers=headers, json=payload, timeout=20)
+            logger.info(f"Attempt {attempt + 1}/{retries} to HuggingFace API")
+            response = requests.post(API_URL, headers=headers, json=payload, timeout=60)  # Increased timeout
             response.raise_for_status()
-            return response.json()
-        except Exception as e:
+            result = response.json()
+            logger.info("HuggingFace API call successful")
+            return result
+        except requests.exceptions.Timeout:
+            logger.warning(f"Attempt {attempt + 1} timed out")
+            if attempt < retries - 1:
+                time.sleep(delay * (attempt + 1))  # Exponential backoff
+            else:
+                return {"error": "API timeout after all retries"}
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request error: {str(e)}")
             if attempt < retries - 1:
                 time.sleep(delay)
             else:
-                return {"error": str(e)}
+                return {"error": f"Request failed: {str(e)}"}
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            return {"error": str(e)}
 
 @app.route('/tarot', methods=['GET'])
 def tarot():
-    print(f'----->Back-End is Called.')
+    logger.info('----->Back-End is Called.')
+    
     cards_list = request.args.getlist("cards_list[]")
     if not cards_list:
         return jsonify({"error": "No cards provided"}), 400
@@ -64,25 +78,29 @@ def tarot():
     """
 
     payload = {
-        "model": "meta-llama/Llama-3.1-70B-Instruct",
+        "model": "meta-llama/Llama-3.2-3B-Instruct",
         "messages": [
             {"role": "user", "content": prompt}
-        ]
+        ],
+        "max_tokens": 1024 
     }
-    print(f'----->AI API is ready.')
+    
+    logger.info('----->AI API is ready.')
     result = query(payload)
-    print(f'----->AI API is Requested.')
+    logger.info(f'----->AI API response: {result}')
 
     if "error" in result:
+        logger.error(f"AI API error: {result['error']}")
         return jsonify({
             "interpretation": "The spirits are quiet right now. Please try again in a moment.",
             "details": result.get("error", "Unknown error")
         }), 502
-    print(f'----->Interpretation: {result}')
+
     try:
         interpretation = result["choices"][0]["message"]["content"]
-        print(f'----->Interpretation: {interpretation}')
-    except (KeyError, TypeError, IndexError):
+        logger.info(f'----->Interpretation received successfully')
+    except (KeyError, TypeError, IndexError) as e:
+        logger.error(f"Failed to parse response: {e}")
         return jsonify({
             "interpretation": "The spirits are quiet right now. Please try again in a moment.",
             "details": "Invalid response format from Hugging Face"
@@ -90,14 +108,10 @@ def tarot():
 
     return jsonify({"interpretation": interpretation})
 
-
 @app.route('/health') 
 def health(): 
     return {"status": "ok"} 
- 
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
-
-
