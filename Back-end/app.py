@@ -6,9 +6,18 @@ from flask import Flask, request, jsonify
 import os, requests, time
  
 load_dotenv() 
- 
-app = Flask(__name__) 
-CORS(app) 
+
+app = Flask(__name__)
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://futureteller.netlify.app",
+            "http://localhost:5173"
+        ]
+    }
+})
+
+
  
 @app.route('/') 
 def home(): 
