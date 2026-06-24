@@ -79,7 +79,7 @@ def tarot():
             "interpretation": "The spirits are quiet right now. Please try again in a moment.",
             "details": result.get("error", "Unknown error")
         }), 502
-
+    print(f'----->Interpretation: {result}')
     try:
         interpretation = result["choices"][0]["message"]["content"]
         print(f'----->Interpretation: {interpretation}')
