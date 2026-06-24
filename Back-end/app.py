@@ -21,11 +21,11 @@ def home():
 
 
 def query(payload, retries=3, delay=2):
-    """Send request to Hugging Face with retry logic."""
     API_URL = "https://router.huggingface.co/v1/chat/completions"
     token = os.environ.get("HF_TOKEN")
+
     if not token:
-        return jsonify({"error": "HF_TOKEN is not set"}), 500
+        return {"error": "HF_TOKEN is not set"}
 
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -38,7 +38,6 @@ def query(payload, retries=3, delay=2):
             if attempt < retries - 1:
                 time.sleep(delay)
             else:
-                # Final failure
                 return {"error": str(e)}
 
 @app.route('/tarot', methods=['GET'])
@@ -74,7 +73,7 @@ def tarot():
     result = query(payload)
     print(f'----->AI API is Requested.')
 
-    if isinstance(result, dict) and "error" in result:
+    if "error" in result:
         return jsonify({
             "interpretation": "The spirits are quiet right now. Please try again in a moment.",
             "details": result.get("error", "Unknown error")
