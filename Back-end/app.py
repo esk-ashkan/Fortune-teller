@@ -50,6 +50,7 @@ def query(payload, retries=3, delay=2):
 
 @app.route('/tarot', methods=['GET'])
 def tarot():
+    print(f'----->Back-End is Called.')
     cards_list = request.args.getlist("cards_list")
     if not cards_list:
         return jsonify({"error": "No cards provided"}), 400
@@ -76,8 +77,9 @@ def tarot():
             {"role": "user", "content": prompt}
         ]
     }
-
+    print(f'----->AI API is ready.')
     result = query(payload)
+    print(f'----->AI API is Requested.')
 
     if isinstance(result, dict) and "error" in result:
         return jsonify({
@@ -87,6 +89,7 @@ def tarot():
 
     try:
         interpretation = result["choices"][0]["message"]["content"]
+        print(f'----->Interpretation: {interpretation}')
     except (KeyError, TypeError, IndexError):
         return jsonify({
             "interpretation": "The spirits are quiet right now. Please try again in a moment.",
