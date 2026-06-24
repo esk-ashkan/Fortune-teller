@@ -3,11 +3,14 @@ import { tarotCards } from "./tarot_cards";
 import CardsComponent from "./cards";
 import { useEffect, useMemo, useState } from "react";
 import Form from "react-bootstrap/Form";
+import axios from "axios";
+
 
 function Tarot() {
   const [cardsList, setCardsList] = useState<string[]>([]);
   const [maxNumOfCards, setMaxNumOfCards] = useState<number>(0);
   const [selectedCount, setSelectedCount] = useState<number>(0);
+  const [selectedCards, setSelectedCards] = useState<string[]>([]);
 
 
   const hand = useMemo(() => {
@@ -35,9 +38,25 @@ function Tarot() {
 
       const next = prev + 1;
       console.log("----->one card is selected!", cardName, `(${next}/${maxNumOfCards})`);
+      setSelectedCards(prev => [...prev, cardName])
 
       if (next === maxNumOfCards) {
         console.log("----->Now, It's time to tell you everything");
+        axios
+          .post("https://jsonplaceholder.typicode.com/posts", {
+            title: "foo",
+            body: "bar",
+            userId: 1,
+          })
+          .then((response) => {
+            console.log(response.data);
+          })
+          .catch((error) => {
+            console.error(error);
+          })
+          .finally(() => {
+            console.log("Request completed");
+          });
       }
       return next;
     });
@@ -55,10 +74,9 @@ function Tarot() {
           "linear-gradient(180deg, #f3e7c9 0%, #f6f0dd 40%, #efe0c1 100%)",
       }}
     >
-      <Container className="py-4">
-        {/* Header */}
+      <Container className="p-2">
         <div
-          className="p-1 mb-4"
+          className="p-2 mb-4"
           style={{
             border: "1px solid rgba(110, 70, 25, 0.35)",
             borderRadius: 18,
