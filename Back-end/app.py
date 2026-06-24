@@ -44,7 +44,7 @@ def query(payload, retries=3, delay=2):
 @app.route('/tarot', methods=['GET'])
 def tarot():
     print(f'----->Back-End is Called.')
-    cards_list = request.args.getlist("cards_list")
+    cards_list = request.args.getlist("cards_list[]")
     if not cards_list:
         return jsonify({"error": "No cards provided"}), 400
 
