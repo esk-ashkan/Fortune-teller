@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS 
 import os 
 from dotenv import load_dotenv 
+import requests
  
 load_dotenv() 
  
@@ -11,7 +12,79 @@ CORS(app)
 @app.route('/') 
 def home(): 
     return "Fortune Teller Backend is running!" 
- 
+
+from flask import Flask, request, jsonify
+import os, requests, time
+
+app = Flask(__name__)
+
+API_URL = "https://router.huggingface.co/v1/chat/completions"
+headers = {
+    "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
+}
+
+def query(payload, retries=3, delay=2):
+    """Send request to Hugging Face with retry logic."""
+    for attempt in range(retries):
+        try:
+            response = requests.post(API_URL, headers=headers, json=payload, timeout=20)
+            response.raise_for_status()  # raise if HTTP error
+            return response.json()
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(delay)
+            else:
+                # Final failure
+                return {"error": str(e)}
+
+@app.route('/tarot', methods=['GET'])
+def tarot():
+    cards_list = request.args.getlist("cards_list")
+    if not cards_list:
+        return jsonify({"error": "No cards provided"}), 400
+
+    prompt = f"""
+    You are an experienced Tarot reader.
+    Your role is to interpret the meaning of Tarot cards according to traditional Tarot principles, symbolism, and archetypes.
+    Always respect the established meanings of the Major Arcana and Minor Arcana, including upright and reversed positions.
+    Provide interpretations that are mystical, symbolic, and psychologically insightful, but avoid generic fortune-telling clichés.
+    When multiple cards are drawn, explain both the individual meanings and how they interact together in the spread.
+
+    Tone guidelines:
+    - Use gentle, compassionate language, even when the interpretation is challenging.
+    - Frame difficulties as opportunities for growth, reflection, or transformation.
+    - Avoid alarming or discouraging phrasing; instead, highlight resilience, hope, and constructive paths forward.
+    - Keep the tone mystical yet reassuring, so the customer feels guided rather than judged.
+    
+    Cards drawn: {cards_list}
+    """
+
+    payload = {
+        "model": "meta-llama/Llama-3.3-70B-Instruct:groq",
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    result = query(payload)
+
+    if isinstance(result, dict) and "error" in result:
+        return jsonify({
+            "interpretation": "The spirits are quiet right now. Please try again in a moment.",
+            "details": result.get("error", "Unknown error")
+        }), 502
+
+    try:
+        interpretation = result["choices"][0]["message"]["content"]
+    except (KeyError, TypeError, IndexError):
+        return jsonify({
+            "interpretation": "The spirits are quiet right now. Please try again in a moment.",
+            "details": "Invalid response format from Hugging Face"
+        }), 502
+
+    return jsonify({"interpretation": interpretation})
+
+
 @app.route('/health') 
 def health(): 
     return {"status": "ok"} 

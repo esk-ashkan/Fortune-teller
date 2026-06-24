@@ -15,9 +15,15 @@ function Tarot() {
 
   const hand = useMemo(() => {
     const picked = new Set<number>();
-    while (picked.size < 21) picked.add(Math.floor(Math.random() * tarotCards.length));
-    return Array.from(picked).map((i) => tarotCards[i].name);
+    while (picked.size < 21) {
+      picked.add(Math.floor(Math.random() * tarotCards.length));
+    }
+    return Array.from(picked).map((i) => {
+      const orientation = Math.random() >= 0.5 ? " (upright)" : " (reversed)";
+      return tarotCards[i].name + orientation;
+    });
   }, []);
+
 
   useEffect(() => {
     setCardsList(hand);
@@ -42,20 +48,16 @@ function Tarot() {
 
       if (next === maxNumOfCards) {
         console.log("----->Now, It's time to tell you everything");
+
         axios
-          .post("https://jsonplaceholder.typicode.com/posts", {
-            title: "foo",
-            body: "bar",
-            userId: 1,
+          .get("https://fortune-teller-production-d4ea.up.railway.app/tarot", {
+            params: { cards_list: [...selectedCards, cardName] }
           })
           .then((response) => {
-            console.log(response.data);
+            console.log("Tarot interpretation:", response.data.interpretation);
           })
           .catch((error) => {
-            console.error(error);
-          })
-          .finally(() => {
-            console.log("Request completed");
+            console.error("Tarot API error:", error);
           });
       }
       return next;
