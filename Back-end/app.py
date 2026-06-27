@@ -128,6 +128,16 @@ def tarot():
 
     return jsonify({"interpretation": interpretation})
 
+import socket
+
+@app.route("/dns-test")
+def dns_test():
+    try:
+        ip = socket.gethostbyname("api-inference.huggingface.co")
+        return {"resolved_ip": ip}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
 @app.route('/health') 
 def health(): 
     return {"status": "ok"} 
@@ -135,3 +145,6 @@ def health():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
+
+    ############################
