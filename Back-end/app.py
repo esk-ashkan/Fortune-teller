@@ -138,6 +138,18 @@ def dns_test():
     except Exception as e:
         return {"error": str(e)}, 500
 
+import socket
+
+@app.route("/dns-google")
+def dns_google():
+    try:
+        return {
+            "google": socket.gethostbyname("google.com"),
+            "cloudflare": socket.gethostbyname("cloudflare.com"),
+        }
+    except Exception as e:
+        return {"error": str(e)}, 500
+    
 @app.route('/health') 
 def health(): 
     return {"status": "ok"} 
