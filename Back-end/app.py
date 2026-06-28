@@ -30,11 +30,12 @@ client = OpenAI(
 
 
 def query(prompt: str):
+    logger.info("Calling model: meta-llama/llama-3.2-3b-instruct:free")
     try:
         logger.info("Calling OpenRouter...")
 
         completion = client.chat.completions.create(
-            model="openai/gpt-oss-120b:free",
+            model="meta-llama/llama-3.2-3b-instruct:free",
             messages=[
                 {
                     "role": "system",
@@ -59,6 +60,8 @@ def query(prompt: str):
         }
 
     except Exception as e:
+        logger.exception("OpenRouter error")
+        logger.error(repr(e))
         return {"error": str(e)}
     
 @app.route('/tarot', methods=['GET'])
@@ -112,7 +115,7 @@ def tarot():
 
     return jsonify({"interpretation": interpretation})
 
-@app.route('/health') 
+@app.route('/env-test') 
 def health(): 
     return {"status": "ok"} 
 
