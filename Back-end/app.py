@@ -18,8 +18,13 @@ def home():
     return "Fortune Teller Backend is running!" 
 
 
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+if not OPENROUTER_API_KEY:
+    raise RuntimeError("OPENROUTER_API_KEY is missing.")
+
 client = OpenAI(
-    api_key=os.environ["OPENROUTER_API_KEY"],
+    api_key=OPENROUTER_API_KEY,
     base_url="https://openrouter.ai/api/v1",
 )
 
@@ -33,10 +38,8 @@ def query(prompt: str):
             messages=[
                 {
                     "role": "system",
-                    "content": (
-                        "You are an experienced Tarot reader. "
-                        "Provide mystical, compassionate, psychologically insightful interpretations."
-                    )
+                    "content":
+                        "You are an experienced Tarot reader."
                 },
                 {
                     "role": "user",
@@ -56,10 +59,7 @@ def query(prompt: str):
         }
 
     except Exception as e:
-        logger.exception("OpenRouter error")
-        return {
-            "error": str(e)
-        }
+        return {"error": str(e)}
     
 @app.route('/tarot', methods=['GET'])
 def tarot():
@@ -107,7 +107,7 @@ def tarot():
         logger.error(f"Failed to parse response: {e}, result: {result}")
         return jsonify({
             "interpretation": "The spirits are quiet right now. Please try again in a moment.",
-            "details": "Invalid response format from Hugging Face"
+            "details": "Invalid response format from AI provider"
         }), 502
 
     return jsonify({"interpretation": interpretation})
