@@ -233,5 +233,3 @@ function Tarot() {
 }
 
 export default Tarot;
-
-///////////////////////////
