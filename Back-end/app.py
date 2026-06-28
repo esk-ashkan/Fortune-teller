@@ -2,11 +2,9 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
-import requests
-import time
+from openai import OpenAI
 import logging
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -19,46 +17,50 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 def home(): 
     return "Fortune Teller Backend is running!" 
 
-def query(payload, retries=3, delay=2):
-    # Use the correct HuggingFace Inference API endpoint
-    API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-    token = os.environ.get("HF_TOKEN")
 
-    if not token:
-        logger.error("HF_TOKEN is not set")
-        return {"error": "HF_TOKEN is not set"}
+client = OpenAI(
+    api_key=os.environ["OPENROUTER_API_KEY"],
+    base_url="https://openrouter.ai/api/v1",
+)
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
 
-    for attempt in range(retries):
-        try:
-            logger.info(f"Attempt {attempt + 1}/{retries} to HuggingFace API")
-            response = requests.post(API_URL, headers=headers, json=payload, timeout=90)
-            response.raise_for_status()
-            result = response.json()
-            logger.info("HuggingFace API call successful")
-            return result
-        except requests.exceptions.Timeout:
-            logger.warning(f"Attempt {attempt + 1} timed out")
-            if attempt < retries - 1:
-                time.sleep(delay * (attempt + 1))
-            else:
-                return {"error": "API timeout after all retries"}
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request error: {str(e)}")
-            if response := getattr(e, 'response', None):
-                logger.error(f"Response content: {response.text[:500]}")
-            if attempt < retries - 1:
-                time.sleep(delay)
-            else:
-                return {"error": f"Request failed: {str(e)}"}
-        except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
-            return {"error": str(e)}
+def query(prompt: str):
+    try:
+        logger.info("Calling OpenRouter...")
 
+        completion = client.chat.completions.create(
+            model="openai/gpt-oss-120b:free",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an experienced Tarot reader. "
+                        "Provide mystical, compassionate, psychologically insightful interpretations."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.7,
+            max_tokens=1000,
+        )
+
+        interpretation = completion.choices[0].message.content
+
+        logger.info("OpenRouter request successful.")
+
+        return {
+            "generated_text": interpretation
+        }
+
+    except Exception as e:
+        logger.exception("OpenRouter error")
+        return {
+            "error": str(e)
+        }
+    
 @app.route('/tarot', methods=['GET'])
 def tarot():
     logger.info('----->Back-End is Called.')
@@ -67,7 +69,6 @@ def tarot():
     if not cards_list:
         return jsonify({"error": "No cards provided"}), 400
 
-    # Format cards as a clean string
     cards_text = ", ".join(cards_list)
 
     prompt =f"""You are an experienced Tarot reader.
@@ -83,20 +84,9 @@ def tarot():
                 - Keep the tone mystical yet reassuring, so the customer feels guided rather than judged.
 
                 Cards drawn: {cards_text}"""
-
-    
-    payload = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 1024,
-            "temperature": 0.7,
-            "top_p": 0.95,
-            "return_full_text": False
-        }
-    }
     
     logger.info('----->AI API is ready.')
-    result = query(payload)
+    result = query(prompt)
     logger.info(f'----->AI API response: {result}')
 
     if "error" in result:
@@ -107,13 +97,7 @@ def tarot():
         }), 502
 
     try:
-        # HuggingFace text generation returns list of dicts with 'generated_text'
-        if isinstance(result, list) and len(result) > 0:
-            interpretation = result[0].get("generated_text", "")
-        elif isinstance(result, dict):
-            interpretation = result.get("generated_text", "") or result.get("text", "")
-        else:
-            interpretation = str(result)
+        interpretation = result.get("generated_text", "")
             
         if not interpretation:
             raise ValueError("Empty response from API")
@@ -128,28 +112,6 @@ def tarot():
 
     return jsonify({"interpretation": interpretation})
 
-import socket
-
-@app.route("/dns-test")
-def dns_test():
-    try:
-        ip = socket.gethostbyname("api-inference.huggingface.co")
-        return {"resolved_ip": ip}
-    except Exception as e:
-        return {"error": str(e)}, 500
-
-import socket
-
-@app.route("/dns-google")
-def dns_google():
-    try:
-        return {
-            "google": socket.gethostbyname("google.com"),
-            "cloudflare": socket.gethostbyname("cloudflare.com"),
-        }
-    except Exception as e:
-        return {"error": str(e)}, 500
-    
 @app.route('/health') 
 def health(): 
     return {"status": "ok"} 
@@ -157,6 +119,3 @@ def health():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
-
-
-    ############################
