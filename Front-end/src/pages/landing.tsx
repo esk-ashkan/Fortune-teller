@@ -1,9 +1,9 @@
 import { Container, Row, Col } from "react-bootstrap";
 import SelectComponent from "../components/selectcomponent";
-import { GiStarSattelites, GiCardPickup } from "react-icons/gi";
-import { FaCoffee, FaSparkles, FaMoon } from "react-icons/fa";
+import { GiStarSattelites, GiCardPickup, GiSparkles } from "react-icons/gi";
+import { FaCoffee, FaMoon } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import "../components/landing.css";
+import "./landing.css";
 
 function Landing() {
   const [mounted, setMounted] = useState(false);
@@ -42,7 +42,7 @@ function Landing() {
           
           <div className="cosmic-divider">
             <span className="cosmic-divider-line"></span>
-            <FaSparkles className="cosmic-divider-icon" />
+            <GiSparkles className="cosmic-divider-icon" />
             <span className="cosmic-divider-line"></span>
           </div>
           
