@@ -14,7 +14,6 @@ import os
 load_dotenv()
 
 print("---- ENV TEST ----")
-print("HF_TOKEN =", os.getenv("HF_TOKEN"))
 print("OPENROUTER_API_KEY =", os.getenv("OPENROUTER_API_KEY"))
 print("------------------")
 
