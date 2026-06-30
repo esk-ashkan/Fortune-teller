@@ -50,11 +50,11 @@ function Tarot() {
         console.log("----->Now, It's time to tell you everything");
 
         axios
-          .get("diplomatic-learning-production-103a.up.railway.app/tarot", {
+          .get("https://diplomatic-learning-production-103a.up.railway.app/tarot", {
             params: { cards_list: [...selectedCards, cardName] }
           })
           .then((response) => {
-            console.log("Tarot interpretation:", response.data.interpretation);
+            console.log("Tarot interpretation:", response.data);
           })
           .catch((error) => {
             console.error("Tarot API error:", error);
