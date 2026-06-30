@@ -1,56 +1,310 @@
+/* ============================================
+   COSMIC THEME - LANDING PAGE
+   Modern, Provocative, Gorgeous
+   ============================================ */
 
-.cosmic-bg {
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;600;700;900&display=swap');
+
+/* Reset & Base */
+.cosmic-wrapper {
   min-height: 100vh;
-  background: radial-gradient(circle at 50% 20%, #6a00ff, #2b0057, #0d001f);
   position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 30%, #2d1b4e 60%, #0f0f23 100%);
+  font-family: 'Vazirmatn', sans-serif;
+  direction: rtl;
+}
+
+/* Background Layers */
+.cosmic-bg-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cosmic-bg-stars {
+  background-image: 
+    radial-gradient(1.5px 1.5px at 20px 30px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1.5px 1.5px at 40px 70px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1.5px 1.5px at 130px 80px, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 160px 20px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(2px 2px at 200px 60px, rgba(255,215,0,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 250px 90px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 300px 30px, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 350px 70px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(2px 2px at 400px 50px, rgba(147,112,219,0.3), transparent);
+  background-size: 400px 100px;
+  animation: cosmicStarsMove 100s linear infinite;
+}
+
+@keyframes cosmicStarsMove {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100px); }
+}
+
+.cosmic-bg-nebula {
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(138,43,226,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(255,105,180,0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(0,191,255,0.1) 0%, transparent 45%);
+  filter: blur(40px);
+}
+
+.cosmic-bg-aurora {
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(138,43,226,0.05) 25%, 
+    rgba(255,105,180,0.05) 50%, 
+    rgba(0,191,255,0.05) 75%, 
+    transparent 100%);
+  animation: cosmicAurora 8s ease-in-out infinite alternate;
+}
+
+@keyframes cosmicAurora {
+  0% { opacity: 0.3; transform: translateX(-10%); }
+  100% { opacity: 0.7; transform: translateX(10%); }
+}
+
+/* Floating Particles */
+.cosmic-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   overflow: hidden;
 }
 
-.cosmic-bg::before,
-.cosmic-bg::after {
-  content: "";
+.cosmic-particle {
   position: absolute;
-  width: 600px;
-  height: 600px;
-  background: url('/persian-pattern.svg') no-repeat center/contain;
-  opacity: 0.08;
-  animation: float 18s infinite ease-in-out;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  animation: cosmicFloat linear infinite;
 }
 
-.cosmic-bg::before {
-  top: -100px;
-  left: -150px;
+.cosmic-particle-0 { background: rgba(255,215,0,0.6); left: 10%; animation-duration: 15s; animation-delay: 0s; }
+.cosmic-particle-1 { background: rgba(147,112,219,0.6); left: 25%; animation-duration: 18s; animation-delay: 2s; width: 3px; height: 3px; }
+.cosmic-particle-2 { background: rgba(255,105,180,0.5); left: 40%; animation-duration: 12s; animation-delay: 5s; width: 5px; height: 5px; }
+.cosmic-particle-3 { background: rgba(0,191,255,0.5); left: 60%; animation-duration: 20s; animation-delay: 1s; width: 3px; height: 3px; }
+.cosmic-particle-4 { background: rgba(255,215,0,0.4); left: 80%; animation-duration: 16s; animation-delay: 3s; }
+
+@keyframes cosmicFloat {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
 }
 
-.cosmic-bg::after {
-  bottom: -120px;
-  right: -150px;
-  animation-delay: 4s;
+/* Content Container */
+.cosmic-content {
+  position: relative;
+  z-index: 10;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-@keyframes float {
-  0% { transform: scale(1) translateY(0); }
-  50% { transform: scale(1.05) translateY(-20px); }
-  100% { transform: scale(1) translateY(0); }
+/* Header Section */
+.cosmic-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  transform: translateY(20px);
 }
 
-/* Hero overlay */
-.hero-overlay {
-  backdrop-filter: blur(6px);
-  padding-bottom: 80px;
+.cosmic-fade-in {
+  animation: cosmicFadeIn 1s ease-out forwards;
 }
 
-/* Typography */
-.hero-title {
-  font-size: 4rem;
+@keyframes cosmicFadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cosmic-fade-in-delay {
+  animation: cosmicFadeIn 1s ease-out 0.5s forwards;
+  opacity: 0;
+}
+
+/* Moon Icon */
+.cosmic-moon-wrapper {
+  position: relative;
+  display: inline-flex;
+  margin-bottom: 1rem;
+}
+
+.cosmic-moon-icon {
+  font-size: 3rem;
   color: #ffd700;
-  text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
-  font-family: "Nastaliq", serif;
+  filter: drop-shadow(0 0 15px rgba(255,215,0,0.5));
+  animation: cosmicMoonPulse 3s ease-in-out infinite;
 }
 
-.hero-subtitle {
-  font-size: 1.6rem;
-  color: #e8d7ff;
-  margin-top: 10px;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+@keyframes cosmicMoonPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(255,215,0,0.5)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 25px rgba(255,215,0,0.8)); }
+}
+
+.cosmic-moon-glow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,215,0,0.2) 0%, transparent 70%);
+  animation: cosmicGlowPulse 3s ease-in-out infinite;
+}
+
+@keyframes cosmicGlowPulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.3); opacity: 0.8; }
+}
+
+/* Title */
+.cosmic-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin: 0;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cosmic-title-line {
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 50%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(255,255,255,0.1);
+}
+
+.cosmic-title-accent {
+  font-size: 3.5rem;
+  background: linear-gradient(135deg, #ffd700 0%, #ff69b4 50%, #9370db 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(255,215,0,0.3));
+  animation: cosmicTitleShine 3s ease-in-out infinite;
+}
+
+@keyframes cosmicTitleShine {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(255,215,0,0.3)); }
+  50% { filter: drop-shadow(0 0 40px rgba(255,105,180,0.5)); }
+}
+
+/* Divider */
+.cosmic-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.cosmic-divider-line {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
+.cosmic-divider-icon {
+  color: #ffd700;
+  font-size: 1rem;
+  animation: cosmicSparkle 2s ease-in-out infinite;
+}
+
+@keyframes cosmicSparkle {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Subtitle */
+.cosmic-subtitle {
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: rgba(255,255,255,0.7);
+  margin: 0 0 1rem;
+  line-height: 1.6;
+}
+
+/* Tags */
+.cosmic-tagline {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.cosmic-tag {
+  padding: 0.35rem 0.9rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+}
+
+/* Cards Row */
+.cosmic-cards-row {
+  width: 100%;
+  max-width: 400px;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.cosmic-slide-up {
+  animation: cosmicSlideUp 0.8s ease-out 0.3s forwards;
+}
+
+@keyframes cosmicSlideUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Footer */
+.cosmic-footer {
+  margin-top: 2.5rem;
+  text-align: center;
+  opacity: 0;
+}
+
+.cosmic-footer-text {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.cosmic-footer-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.cosmic-footer-star {
+  color: rgba(255,215,0,0.4);
+  font-size: 0.8rem;
+  animation: cosmicStarTwinkle 2s ease-in-out infinite;
+}
+
+.cosmic-footer-star:nth-child(2) { animation-delay: 0.3s; }
+.cosmic-footer-star:nth-child(3) { animation-delay: 0.6s; }
+.cosmic-footer-star:nth-child(4) { animation-delay: 0.9s; }
+.cosmic-footer-star:nth-child(5) { animation-delay: 1.2s; }
+
+@keyframes cosmicStarTwinkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 576px) {
+  .cosmic-title { font-size: 2rem; }
+  .cosmic-title-accent { font-size: 2.8rem; }
+  .cosmic-subtitle { font-size: 0.95rem; }
+  .cosmic-content { padding: 1.5rem 1rem; }
 }

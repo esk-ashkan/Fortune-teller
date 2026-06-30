@@ -13,10 +13,6 @@ import os
 
 load_dotenv()
 
-print("---- ENV TEST ----")
-print("OPENROUTER_API_KEY =", os.getenv("OPENROUTER_API_KEY"))
-print("------------------")
-
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -82,17 +78,19 @@ def tarot():
     cards_text = ", ".join(cards_list)
 
     prompt =f"""You are an experienced Tarot reader.
-                Your role is to interpret the meaning of Tarot cards according to traditional Tarot principles, symbolism, and archetypes.
-                Always respect the established meanings of the Major Arcana and Minor Arcana, including upright and reversed positions.
-                Provide interpretations that are mystical, symbolic, and psychologically insightful, but avoid generic fortune-telling clichés.
-                When multiple cards are drawn, explain both the individual meanings and how they interact together in the spread.
 
-                Tone guidelines:
-                - Use gentle, compassionate language, even when the interpretation is challenging.
-                - Frame difficulties as opportunities for growth, reflection, or transformation.
-                - Avoid alarming or discouraging phrasing; instead, highlight resilience, hope, and constructive paths forward.
-                - Keep the tone mystical yet reassuring, so the customer feels guided rather than judged.
+                Interpret Tarot cards according to traditional symbolism.
 
+                Your interpretations should be:
+                - mystical
+                - psychologically insightful
+                - compassionate
+                - encouraging
+                - avoid deterministic predictions
+                - explain both each card and the spread as a whole
+                - Maximum 200 word
+
+                Write in fluent Markdown.
                 Cards drawn: {cards_text}"""
     
     logger.info('----->AI API is ready.')
