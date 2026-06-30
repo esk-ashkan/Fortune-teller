@@ -37,12 +37,12 @@ client = OpenAI(
 
 
 def query(prompt: str):
-    logger.info("Calling model: meta-llama/llama-3.2-3b-instruct:free")
+    logger.info("Calling model: openai/gpt-oss-20b:free")
     try:
         logger.info("Calling OpenRouter...")
 
         completion = client.chat.completions.create(
-            model="meta-llama/llama-3.2-3b-instruct:free",
+            model="openai/gpt-oss-20b:free",
             messages=[
                 {
                     "role": "system",
