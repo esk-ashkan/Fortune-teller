@@ -50,7 +50,7 @@ function Tarot() {
         console.log("----->Now, It's time to tell you everything");
 
         axios
-          .get("https://fortune-teller-production-d4ea.up.railway.app/tarot", {
+          .get("diplomatic-learning-production-103a.up.railway.app/tarot", {
             params: { cards_list: [...selectedCards, cardName] }
           })
           .then((response) => {
