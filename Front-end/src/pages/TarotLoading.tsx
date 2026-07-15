@@ -8,7 +8,6 @@ interface TarotLoadingProps {
 
 const TarotLoading = ({ isVisible, onComplete }: TarotLoadingProps) => {
   const [phase, setPhase] = useState(0);
-  const [cardReveal, setCardReveal] = useState(0);
   const [shuffling, setShuffling] = useState(false);
 
     const fortuneMessages = [
@@ -26,14 +25,12 @@ const TarotLoading = ({ isVisible, onComplete }: TarotLoadingProps) => {
   useEffect(() => {
     if (!isVisible) {
       setPhase(0);
-      setCardReveal(0);
       return;
     }
 
     // Phase 1: Shuffling
     setShuffling(true);
     const shuffleInterval = setInterval(() => {
-      setCardReveal((prev) => (prev + 1) % 3);
     }, 300);
 
     // Phase 2: Reading after 2 seconds

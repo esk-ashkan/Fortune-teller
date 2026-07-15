@@ -1,7 +1,6 @@
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import Button from "react-bootstrap/Button";
-import { useGeolocation } from "@uidotdev/usehooks";
 import { iranCities } from "../../iran_cities";
 import { useState } from "react";
 import axios from "axios";
