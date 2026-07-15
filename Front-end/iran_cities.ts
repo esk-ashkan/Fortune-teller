@@ -1,20 +1,15 @@
-export interface Cities{
-  name:string,
-  latitude:string,
-  longitude:string,
-  altitude:string,
-}
 export interface City {
   name: string;
   latitude: string;
   longitude: string;
-  altitude: string;
+  altitude: number;
 }
 
 export interface IranCities {
   name: string;
   cities: City[];
 }
+
 
 
 export const iranCities: IranCities[] =[
