@@ -1,0 +1,364 @@
+/* ===== Persian Container ===== */
+.persian-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: linear-gradient(145deg, #fdf6ee 0%, #f5e6d3 100%);
+  border-radius: 32px;
+  box-shadow: 
+    0 20px 60px rgba(139, 69, 19, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid #e8d5c4;
+  position: relative;
+  font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===== Decorative Header ===== */
+.header-decoration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ornament {
+  color: #8B5A2B;
+  font-size: 1.5rem;
+  opacity: 0.6;
+}
+
+.persian-title {
+  font-family: 'Vazirmatn', 'Traditional Arabic', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #5C3D2E;
+  text-shadow: 0 2px 4px rgba(92, 61, 46, 0.1);
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+/* ===== Divider ===== */
+.divider {
+  text-align: center;
+  margin: 0.5rem 0 2rem 0;
+}
+
+.divider-text {
+  color: #B8956A;
+  font-size: 1rem;
+  letter-spacing: 0.5rem;
+  opacity: 0.7;
+}
+
+/* ===== Fortune Card ===== */
+.fortune-card {
+  background: rgba(255, 248, 240, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 24px;
+  border: 1px solid rgba(139, 69, 19, 0.15);
+  box-shadow: 
+    0 4px 20px rgba(139, 69, 19, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ===== Persian Label ===== */
+.persian-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #5C3D2E;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.label-icon {
+  font-size: 1.3rem;
+}
+
+/* ===== Upload Zone ===== */
+.upload-zone {
+  position: relative;
+  border: 2px dashed #D4B8A0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  background: rgba(255, 248, 240, 0.5);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-zone:hover {
+  border-color: #8B5A2B;
+  background: rgba(255, 248, 240, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
+}
+
+.persian-file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: #8B5A2B;
+}
+
+.upload-icon {
+  font-size: 2.5rem;
+}
+
+.upload-hint {
+  font-size: 0.8rem;
+  color: #B8956A;
+}
+
+/* ===== Selected Files ===== */
+.selected-files {
+  margin-top: 1.5rem;
+  background: #fff9f4;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #e8d5c4;
+}
+
+.files-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #5C3D2E;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e8d5c4;
+}
+
+.file-count {
+  background: #8B5A2B;
+  color: white;
+  padding: 0.1rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.file-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.3rem;
+  border-bottom: 1px solid #f0e4d8;
+  transition: background 0.2s;
+}
+
+.file-item:hover {
+  background: #f5ede6;
+  border-radius: 8px;
+}
+
+.file-icon {
+  font-size: 1.2rem;
+}
+
+.file-name {
+  flex: 1;
+  color: #4A3525;
+  font-size: 0.95rem;
+}
+
+.file-size {
+  color: #B8956A;
+  font-size: 0.8rem;
+  background: #f0e4d8;
+  padding: 0.1rem 0.6rem;
+  border-radius: 12px;
+}
+
+/* ===== Persian Hint ===== */
+.persian-hint {
+  display: block;
+  margin-top: 1rem;
+  color: #8B5A2B;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* ===== Submit Button ===== */
+.persian-submit-btn {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #5C3D2E 0%, #8B5A2B 100%) !important;
+  border: none !important;
+  border-radius: 16px !important;
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  color: #fdf6ee !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.persian-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4) !important;
+  background: linear-gradient(135deg, #4A3525 0%, #6B442A 100%) !important;
+}
+
+.persian-submit-btn:active:not(:disabled) {
+  transform: translateY(0px) !important;
+}
+
+.persian-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Loading Spinner ===== */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Fortune Result ===== */
+.fortune-result {
+  margin-top: 2rem;
+  background: linear-gradient(145deg, #fff9f4 0%, #f5ede6 100%);
+  border-radius: 24px;
+  padding: 2rem;
+  border: 1px solid #e8d5c4;
+  box-shadow: 
+    0 8px 30px rgba(139, 69, 19, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fortune-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.fortune-icon {
+  font-size: 2rem;
+}
+
+.fortune-title {
+  font-family: 'Vazirmatn', 'Traditional Arabic', serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #5C3D2E;
+  margin: 0;
+}
+
+.fortune-content {
+  background: rgba(255, 248, 240, 0.6);
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(139, 69, 19, 0.08);
+}
+
+.fortune-text {
+  color: #3D2A1C;
+  font-size: 1.1rem;
+  line-height: 2;
+  text-align: justify;
+  margin: 0;
+  font-weight: 400;
+}
+
+.fortune-footer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.fortune-ornament {
+  color: #B8956A;
+  font-size: 1.2rem;
+  opacity: 0.5;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .persian-container {
+    padding: 1rem;
+    margin: 1rem;
+    border-radius: 20px;
+  }
+
+  .persian-title {
+    font-size: 1.8rem;
+  }
+
+  .fortune-card {
+    padding: 1.2rem;
+  }
+
+  .fortune-result {
+    padding: 1.2rem;
+  }
+
+  .fortune-text {
+    font-size: 1rem;
+  }
+
+  .upload-zone {
+    padding: 1rem;
+  }
+
+  .file-item {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .file-name {
+    width: 100%;
+    font-size: 0.85rem;
+  }
+}

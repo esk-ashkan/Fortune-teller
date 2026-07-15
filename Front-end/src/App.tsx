@@ -3,6 +3,7 @@ import Landingpage from "./pages/landing"
 import Tarot  from "./pages/tarot";
 import Coffee from "./pages/coffee";
 import Stars from "./pages/stars";
+import TeleUserData from "./pages/user";
 
 function App() {
   return (
@@ -11,6 +12,8 @@ function App() {
       <Route path="/tarot" element={<Tarot />} />
       <Route path="/coffee" element={<Coffee />} />
       <Route path="/stars" element={<Stars />} />
+      <Route path="/user" element={<TeleUserData />} />
+
     </Routes>
   );
 }
