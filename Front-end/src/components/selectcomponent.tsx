@@ -21,7 +21,7 @@ function SelectComponent({
   icon,
   description = "",
   badge = "",
-  situation = true,  // Default to true
+  situation = true, 
   disabled = false,
   size
 }: SelectInterface) {

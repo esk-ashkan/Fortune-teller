@@ -84,7 +84,7 @@ function Landing() {
               color="stars-btn"
               icon={<GiStarSattelites />}
               to="/stars"
-              onSelect={() => navigate("/stars")}l 
+              onSelect={() => navigate("/stars")} 
               description="ستارگان، سرنوشت شما"
               badge="به‌زودی"
               situation={false}
