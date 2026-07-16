@@ -38,7 +38,7 @@ function Tarot() {
     setMaxNumOfCards(v);
     setSelectedCount(0);
     setSelectedCards([]);
-    setIsLoading(false); // Reset loading state
+    setIsLoading(false); 
   };
 
   const handleSelectedCard = (cardName: string) => {
@@ -52,11 +52,10 @@ function Tarot() {
     setSelectedCount(nextCount);
 
     if (nextCount === maxNumOfCards) {
-      // Start loading animation
       setIsLoading(true);
 
       axios
-        .get("http://127.0.0.1:5000/tarot", {
+        .get("https://fortune-teller-nhy4.onrender.com/tarot", {
           params: {
             cards_list: newSelectedCards,
           },
@@ -91,7 +90,6 @@ function Tarot() {
           </a>
         </div>
 
-        {/* Header Card */}
         <div className="tarot-header">
           <h2 className="tarot-title">فال تاروت</h2>
           <p className="tarot-subtitle">رویای کهنِ رنگ و رمز</p>

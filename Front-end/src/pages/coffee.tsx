@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
-import './Coffee.css'; // We'll create this
+import './Coffee.css';
 
 export default function Coffee() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -35,7 +35,7 @@ export default function Coffee() {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://127.0.0.1:5000/coffee",
+        "https://fortune-teller-nhy4.onrender.com/coffee",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" }

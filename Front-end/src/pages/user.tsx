@@ -57,8 +57,6 @@ const TeleUserData: React.FC = () => {
         const initData = parseInitData();
         if (initData) {
             setData(initData);
-            
-            // Send to backend for verification
             verifyUserOnServer(initData);
         }
     }, []);

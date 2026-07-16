@@ -38,7 +38,7 @@ export default function Stars() {
     };
 
     try {
-      const response = await axios.get("http://127.0.0.1:5000/stars", {
+      const response = await axios.get("https://fortune-teller-nhy4.onrender.com/stars", {
         params: {
           lat: selectedCity?.latitude,
           long: selectedCity?.longitude,
