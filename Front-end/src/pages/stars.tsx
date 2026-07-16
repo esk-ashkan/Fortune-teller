@@ -9,7 +9,7 @@ export interface Cities {
   name: string;
   latitude: string;
   longitude: string;
-  altitude: string;
+  altitude: number;
 }
 
 export default function Stars() {
