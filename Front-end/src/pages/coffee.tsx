@@ -53,7 +53,6 @@ export default function Coffee() {
 
   return (
     <div className="persian-container">
-      {/* Decorative Header */}
       <div className="header-decoration">
         <div className="ornament">✦</div>
         <h1 className="persian-title">☕ فال قهوه</h1>
@@ -63,8 +62,6 @@ export default function Coffee() {
       <div className="divider">
         <span className="divider-text">✦ ✦ ✦</span>
       </div>
-
-      {/* Main Card */}
       <div className="fortune-card">
         <Form.Group controlId="formFileMultiple" className="mb-4">
           <Form.Label className="persian-label">
@@ -86,8 +83,6 @@ export default function Coffee() {
               <span className="upload-hint">(jpg, png, webp)</span>
             </label>
           </div>
-
-          {/* Selected Files Display */}
           {selectedImages.length > 0 && (
             <div className="selected-files">
               <div className="files-header">
@@ -117,7 +112,6 @@ export default function Coffee() {
           </Form.Text>
         </Form.Group>
 
-        {/* Submit Button */}
         <Button
           variant="dark"
           onClick={handleSendImages}
@@ -134,8 +128,6 @@ export default function Coffee() {
           )}
         </Button>
       </div>
-
-      {/* Fortune Result */}
       {fortuneText && (
         <div className="fortune-result">
           <div className="fortune-header">

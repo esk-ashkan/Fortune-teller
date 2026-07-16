@@ -80,12 +80,12 @@ function Tarot() {
     <div dir="rtl" className="tarot-bg">
       <Container className="py-4">
         <div className="return-wrapper">
-          <a href="https://futureteller.netlify.app/" className="return-btn">
+          <a href="https://fortune-teller-front.onrender.com/" className="return-btn">
             بازگشت به صفحه اصلی
           </a>
         </div>
         <div className="return-wrapper">
-          <a href="http://localhost:5173/user" className="return-btn">
+          <a href="https://fortune-teller-front.onrender.com/user" className="return-btn">
             user
           </a>
         </div>

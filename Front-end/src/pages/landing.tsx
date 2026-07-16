@@ -1,6 +1,7 @@
 import { Container, Row, Col } from "react-bootstrap";
 import SelectComponent from "../components/selectcomponent";
 import { GiStarSattelites, GiCardPickup, GiSparkles } from "react-icons/gi";
+import { useNavigate } from "react-router-dom";
 import { FaCoffee, FaMoon } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import "./landing.css";
@@ -8,27 +9,23 @@ import "./landing.css";
 function Landing() {
   const [mounted, setMounted] = useState(false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
     <div className="cosmic-wrapper">
-      {/* Animated Background Layers */}
       <div className="cosmic-bg-layer cosmic-bg-stars"></div>
       <div className="cosmic-bg-layer cosmic-bg-nebula"></div>
       <div className="cosmic-bg-layer cosmic-bg-aurora"></div>
-      
-      {/* Floating Particles */}
       <div className="cosmic-particles">
         {[...Array(20)].map((_, i) => (
           <div key={i} className={`cosmic-particle cosmic-particle-${i % 5}`} />
         ))}
       </div>
-
-      {/* Main Content */}
       <Container className="cosmic-content">
-        {/* Header Section */}
         <div className={`cosmic-header ${mounted ? 'cosmic-fade-in' : ''}`}>
           <div className="cosmic-moon-wrapper">
             <FaMoon className="cosmic-moon-icon" />
@@ -56,8 +53,6 @@ function Landing() {
             <span className="cosmic-tag">☕ قهوه</span>
           </div>
         </div>
-
-        {/* Cards Grid */}
         <Row className={`cosmic-cards-row ${mounted ? 'cosmic-slide-up' : ''}`}>
           <Col xs={12} className="mb-3">
             <SelectComponent
@@ -65,7 +60,7 @@ function Landing() {
               color="tarot"
               icon={<GiCardPickup />}
               to="/tarot"
-              onSelect={() => (window.location.href = "/tarot")}
+              onSelect={() => (navigate("/tarot"))}
               description="کارت‌های کهن، پیام‌های آینده"
               badge="محبوب‌ترین"
             />
@@ -95,8 +90,6 @@ function Landing() {
             />
           </Col>
         </Row>
-
-        {/* Footer */}
         <div className={`cosmic-footer ${mounted ? 'cosmic-fade-in-delay' : ''}`}>
           <p className="cosmic-footer-text">
             با اعتماد به کیهان، آینده‌تان را بخوانید
