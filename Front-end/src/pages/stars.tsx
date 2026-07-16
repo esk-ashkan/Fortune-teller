@@ -69,7 +69,7 @@ export default function Stars() {
           name: "موقعیت فعلی من",
           latitude: position.coords.latitude.toString(),
           longitude: position.coords.longitude.toString(),
-          altitude: position.coords.altitude?.toString() ?? "0",
+          altitude: parseInt(String(position.coords.altitude ?? 0), 10),
         });
       },
       (error) => {
