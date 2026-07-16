@@ -5,10 +5,13 @@ interface SelectInterface {
   text?: string;
   color?: string;
   icon?: React.ReactNode;
-  to: string;
+  to?: string;  
   onSelect: () => void;
   description?: string;
   badge?: string;
+  situation?: boolean;  
+  disabled?: boolean;   
+  size?: 'sm' | 'lg';   
 }
 
 function SelectComponent({
@@ -18,9 +21,12 @@ function SelectComponent({
   icon,
   description = "",
   badge = "",
+  situation = true,  // Default to true
+  disabled = false,
+  size
 }: SelectInterface) {
   return (
-    <div className="cosmic-card-wrapper">
+    <div className={`cosmic-card-wrapper ${situation ? 'active' : 'inactive'}`}>
       {badge && (
         <div className={`cosmic-badge cosmic-badge-${color}`}>
           {badge}
@@ -28,8 +34,10 @@ function SelectComponent({
       )}
       
       <Button 
-        className={`cosmic-btn cosmic-${color}`} 
+        className={`cosmic-btn cosmic-${color} ${size ? `cosmic-btn-${size}` : ''}`} 
         onClick={onSelect}
+        disabled={disabled || !situation}
+        variant={color}
       >
         <div className="cosmic-btn-shine"></div>
         

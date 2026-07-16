@@ -72,7 +72,7 @@ function Landing() {
               color="coffee"
               icon={<FaCoffee />}
               to="/coffee"
-              onSelect={() => (window.location.href = "/coffee")}
+              onSelect={() => navigate("/coffee")}
               description="رازهای درون فنجان"
               badge="جدید"
             />
@@ -84,9 +84,10 @@ function Landing() {
               color="stars-btn"
               icon={<GiStarSattelites />}
               to="/stars"
-              onSelect={() => (window.location.href = "/stars")}
+              onSelect={() => navigate("/stars")}l 
               description="ستارگان، سرنوشت شما"
               badge="به‌زودی"
+              situation={false}
             />
           </Col>
         </Row>
