@@ -25,53 +25,54 @@ const TeleUserData: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        useEffect(() => {
             const tg = window.Telegram?.WebApp;
 
             if (!tg) {
-                setError("Telegram WebApp SDK not found");
+                setError("Telegram WebApp SDK not loaded.");
                 return;
             }
 
             tg.ready();
 
-            if (!tg.initDataUnsafe.user) {
-                setError("No Telegram user found");
+            const user = tg.initDataUnsafe.user;
+            const chat = tg.initDataUnsafe.chat;
+
+            if (!user) {
+                setError("No Telegram user.");
                 return;
             }
 
             setData({
-                user: tg.initDataUnsafe.user,
-                chat: tg.initDataUnsafe.chat ?? null,
-                auth_date: tg.initDataUnsafe.auth_date ?? 0,
-                chat_type: tg.initDataUnsafe.chat_type ?? "private",
-                chat_instance: tg.initDataUnsafe.chat_instance ?? "",
+                user,
+                chat,
+                auth_date: tg.initDataUnsafe.auth_date,
+                chat_type: tg.initDataUnsafe.chat_type,
+                chat_instance: tg.initDataUnsafe.chat_instance
             });
         }, []);
-    }, []);
 
-    const verifyUserOnServer = async (initData: MiniAppData) => {
-        try {
-            const response = await fetch('/api/verify-user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    initData: window.location.hash.substring(1),
-                    userData: initData
-                })
-            });
+    // const verifyUserOnServer = async (initData: MiniAppData) => {
+    //     try {
+    //         const response = await fetch('/api/verify-user', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({
+    //                 initData: window.location.hash.substring(1),
+    //                 userData: initData
+    //             })
+    //         });
             
-            const result = await response.json();
-            if (result.verified) {
-                console.log('User verified successfully');
-            }
-        } catch (error) {
-            console.error('Verification failed:', error);
-            setError('User verification failed');
-        }
-    };
+    //         const result = await response.json();
+    //         if (result.verified) {
+    //             console.log('User verified successfully');
+    //         }
+    //     } catch (error) {
+    //         console.error('Verification failed:', error);
+    //         setError('User verification failed');
+    //     }
+    // };
 
     if (error) {
         return <div>Error: {error}</div>;
