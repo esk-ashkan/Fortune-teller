@@ -25,40 +25,29 @@ const TeleUserData: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const parseInitData = (): MiniAppData | null => {
-            try {
-                const hash = window.location.hash.substring(1);
-                const params = new URLSearchParams(hash);
-                
-                // Parse user data
-                const userParam = params.get('user');
-                const chatParam = params.get('chat');
-                
-                if (!userParam) {
-                    throw new Error('No user data found');
-                }
+        useEffect(() => {
+            const tg = window.Telegram?.WebApp;
 
-                const user = JSON.parse(decodeURIComponent(userParam));
-                const chat = chatParam ? JSON.parse(decodeURIComponent(chatParam)) : null;
-
-                return {
-                    user: user,
-                    chat: chat,
-                    auth_date: parseInt(params.get('auth_date') || '0'),
-                    chat_type: params.get('chat_type') || 'private',
-                    chat_instance: params.get('chat_instance') || ''
-                };
-            } catch (error) {
-                console.error('Error parsing init data:', error);
-                return null;
+            if (!tg) {
+                setError("Telegram WebApp SDK not found");
+                return;
             }
-        };
 
-        const initData = parseInitData();
-        if (initData) {
-            setData(initData);
-            verifyUserOnServer(initData);
-        }
+            tg.ready();
+
+            if (!tg.initDataUnsafe.user) {
+                setError("No Telegram user found");
+                return;
+            }
+
+            setData({
+                user: tg.initDataUnsafe.user,
+                chat: tg.initDataUnsafe.chat ?? null,
+                auth_date: tg.initDataUnsafe.auth_date ?? 0,
+                chat_type: tg.initDataUnsafe.chat_type ?? "private",
+                chat_instance: tg.initDataUnsafe.chat_instance ?? "",
+            });
+        }, []);
     }, []);
 
     const verifyUserOnServer = async (initData: MiniAppData) => {
