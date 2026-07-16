@@ -25,7 +25,7 @@ const TeleUserData: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-            const tg = window.Telegram?.WebApp;
+            const tg = (window as any).Telegram?.WebApp;
 
             if (!tg) {
                 setError("Telegram WebApp SDK not loaded.");
@@ -51,28 +51,6 @@ const TeleUserData: React.FC = () => {
             });
         }, []);
 
-    // const verifyUserOnServer = async (initData: MiniAppData) => {
-    //     try {
-    //         const response = await fetch('/api/verify-user', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify({
-    //                 initData: window.location.hash.substring(1),
-    //                 userData: initData
-    //             })
-    //         });
-            
-    //         const result = await response.json();
-    //         if (result.verified) {
-    //             console.log('User verified successfully');
-    //         }
-    //     } catch (error) {
-    //         console.error('Verification failed:', error);
-    //         setError('User verification failed');
-    //     }
-    // };
 
     if (error) {
         return <div>Error: {error}</div>;
