@@ -44,8 +44,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 def home(): 
     return "Fortune Teller Backend is running!" 
 
-
-ROUTER_URL = "https://router.huggingface.co/v1/chat/completions"
+ROUTER_URL = "https://ashkanes-fortunetellerai.hf.space/chat"
 HF_TOKEN = os.environ["HFT"]
 
 def query(prompt: str, model: str, temperature: float = 0.7):
