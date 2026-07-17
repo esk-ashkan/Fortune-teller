@@ -30,7 +30,7 @@ TEXT_MODELS = [
     "gemma-2-9b-it:groq"
 ]
 
-VISION_MODEL = "google/gemma-4-31B-it:novita"
+VISION_MODEL = ['google/gemma-4-31B-it:novita', 'moonshotai/Kimi-K2.5:novita', 'zai-org/GLM-4.5V:novita', 'Qwen/Qwen3.6-27B:featherless-ai']
 
 cloudinary.config(
     cloud_name=os.environ["CLOUDNARY_NAME"],
