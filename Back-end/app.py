@@ -24,13 +24,18 @@ SPACE_URL_TEXT = "https://ashkanes-fortunetellerai.hf.space/run/chat_text"
 SPACE_URL_IMAGE = "https://ashkanes-fortunetellerai.hf.space/run/chat_image"
 
 TEXT_MODELS = [
-    "meta-llama/Llama-3.1-8B-Instruct:groq",
+    "meta-llama/Llama-3.3-70B-Instruct:groq",
+    "openai/gpt-oss-120b:groq",
     "deepseek-ai/DeepSeek-V4-Flash:novita",
-    "Qwen/Qwen2.5-7B-Instruct:featherless-ai",
-    "gemma-2-9b-it:groq"
+    "moonshotai/Kimi-K2-Instruct:novita",
 ]
 
-VISION_MODEL = ['google/gemma-4-31B-it:novita', 'moonshotai/Kimi-K2.5:novita', 'zai-org/GLM-4.5V:novita', 'Qwen/Qwen3.6-27B:featherless-ai']
+VISION_MODELS = [
+    "google/gemma-4-31B-it:novita",
+    "moonshotai/Kimi-K2.5:novita",
+    "zai-org/GLM-4.5V:novita",
+    "Qwen/Qwen3.6-27B:featherless-ai",
+]
 
 cloudinary.config(
     cloud_name=os.environ["CLOUDNARY_NAME"],
