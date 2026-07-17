@@ -50,10 +50,10 @@ function Tarot() {
 
     setSelectedCards(newSelectedCards);
     setSelectedCount(nextCount);
-
+    console.log(`----->Counting Cards`);
     if (nextCount === maxNumOfCards) {
       setIsLoading(true);
-
+      console.log(`----->Start Requesting`);
       axios
         .get("https://fortune-teller-nhy4.onrender.com/tarot", {
           params: {
