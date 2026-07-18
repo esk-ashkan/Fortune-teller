@@ -1,27 +1,42 @@
-from flask_cors import CORS
-import os
-from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from concurrent.futures import ThreadPoolExecutor
 import logging
+import os
+
 import cloudinary
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
-import requests
-from concurrent.futures import ThreadPoolExecutor
+from dotenv import load_dotenv
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from gradio_client import Client, handle_file
+
+# --------------------------------------------------
+# Environment
+# --------------------------------------------------
 
 load_dotenv()
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+# --------------------------------------------------
+# Flask
+# --------------------------------------------------
 
-logging.basicConfig(level=logging.INFO)
+app = Flask(__name__)
+CORS(app)
+
+# --------------------------------------------------
+# Logging
+# --------------------------------------------------
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+)
+
 logger = logging.getLogger(__name__)
 
-# -----------------------------
-# CONFIG
-# -----------------------------
-SPACE_URL_TEXT = "https://ashkanes-fortunetellerai.hf.space/run/chat_text"
-SPACE_URL_IMAGE = "https://ashkanes-fortunetellerai.hf.space/run/chat_image"
+# --------------------------------------------------
+# AI Models
+# --------------------------------------------------
 
 TEXT_MODELS = [
     "meta-llama/Llama-3.3-70B-Instruct:groq",
@@ -37,205 +52,338 @@ VISION_MODELS = [
     "Qwen/Qwen3.6-27B:featherless-ai",
 ]
 
+DEFAULT_TEXT_MODEL = TEXT_MODELS[0]
+DEFAULT_VISION_MODEL = VISION_MODELS[0]
+
+# --------------------------------------------------
+# Cloudinary
+# --------------------------------------------------
+
 cloudinary.config(
-    cloud_name=os.environ["CLOUDNARY_NAME"],
-    api_key=os.environ["CLOUDNARY_API_KEY"],
-    api_secret=os.environ["CLOUDNARY_SECRET_KEY"],
-    secure=True
+    cloud_name=os.getenv("CLOUDNARY_NAME"),
+    api_key=os.getenv("CLOUDNARY_API_KEY"),
+    api_secret=os.getenv("CLOUDNARY_SECRET_KEY"),
+    secure=True,
 )
 
-# -----------------------------
-# QUERY FUNCTION (TEXT)
-# -----------------------------
-def query(prompt: str, model: str):
-    logger.info(f"----->Calling Space model: {model}")
+# --------------------------------------------------
+# Hugging Face Space Client
+# --------------------------------------------------
 
-    payload = {
-        "data": [
-            model,
-            prompt
-        ]
-    }
+HF_SPACE = "AshkanEs/FortuneTellerAI"
+
+client = Client(
+    HF_SPACE,
+    token=os.getenv("HF_TOKEN"),
+)
+# -----------------------------
+# QUERY FUNCTIONS
+# -----------------------------
+def query(
+    prompt: str,
+    model: str,
+    temperature: float = 0.7,
+):
+    """
+    Calls the Hugging Face Space text endpoint.
+    """
+
+    logger.info(f"Calling Space model: {model}")
 
     try:
-        r = requests.post(SPACE_URL_TEXT, json=payload, timeout=120)
-        r.raise_for_status()
-        content = r.json()["data"][0]
-        return {"generated_text": content}
+        result = client.predict(
+            model=model,
+            prompt=prompt,
+            temperature=temperature,
+            api_name="/chat_text",
+        )
+
+        return {
+            "generated_text": result
+        }
 
     except Exception as e:
         logger.exception("Space error")
-        return {"error": str(e)}
 
+        return {
+            "error": str(e)
+        }
+
+
+def query_image(
+    image_path: str,
+    prompt: str,
+    model: str,
+    temperature: float = 0.7,
+):
+    """
+    Calls the Hugging Face Space vision endpoint.
+    """
+
+    logger.info(f"Calling Vision model: {model}")
+
+    try:
+        result = client.predict(
+            model=model,
+            image_path=handle_file(image_path),
+            prompt=prompt,
+            temperature=temperature,
+            api_name="/chat_image",
+        )
+
+        return {
+            "generated_text": result
+        }
+
+    except Exception as e:
+        logger.exception("Vision Space error")
+
+        return {
+            "error": str(e)
+        }
 # -----------------------------
 # HOME
 # -----------------------------
-@app.route('/')
+@app.route("/")
 def home():
     return "Fortune Teller Backend is running!"
+
 
 # -----------------------------
 # TAROT
 # -----------------------------
-@app.route('/tarot', methods=['GET'])
+@app.route("/tarot", methods=["GET"])
 def tarot():
-    logger.info('----->Tarot endpoint called.')
+
+    logger.info("-----> Tarot endpoint called.")
 
     cards_list = request.args.getlist("cards_list[]")
+
     if not cards_list:
         return jsonify({"error": "No cards provided"}), 400
 
     cards_text = ", ".join(cards_list)
 
-    prmpt_1 = """
-        You are a traditional Tarot scholar.
-        Focus on:
-        - Rider-Waite symbolism
-        - archetypes
-        - esoteric meanings
-        - historical Tarot
-        - interactions between Major and Minor Arcana
-        Never speculate outside Tarot tradition.
-    """
+    prompt_1 = """
+You are a traditional Tarot scholar.
 
-    prmpt_2 = """
-        You are a modern psychological Tarot counselor.
-        Focus on:
-        - emotions
-        - unconscious patterns
-        - relationships
-        - shadow work
-        - personal growth
-        - practical advice
-        Use Tarot as a mirror of the psyche.
-    """
+Focus on:
+- Rider-Waite symbolism
+- archetypes
+- esoteric meanings
+- historical Tarot
+- interactions between Major and Minor Arcana
+
+Never speculate outside Tarot tradition.
+"""
+
+    prompt_2 = """
+You are a modern psychological Tarot counselor.
+
+Focus on:
+- emotions
+- unconscious patterns
+- relationships
+- shadow work
+- personal growth
+- practical advice
+
+Use Tarot as a mirror of the psyche.
+"""
 
     base_prompt = f"""
-        For every card:
-            1. Traditional meaning
-            2. Upright/Reversed meaning
-            3. Symbolism
-            4. Psychological message
-            5. Advice
+For every card:
 
-        Do NOT answer as a numbered list.
-        Write naturally as an experienced Tarot reader.
-        Your interpretations should be:
-            - mystical
-            - psychologically insightful
-            - compassionate
-            - encouraging
-            - avoid deterministic predictions
-            - explain both each card and the spread as a whole
-            - Maximum 220 words
-        IMPORTANT: Return Your interpretations in Farsi.
-        Write in fluent Markdown.
+1. Traditional meaning
+2. Upright/Reversed meaning
+3. Symbolism
+4. Psychological message
+5. Advice
 
-        Cards drawn: {cards_text}
-    """
+Do NOT answer as a numbered list.
+
+Write naturally as an experienced Tarot reader.
+
+Your interpretations should be:
+
+- mystical
+- psychologically insightful
+- compassionate
+- encouraging
+- avoid deterministic predictions
+- explain both each card and the spread as a whole
+
+Maximum 220 words.
+
+IMPORTANT:
+Return the interpretation in Persian.
+
+Cards drawn:
+
+{cards_text}
+"""
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        future_1 = executor.submit(query, prmpt_1 + base_prompt, TEXT_MODELS[0])
-        future_2 = executor.submit(query, prmpt_2 + base_prompt, TEXT_MODELS[1])
 
-        response1 = future_1.result()
-        response2 = future_2.result()
+        future1 = executor.submit(
+            query,
+            prompt_1 + base_prompt,
+            TEXT_MODELS[0],
+            0.8,
+        )
 
-    text1 = response1.get("generated_text") or "No interpretation was produced."
-    text2 = response2.get("generated_text") or "No interpretation was produced."
+        future2 = executor.submit(
+            query,
+            prompt_2 + base_prompt,
+            TEXT_MODELS[1],
+            0.8,
+        )
+
+        response1 = future1.result()
+        response2 = future2.result()
+
+    text1 = response1.get("generated_text", "")
+    text2 = response2.get("generated_text", "")
 
     correction_prompt = f"""
-        You are the Grand Master Tarot Reader.
-        The following two expert readers interpreted the same Tarot spread.
+You are the Grand Master Tarot Reader.
 
-        Cards:
-        {cards_text}
+Cards:
 
-        ------------------------
-        Interpretation A
-        {text1}
+{cards_text}
 
-        ------------------------
-        Interpretation B
-        {text2}
+--------------------------
+Interpretation A
 
-        ------------------------
+{text1}
 
-        Your task is NOT to rewrite them.
-        Instead:
-        • Merge only the strongest insights.
-        • Discard weak, repetitive or contradictory ideas.
-        • Correct any factual Tarot mistakes.
-        • Preserve traditional symbolism.
-        • Explain interactions between cards.
-        • Produce one polished, coherent reading.
-        • Do NOT mention there were multiple readers.
+--------------------------
+Interpretation B
 
-        Requirements:
-        - Persian
-        - Maximum 300 words
-        - Beautiful Markdown
-        - Mystical but psychologically grounded
-        - Encouraging
-        - No deterministic predictions
-        - Output only the final interpretation.
-    """
+{text2}
 
-    final_result = query(correction_prompt, TEXT_MODELS[3])
+--------------------------
+
+Merge only the strongest ideas.
+
+Discard repetitive or contradictory statements.
+
+Correct Tarot mistakes.
+
+Preserve traditional symbolism.
+
+Explain interactions between the cards.
+
+Produce ONE polished reading.
+
+Do NOT mention multiple readers.
+
+Requirements
+
+- Persian
+- Markdown
+- Maximum 300 words
+- Mystical
+- Psychologically grounded
+- Encouraging
+- No deterministic predictions
+"""
+
+    final_result = query(
+        correction_prompt,
+        TEXT_MODELS[3],
+        0.3,
+    )
 
     if "error" in final_result:
-        return jsonify({
-            "interpretation": "The spirits are quiet right now. Please try again in a moment.",
-            "details": final_result["error"]
-        }), 502
+        return (
+            jsonify(
+                {
+                    "interpretation": "The spirits are quiet right now.",
+                    "details": final_result["error"],
+                }
+            ),
+            502,
+        )
 
-    return jsonify({"interpretation": final_result["generated_text"]})
+    return jsonify(
+        {
+            "interpretation": final_result["generated_text"]
+        }
+    )
+
 
 # -----------------------------
 # COFFEE READING
 # -----------------------------
-@app.route('/coffee', methods=['POST'])
+@app.route("/coffee", methods=["POST"])
 def coffee():
+
     files = request.files.getlist("images")
     names = request.form.getlist("images_name")
 
     if not files:
         return jsonify({"error": "No images uploaded"}), 400
 
-    img_urls = []
-    for f, nm in zip(files, names):
-        cloudinary.uploader.upload(f, public_id=nm)
-        optimize_url, _ = cloudinary_url(
-            nm,
+    uploaded_urls = []
+
+    for file, name in zip(files, names):
+
+        cloudinary.uploader.upload(
+            file,
+            public_id=name,
+            overwrite=True,
+        )
+
+        image_url, _ = cloudinary_url(
+            name,
+            secure=True,
             fetch_format="auto",
             quality="auto",
-            width=500,
-            height=500,
-            crop="auto",
-            gravity="auto"
         )
-        img_urls.append(optimize_url)
 
-    payload = {
-        "data": [
-            VISION_MODEL,
-            img_urls[0],
-            """
-            You are an expert in Persian coffee fortune telling...
-            IMPORTANT: Return your interpretation in Persian.
-            """
-        ]
-    }
+        uploaded_urls.append(image_url)
+
+    logger.info("Calling Vision model...")
 
     try:
-        r = requests.post(SPACE_URL_IMAGE, json=payload, timeout=120)
-        r.raise_for_status()
-        content = r.json()["data"][0]
-        return jsonify({"interpretation": content})
+
+        interpretation = client.predict(
+            model=VISION_MODELS[0],
+            image_path=handle_file(uploaded_urls[0]),
+            prompt="""
+You are an expert in Persian coffee fortune telling.
+
+Interpret the cup symbolically.
+
+Avoid deterministic predictions.
+
+Be mystical, encouraging and psychologically insightful.
+
+Return the answer in Persian Markdown.
+""",
+            temperature=0.7,
+            api_name="/chat_image",
+        )
+
+        return jsonify(
+            {
+                "interpretation": interpretation
+            }
+        )
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 502
 
+        logger.exception("Coffee reading failed")
+
+        return (
+            jsonify(
+                {
+                    "error": str(e)
+                }
+            ),
+            502,
+        )
 # -----------------------------
 # STARS (HOROSCOPE)
 # -----------------------------
