@@ -107,7 +107,6 @@ def tarot():
             temperature=1.0,
             max_output_tokens=2000, 
             top_p=0.95,
-            tools=[grounding_tool]
         )
 
         response = client.models.generate_content(
