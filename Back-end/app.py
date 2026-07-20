@@ -1,14 +1,13 @@
-from concurrent.futures import ThreadPoolExecutor
 import logging
 import os
-
+from google import genai
 import cloudinary
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from gradio_client import Client, handle_file
+from google.genai import types
 
 # --------------------------------------------------
 # Environment
@@ -34,26 +33,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# --------------------------------------------------
-# AI Models
-# --------------------------------------------------
-
-TEXT_MODELS = [
-    "meta-llama/Llama-3.3-70B-Instruct:groq",
-    "openai/gpt-oss-120b:groq",
-    "deepseek-ai/DeepSeek-V4-Flash:novita",
-    "moonshotai/Kimi-K2-Instruct:novita",
-]
-
-VISION_MODELS = [
-    "google/gemma-4-31B-it:novita",
-    "moonshotai/Kimi-K2.5:novita",
-    "zai-org/GLM-4.5V:novita",
-    "Qwen/Qwen3.6-27B:featherless-ai",
-]
-
-DEFAULT_TEXT_MODEL = TEXT_MODELS[0]
-DEFAULT_VISION_MODEL = VISION_MODELS[0]
 
 # --------------------------------------------------
 # Cloudinary
@@ -65,82 +44,6 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDNARY_SECRET_KEY"),
     secure=True,
 )
-
-# --------------------------------------------------
-# Hugging Face Space Client
-# --------------------------------------------------
-
-HF_SPACE = "AshkanEs/FortuneTellerAI"
-
-client = Client(
-    HF_SPACE,
-    token=os.getenv("HF_TOKEN"),
-)
-# -----------------------------
-# QUERY FUNCTIONS
-# -----------------------------
-def query(
-    prompt: str,
-    model: str,
-    temperature: float = 0.7,
-):
-    """
-    Calls the Hugging Face Space text endpoint.
-    """
-
-    logger.info(f"Calling Space model: {model}")
-
-    try:
-        result = client.predict(
-            model=model,
-            prompt=prompt,
-            temperature=temperature,
-            api_name="/chat_text",
-        )
-
-        return {
-            "generated_text": result
-        }
-
-    except Exception as e:
-        logger.exception("Space error")
-
-        return {
-            "error": str(e)
-        }
-
-
-def query_image(
-    image_path: str,
-    prompt: str,
-    model: str,
-    temperature: float = 0.7,
-):
-    """
-    Calls the Hugging Face Space vision endpoint.
-    """
-
-    logger.info(f"Calling Vision model: {model}")
-
-    try:
-        result = client.predict(
-            model=model,
-            image_path=handle_file(image_path),
-            prompt=prompt,
-            temperature=temperature,
-            api_name="/chat_image",
-        )
-
-        return {
-            "generated_text": result
-        }
-
-    except Exception as e:
-        logger.exception("Vision Space error")
-
-        return {
-            "error": str(e)
-        }
 # -----------------------------
 # HOME
 # -----------------------------
@@ -148,13 +51,11 @@ def query_image(
 def home():
     return "Fortune Teller Backend is running!"
 
-
 # -----------------------------
 # TAROT
 # -----------------------------
 @app.route("/tarot", methods=["GET"])
 def tarot():
-
     logger.info("-----> Tarot endpoint called.")
 
     cards_list = request.args.getlist("cards_list[]")
@@ -164,155 +65,72 @@ def tarot():
 
     cards_text = ", ".join(cards_list)
 
-    prompt_1 = """
-You are a traditional Tarot scholar.
-
-Focus on:
-- Rider-Waite symbolism
-- archetypes
-- esoteric meanings
-- historical Tarot
-- interactions between Major and Minor Arcana
-
-Never speculate outside Tarot tradition.
-"""
-
-    prompt_2 = """
-You are a modern psychological Tarot counselor.
-
-Focus on:
-- emotions
-- unconscious patterns
-- relationships
-- shadow work
-- personal growth
-- practical advice
-
-Use Tarot as a mirror of the psyche.
-"""
-
     base_prompt = f"""
-For every card:
+        You are a traditional Tarot scholar.
+        For every card:
 
-1. Traditional meaning
-2. Upright/Reversed meaning
-3. Symbolism
-4. Psychological message
-5. Advice
+        1. Traditional meaning
+        2. Upright/Reversed meaning
+        3. Symbolism
+        4. Psychological message
+        5. Advice
 
-Do NOT answer as a numbered list.
+        Do NOT answer as a numbered list.
 
-Write naturally as an experienced Tarot reader.
+        Write naturally as an experienced Tarot reader.
 
-Your interpretations should be:
+        Your interpretations should be:
 
-- mystical
-- psychologically insightful
-- compassionate
-- encouraging
-- avoid deterministic predictions
-- explain both each card and the spread as a whole
+        - mystical
+        - psychologically insightful
+        - compassionate
+        - encouraging
+        - avoid deterministic predictions
+        - explain both each card and the spread as a whole
 
-Maximum 220 words.
+        Maximum 220 words.
 
-IMPORTANT:
-Return the interpretation in Persian.
+        IMPORTANT:
+        Return the interpretation in Persian.
 
-Cards drawn:
+        Cards drawn:
 
-{cards_text}
-"""
+        {cards_text}
+        """
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-
-        future1 = executor.submit(
-            query,
-            prompt_1 + base_prompt,
-            TEXT_MODELS[0],
-            0.8,
+    try:
+        
+        client = genai.Client()
+        grounding_tool = types.Tool(google_search=types.GoogleSearch())
+        generation_config = types.GenerateContentConfig(
+            temperature=1.0,
+            max_output_tokens=2000, 
+            top_p=0.95,
+            tools=[grounding_tool]
         )
 
-        future2 = executor.submit(
-            query,
-            prompt_2 + base_prompt,
-            TEXT_MODELS[1],
-            0.8,
+        response = client.models.generate_content(
+            model="gemini-3.5-flash",
+            contents=base_prompt,
+            config=generation_config,
         )
 
-        response1 = future1.result()
-        response2 = future2.result()
+        if not response.text:
+            return jsonify({
+                "interpretation": "The spirits are quiet right now.",
+                "details": "Model returned an empty response."
+            }), 502
 
-    text1 = response1.get("generated_text", "")
-    text2 = response2.get("generated_text", "")
+        return jsonify({
+            "interpretation": response.text
+        })
 
-    correction_prompt = f"""
-You are the Grand Master Tarot Reader.
-
-Cards:
-
-{cards_text}
-
---------------------------
-Interpretation A
-
-{text1}
-
---------------------------
-Interpretation B
-
-{text2}
-
---------------------------
-
-Merge only the strongest ideas.
-
-Discard repetitive or contradictory statements.
-
-Correct Tarot mistakes.
-
-Preserve traditional symbolism.
-
-Explain interactions between the cards.
-
-Produce ONE polished reading.
-
-Do NOT mention multiple readers.
-
-Requirements
-
-- Persian
-- Markdown
-- Maximum 300 words
-- Mystical
-- Psychologically grounded
-- Encouraging
-- No deterministic predictions
-"""
-
-    final_result = query(
-        correction_prompt,
-        TEXT_MODELS[3],
-        0.3,
-    )
-
-    if "error" in final_result:
-        return (
-            jsonify(
-                {
-                    "interpretation": "The spirits are quiet right now.",
-                    "details": final_result["error"],
-                }
-            ),
-            502,
-        )
-
-    return jsonify(
-        {
-            "interpretation": final_result["generated_text"]
-        }
-    )
-
-
+    except Exception as e:
+        logger.error(f"Gemini API Error: {str(e)}")
+        return jsonify({
+            "interpretation": "The spirits are quiet right now.",
+            "details": str(e)
+        }), 502
 # -----------------------------
 # COFFEE READING
 # -----------------------------
