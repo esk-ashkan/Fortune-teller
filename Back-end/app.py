@@ -166,27 +166,9 @@ def coffee():
 
     try:
 
-        interpretation = client.predict(
-            model=VISION_MODELS[0],
-            image_path=handle_file(uploaded_urls[0]),
-            prompt="""
-You are an expert in Persian coffee fortune telling.
-
-Interpret the cup symbolically.
-
-Avoid deterministic predictions.
-
-Be mystical, encouraging and psychologically insightful.
-
-Return the answer in Persian Markdown.
-""",
-            temperature=0.7,
-            api_name="/chat_image",
-        )
-
         return jsonify(
             {
-                "interpretation": interpretation
+                "interpretation": "interpretation"
             }
         )
 
