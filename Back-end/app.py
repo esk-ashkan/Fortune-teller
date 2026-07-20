@@ -14,7 +14,7 @@ from google.genai import types
 # --------------------------------------------------
 
 load_dotenv()
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 # --------------------------------------------------
 # Flask
