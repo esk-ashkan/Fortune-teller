@@ -16,7 +16,6 @@ import requests
 
 load_dotenv()
 gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-mistral_client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
 
 # --------------------------------------------------
 # Flask
