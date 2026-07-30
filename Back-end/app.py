@@ -8,13 +8,15 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from google.genai import types
+from mistralai.client import Mistral
 
 # --------------------------------------------------
 # Environment
 # --------------------------------------------------
 
 load_dotenv()
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+mistral_client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
 
 # --------------------------------------------------
 # Flask
@@ -48,6 +50,49 @@ cloudinary.config(
 # -----------------------------
 # HOME
 # -----------------------------
+def mistral_api(
+    prompt: str,
+    model: str = "mistral-small-latest",
+    temperature: float = 0.7,
+    max_tokens: int = 200
+) -> str:
+    """
+    Send a prompt to Mistral API with optional parameters.
+    """
+    messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
+    
+    chat_response = mistral_client.chat.complete(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+    
+    return chat_response.choices[0].message.content
+
+def gemini_api(prompt: str,
+    model: str = "gemini-3.5-flash",
+    temperature: float = 0.7,
+    max_tokens: int = 200
+) -> str:
+    """
+    Send a prompt to Gemini API with optional parameters.
+    """
+    grounding_tool = types.Tool(google_search=types.GoogleSearch())
+    generation_config = types.GenerateContentConfig(
+        temperature=temperature,
+        max_output_tokens=max_tokens, 
+        top_p=0.95,
+        )
+    
+    response = gemini_client.models.generate_content(
+        model=model,
+        contents=prompt,
+            onfig=generation_config,
+        )
+    return response.text
+    
+
 @app.route("/")
 def home():
     return "Fortune Teller Backend is running!"
@@ -56,77 +101,73 @@ def home():
 # TAROT
 # -----------------------------
 @app.route("/tarot", methods=["GET"])
+@app.route("/tarot", methods=["GET"])
 def tarot():
     logger.info("-----> Tarot endpoint called.")
-
+    
     cards_list = request.args.getlist("cards_list[]")
-
+    cards_list = [card.strip() for card in cards_list if card.strip()]
+    
     if not cards_list:
         return jsonify({"error": "No cards provided"}), 400
-
+    
+    if len(cards_list) > 10:
+        return jsonify({"error": "Maximum 10 cards allowed"}), 400
+    
     cards_text = ", ".join(cards_list)
-
     base_prompt = f"""
-        You are a traditional Tarot scholar.
-        For every card:
+    You are a traditional Tarot scholar.
+    For every card:
 
-        1. Traditional meaning
-        2. Upright/Reversed meaning
-        3. Symbolism
-        4. Psychological message
-        5. Advice
+    1. Traditional meaning
+    2. Upright/Reversed meaning
+    3. Symbolism
+    4. Psychological message
+    5. Advice
 
-        Do NOT answer as a numbered list.
+    Do NOT answer as a numbered list.
 
-        Write naturally as an experienced Tarot reader.
+    Write naturally as an experienced Tarot reader.
 
-        Your interpretations should be:
+    Your interpretations should be:
 
-        - mystical
-        - psychologically insightful
-        - compassionate
-        - encouraging
-        - avoid deterministic predictions
-        - explain both each card and the spread as a whole
+    - mystical
+    - psychologically insightful
+    - compassionate
+    - encouraging
+    - avoid deterministic predictions
+    - explain both each card and the spread as a whole
 
-        Maximum 220 words.
+    Maximum 220 words.
 
-        IMPORTANT:
-        Return the interpretation in Persian.
+    IMPORTANT:
+    Return the interpretation in Persian.
 
-        Cards drawn:
+    Cards drawn:
 
-        {cards_text}
-        """
-
+    {cards_text}
+    """
+    
     try:
+        response = mistral_api(prompt=base_prompt)
         
-        client = genai.Client()
-        grounding_tool = types.Tool(google_search=types.GoogleSearch())
-        generation_config = types.GenerateContentConfig(
-            temperature=1.0,
-            max_output_tokens=2000, 
-            top_p=0.95,
-        )
-
-        response = client.models.generate_content(
-            model="gemini-3.5-flash",
-            contents=base_prompt,
-            config=generation_config,
-        )
-
-        if not response.text:
+        if not response:
+            logger.warning("!Warning!\n----->Mistral returned empty response, trying Gemini...")
+            response = gemini_api(prompt=base_prompt)
+        
+        if not response:
             return jsonify({
                 "interpretation": "The spirits are quiet right now.",
-                "details": "Model returned an empty response."
+                "details": "Both models returned empty responses."
             }), 502
-
+        
         return jsonify({
-            "interpretation": response.text
+            "interpretation": response,
+            "cards": cards_list
         })
-
+        
     except Exception as e:
-        logger.error(f"Gemini API Error: {str(e)}")
+        logger.error(f"!ERROR!:----->\nTarot API Error: {str(e)}")
         return jsonify({
             "interpretation": "The spirits are quiet right now.",
             "details": str(e)

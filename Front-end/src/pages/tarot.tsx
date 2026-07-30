@@ -15,7 +15,7 @@ function Tarot() {
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [revealFortune, setRevealFortune] = useState(false);
   const [fortuneText, setFortuneText] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // New loading state
+  const [isLoading, setIsLoading] = useState(false); 
 
   const hand = useMemo(() => {
     const picked = new Set<number>();
