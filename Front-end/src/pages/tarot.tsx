@@ -6,7 +6,7 @@ import Form from "react-bootstrap/Form";
 import axios from "axios";
 import "./tarot.css";
 import RevealFortune from "./revealfortune";
-import TarotLoading from "./TarotLoading"; 
+import TarotLoading from "./TarotLoading";
 
 function Tarot() {
   const [cardsList, setCardsList] = useState<string[]>([]);
@@ -15,7 +15,7 @@ function Tarot() {
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [revealFortune, setRevealFortune] = useState(false);
   const [fortuneText, setFortuneText] = useState("");
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
 
   const hand = useMemo(() => {
     const picked = new Set<number>();
@@ -38,7 +38,7 @@ function Tarot() {
     setMaxNumOfCards(v);
     setSelectedCount(0);
     setSelectedCards([]);
-    setIsLoading(false); 
+    setIsLoading(false);
   };
 
   const handleSelectedCard = (cardName: string) => {
@@ -78,13 +78,13 @@ function Tarot() {
 
   return (
     <div dir="rtl" className="tarot-bg">
-      <Container className="py-4">
-        <div className="return-wrapper">
+      <Container className="py-3 py-md-4" fluid="sm">
+        <div className="return-wrapper mb-2">
           <a href="https://fortune-teller-front.onrender.com/" className="return-btn">
             بازگشت به صفحه اصلی
           </a>
         </div>
-        <div className="return-wrapper">
+        <div className="return-wrapper mb-3">
           <a href="https://fortune-teller-front.onrender.com/user" className="return-btn">
             user
           </a>
@@ -153,7 +153,6 @@ function Tarot() {
           isVisible={isLoading}
           onComplete={() => {
             // Optional: Do something when loading completes naturally
-            // For example, play a sound or show a notification
           }}
         />
       </Container>
