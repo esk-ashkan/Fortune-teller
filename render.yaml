@@ -18,3 +18,9 @@ services:
         sync: false
       - key: IPGL_API_KEY
         sync: false
+      - key: CARGO_HOME
+        value: /opt/render/.cargo
+      - key: PIP_NO_CACHE_DIR
+        value: "true"
+      - key: PIP_PREFER_BINARY
+        value: "true"
