@@ -83,7 +83,7 @@ def gemini_api(prompt: str,
     response = gemini_client.models.generate_content(
         model=model,
         contents=prompt,
-            onfig=generation_config,
+            config=generation_config,
         )
     return response.text
     
