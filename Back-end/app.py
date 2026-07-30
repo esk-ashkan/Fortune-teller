@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from google.genai import types
 from mistralai.client import Mistral
+import requests
 
 # --------------------------------------------------
 # Environment
@@ -50,25 +51,21 @@ cloudinary.config(
 # -----------------------------
 # HOME
 # -----------------------------
-def mistral_api(
-    prompt: str,
-    model: str = "mistral-small-latest",
-    temperature: float = 0.7,
-    max_tokens: int = 200
-) -> str:
-    """
-    Send a prompt to Mistral API with optional parameters.
-    """
-    messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
-    
-    chat_response = mistral_client.chat.complete(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        max_tokens=max_tokens
-    )
-    
-    return chat_response.choices[0].message.content
+def mistral_api(prompt: str, temprature:float=0.85):
+    url = "https://api.mistral.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {os.environ['MISTRAL_API_KEY']}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "mistral-small-latest",
+        "messages": [{"role": "user", "content": "hi"}],
+        "temprature":temprature
+    }
+
+    r = requests.post(url, json=payload, headers=headers)
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"]
 
 def gemini_api(prompt: str,
     model: str = "gemini-3.5-flash",

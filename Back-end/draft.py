@@ -1,35 +1,24 @@
+import requests
 import os
-from mistralai.client import Mistral
 from dotenv import load_dotenv
 
 load_dotenv()
 
-api_key = os.environ["MISTRAL_API_KEY"]
-model = [
-    "mistral-large-2411",
-    "mistral-saba-2502",
-    "mistral-small-latest",
-    "mistral-medium-2508",
-    "mistral-small-latest",
-]
-
-client = Mistral(api_key=api_key)
-
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {
-                "type": "text",
-                "text": "Hi!"
-            },
-        ]
+def mistral_api(prompt: str, temprature:float=0.85):
+    url = "https://api.mistral.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {os.environ['MISTRAL_API_KEY']}",
+        "Content-Type": "application/json"
     }
-]
+    payload = {
+        "model": "mistral-small-latest",
+        "messages": [{"role": "user", "content": "hi"}],
+        "temprature":temprature
+    }
 
-chat_response = client.chat.complete(
-    model=model,
-    messages=messages
-)
+    r = requests.post(url, json=payload, headers=headers)
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"]
 
-print(chat_response.choices[0].message.content)
+
+print(mistral_api("hi"))
