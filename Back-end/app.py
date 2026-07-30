@@ -57,9 +57,10 @@ def mistral_api(prompt: str, temprature:float=0.85):
     }
     payload = {
         "model": "mistral-small-latest",
-        "messages": [{"role": "user", "content": "hi"}],
-        "temprature":temprature
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temprature,
     }
+
 
     r = requests.post(url, json=payload, headers=headers)
     r.raise_for_status()
@@ -83,8 +84,8 @@ def gemini_api(prompt: str,
     response = gemini_client.models.generate_content(
         model=model,
         contents=prompt,
-            config=generation_config,
-        )
+        config=generation_config,
+    )
     return response.text
     
 
@@ -95,7 +96,6 @@ def home():
 # -----------------------------
 # TAROT
 # -----------------------------
-@app.route("/tarot", methods=["GET"])
 @app.route("/tarot", methods=["GET"])
 def tarot():
     logger.info("-----> Tarot endpoint called.")
