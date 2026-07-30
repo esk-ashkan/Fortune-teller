@@ -163,6 +163,29 @@
   box-shadow: 0 4px 25px rgba(255, 215, 0, 0.2);
 }
 
+.tarot-card.selected {
+  border: 3px solid #ffd700;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 30px rgba(255, 215, 0, 0.1);
+  transform: scale(0.95);
+}
+
+.tarot-card.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #ffd700;
+  color: #1a0a2e;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
 /* Footer */
 .tarot-footer {
   text-align: center;
@@ -259,3 +282,4 @@
   align-items: center;
   z-index: 9999;
 }
+
