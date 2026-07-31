@@ -59,7 +59,7 @@ useEffect(() => {
   if (!data) return;
 
   axios
-    .get("https://fortune-teller-nhy4.onrender.com/tarot", {
+    .get("https://fortune-teller-nhy4.onrender.com/", {
       params: {
         username: data.user.username,
         fname: data.user.first_name,
