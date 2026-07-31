@@ -109,7 +109,7 @@ useEffect(() => {
           
           {thisUser && (
             <p className="cosmic-subtitle">
-              سلام {data?.user.username} عزیز، خوش اومدی!
+              سلام {thisUser.username} عزیز، خوش اومدی!
             </p>
           )}
           <p className="cosmic-subtitle">
