@@ -57,7 +57,7 @@ function Landing() {
 
 useEffect(() => {
   if (!data) return;
-
+  console.log(`----->\n${data.user.username}\n<-----`);
   axios
     .get("https://fortune-teller-nhy4.onrender.com/", {
       params: {
