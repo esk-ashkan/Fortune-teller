@@ -17,14 +17,20 @@ interface MiniAppData {
         is_premium?: boolean;
         photo_url?: string;
     };
-    
+}
+
+interface UserInfo {
+  username: string;
+  credit: number;
+  first_name?: string;
+  last_name?: string;
 }
 
 function Landing() {
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<MiniAppData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [thisUser, setThisUser] = useState();
+  const [thisUser, setThisUser] = useState<UserInfo | null>(null);
 
   const navigate = useNavigate();
 
@@ -66,12 +72,14 @@ useEffect(() => {
       setThisUser(response.data);
     })
     .catch((err) => {
-      console.error(err);
+      setError(err)
+      console.log(error);
     });
 }, [data]);
 
 
   return (
+    
     <div className="cosmic-wrapper">
       <div className="cosmic-bg-layer cosmic-bg-stars"></div>
       <div className="cosmic-bg-layer cosmic-bg-nebula"></div>
@@ -99,9 +107,11 @@ useEffect(() => {
             <span className="cosmic-divider-line"></span>
           </div>
           
-          <p className="cosmic-subtitle">
-           سلام {thisUser.username} عزیز، خوش اومدی!
-          </p>
+          {thisUser && (
+            <p className="cosmic-subtitle">
+              سلام {thisUser?.username} عزیز، خوش اومدی!
+            </p>
+          )}
           <p className="cosmic-subtitle">
             سفری میان ستارگان، اسطوره‌ها و رازهای کهن ایرانی
           </p>
