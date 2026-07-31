@@ -5,15 +5,71 @@ import { useNavigate } from "react-router-dom";
 import { FaCoffee, FaMoon } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import "./landing.css";
+import axios from "axios";
+
+interface MiniAppData {
+    user: {
+        id: number;
+        first_name: string;
+        last_name?: string;
+        username?: string;
+        language_code: string;
+        is_premium?: boolean;
+        photo_url?: string;
+    };
+    
+}
 
 function Landing() {
   const [mounted, setMounted] = useState(false);
+  const [data, setData] = useState<MiniAppData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [thisUser, setThisUser] = useState();
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+  setMounted(true);
+  const tg = (window as any).Telegram?.WebApp;
+
+  if (!tg) {
+    setError("Telegram WebApp SDK not loaded.");
+    return;
+  }
+
+  tg.ready();
+
+  const user = tg.initDataUnsafe.user;
+
+  if (!user) {
+    setError("No Telegram user.");
+    return;
+  }
+
+  setData({ user });
+}, []);
+
+useEffect(() => {
+  if (!data) return;
+
+  axios
+    .get("https://fortune-teller-nhy4.onrender.com/tarot", {
+      params: {
+        username: data.user.username,
+        fname: data.user.first_name,
+        lname: data.user.last_name,
+      },
+    })
+    .then((response) => {
+      console.log("SUCCESS");
+      console.log(response.data);
+      setThisUser(response.data);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}, [data]);
+
 
   return (
     <div className="cosmic-wrapper">
@@ -43,6 +99,9 @@ function Landing() {
             <span className="cosmic-divider-line"></span>
           </div>
           
+          <p className="cosmic-subtitle">
+           سلام {thisUser.username} عزیز، خوش اومدی!
+          </p>
           <p className="cosmic-subtitle">
             سفری میان ستارگان، اسطوره‌ها و رازهای کهن ایرانی
           </p>

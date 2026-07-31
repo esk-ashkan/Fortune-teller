@@ -9,20 +9,25 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from google.genai import types
 import requests
+from groq import Groq
+from flask_sqlalchemy import SQLAlchemy
 
 # --------------------------------------------------
 # Environment
 # --------------------------------------------------
-
 load_dotenv()
 gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 # --------------------------------------------------
-# Flask
+# Flask And Database
 # --------------------------------------------------
-
 app = Flask(__name__)
 CORS(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+
+db = SQLAlchemy(app)
 
 # --------------------------------------------------
 # Logging
@@ -47,7 +52,7 @@ cloudinary.config(
     secure=True,
 )
 # -----------------------------
-# HOME
+# Functions
 # -----------------------------
 def mistral_api(prompt: str, temprature:float=0.85):
     url = "https://api.mistral.ai/v1/chat/completions"
@@ -87,11 +92,53 @@ def gemini_api(prompt: str,
         config=generation_config,
     )
     return response.text
-    
 
-@app.route("/")
+def user_information(username, fname):
+    profile = Profile.query.filter_by(username=username, first_name=fname).first()
+    if not profile:
+        return {"error": "User not found"}
+
+    return {
+        "username": profile.username,
+        "credit": profile.credit,
+        "first_name": profile.first_name,
+        "last_name": profile.last_name
+    }
+    
+# -----------------------------
+# Models
+# -----------------------------
+class Profile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    first_name = db.Column(db.String(50), nullable=True)
+    last_name = db.Column(db.String(50), nullable=True)
+    credit = db.Column(db.Integer, default=15000)
+
+    def __repr__(self):
+        return f"Profile(username={self.username}, credit={self.credit})"
+
+    def increase_credit(self, amount):
+        self.credit += amount
+    def decrease_credit(self, amount):
+        self.credit -= amount
+
+# -----------------------------
+# Views
+# -----------------------------
+# HOME
+# -----------------------------
+@app.route("/", methods=["POST"])
 def home():
-    return "Fortune Teller Backend is running!"
+    username = request.args.get("username")
+    fname = request.args.get("fname")
+    if not username:
+        p = Profile(username=username, first_name=fname, last_name=last_name)
+        db.session.add(p)
+        db.session.commit()
+
+    info = user_information(username, fname)
+    return jsonify(info)
 
 # -----------------------------
 # TAROT
