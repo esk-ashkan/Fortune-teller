@@ -96,11 +96,11 @@ def gemini_api(prompt: str,
 
 def user_information(username, fname, lname):
     profile = Profile.query.filter_by(username=username).first()
+
     if not profile:
         profile = Profile(username=username, first_name=fname, last_name=lname)
         db.session.add(profile)
         db.session.commit()
-
 
     return {
         "username": profile.username,
@@ -108,6 +108,7 @@ def user_information(username, fname, lname):
         "first_name": profile.first_name,
         "last_name": profile.last_name
     }
+
     
 # -----------------------------
 # Models
@@ -132,19 +133,15 @@ class Profile(db.Model):
 # -----------------------------
 # HOME
 # -----------------------------
-@app.route("/", methods=["POST"])
+@app.route("/", methods=["GET", "POST"])
 def home():
     username = request.args.get("username")
     fname = request.args.get("fname")
     lname = request.args.get("lname")
 
-    if not username:
-        p = Profile(username=username, first_name=fname, last_name=lname)
-        db.session.add(p)
-        db.session.commit()
-
     info = user_information(username, fname, lname)
     return jsonify(info)
+
 
 # -----------------------------
 # TAROT

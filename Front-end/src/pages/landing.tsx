@@ -59,7 +59,7 @@ useEffect(() => {
   if (!data) return;
   console.log(`----->\n${data.user.username}\n<-----`);
   axios
-    .post("https://fortune-teller-nhy4.onrender.com/", {
+    .get("https://fortune-teller-nhy4.onrender.com/", {
       params: {
         username: data.user.username,
         fname: data.user.first_name,
