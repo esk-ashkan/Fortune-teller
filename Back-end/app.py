@@ -92,10 +92,13 @@ def gemini_api(prompt: str,
     )
     return response.text
 
-def user_information(username, fname):
-    profile = Profile.query.filter_by(username=username, first_name=fname).first()
+def user_information(username, fname, lname):
+    profile = Profile.query.filter_by(username=username).first()
     if not profile:
-        return {"error": "User not found"}
+        profile = Profile(username=username, first_name=fname, last_name=lname)
+        db.session.add(profile)
+        db.session.commit()
+
 
     return {
         "username": profile.username,
@@ -138,7 +141,7 @@ def home():
         db.session.add(p)
         db.session.commit()
 
-    info = user_information(username, fname)
+    info = user_information(username, fname, lname)
     return jsonify(info)
 
 # -----------------------------

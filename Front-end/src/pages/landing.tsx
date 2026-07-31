@@ -59,7 +59,7 @@ useEffect(() => {
   if (!data) return;
   console.log(`----->\n${data.user.username}\n<-----`);
   axios
-    .get("https://fortune-teller-nhy4.onrender.com/", {
+    .post("https://fortune-teller-nhy4.onrender.com/", {
       params: {
         username: data.user.username,
         fname: data.user.first_name,
@@ -109,7 +109,7 @@ useEffect(() => {
           
           {thisUser && (
             <p className="cosmic-subtitle">
-              سلام {thisUser?.username} عزیز، خوش اومدی!
+              سلام {data?.user.username} عزیز، خوش اومدی!
             </p>
           )}
           <p className="cosmic-subtitle">
