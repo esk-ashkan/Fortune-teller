@@ -131,8 +131,10 @@ class Profile(db.Model):
 def home():
     username = request.args.get("username")
     fname = request.args.get("fname")
+    lname = request.args.get("lname")
+
     if not username:
-        p = Profile(username=username, first_name=fname, last_name=last_name)
+        p = Profile(username=username, first_name=fname, last_name=lname)
         db.session.add(p)
         db.session.commit()
 
