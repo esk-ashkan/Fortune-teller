@@ -9,7 +9,6 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from google.genai import types
 import requests
-from groq import Groq
 from flask_sqlalchemy import SQLAlchemy
 
 # --------------------------------------------------
