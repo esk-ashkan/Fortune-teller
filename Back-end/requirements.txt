@@ -56,6 +56,7 @@ packaging==26.2
 parso==0.8.7
 prompt_toolkit==3.0.52
 propcache==0.5.2
+psycopg2==2.9.12
 pure_eval==0.2.3
 pyasn1==0.6.4
 pyasn1_modules==0.4.2
@@ -85,4 +86,3 @@ websockets==16.1.1
 Werkzeug==3.1.8
 yarl==1.24.5
 zipp==4.1.0
-psycopg2-binary==2.9.10
