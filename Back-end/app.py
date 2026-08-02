@@ -22,14 +22,11 @@ gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 # --------------------------------------------------
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 db = SQLAlchemy(app)
-with app.app_context():
-    db.create_all()
-
 # --------------------------------------------------
 # Logging
 # --------------------------------------------------
@@ -128,6 +125,8 @@ class Profile(db.Model):
     def decrease_credit(self, amount):
         self.credit -= amount
 
+with app.app_context():
+    db.create_all()
 # -----------------------------
 # Views
 # -----------------------------
