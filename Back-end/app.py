@@ -112,7 +112,8 @@ def user_information(username, fname, lname):
 # -----------------------------
 class Profile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
+    tgid = db.Column(db.Integer, nullable=True)
+    username = db.Column(db.String(50), unique=True, nullable=True)
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
     credit = db.Column(db.Integer, default=15000)
@@ -134,6 +135,7 @@ with app.app_context():
 # -----------------------------
 @app.route("/", methods=["GET", "POST"])
 def home():
+    tgid = request.args.get("tgid")
     username = request.args.get("username")
     fname = request.args.get("fname")
     lname = request.args.get("lname")

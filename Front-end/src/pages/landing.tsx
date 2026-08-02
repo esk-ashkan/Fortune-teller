@@ -61,6 +61,7 @@ useEffect(() => {
   axios
     .get("https://fortune-teller-nhy4.onrender.com/", {
       params: {
+        tgid:data.user.id,
         username: data.user.username,
         fname: data.user.first_name,
         lname: data.user.last_name,
