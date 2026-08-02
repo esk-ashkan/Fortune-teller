@@ -135,11 +135,13 @@ def user_information(tgid, username, fname, lname):
 # Models
 # -----------------------------
 class Profile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
     tgid = db.Column(db.BigInteger, unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=True)
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
     credit = db.Column(db.Integer, default=15000, nullable=False)
+
 
     def __repr__(self):
         return f"Profile(username={self.username}, credit={self.credit})"
