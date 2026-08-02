@@ -22,9 +22,23 @@ gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 # --------------------------------------------------
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not configured")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+    "pool_timeout": 30,
+    "connect_args": {
+        "connect_timeout": 10,
+        "sslmode": "require",
+    },
+}
 
 db = SQLAlchemy(app)
 # --------------------------------------------------
@@ -92,15 +106,21 @@ def gemini_api(prompt: str,
     return response.text
 
 def user_information(tgid, username, fname, lname):
+
+    if tgid is None:
+        raise ValueError("Telegram ID is required")
+
     profile = Profile.query.filter_by(tgid=tgid).first()
 
-    if not profile:
+    if profile is None:
         profile = Profile(
             tgid=tgid,
-            username=username, 
-            first_name=fname, 
-            last_name=lname
+            username=username,
+            first_name=fname,
+            last_name=lname,
+            credit=15000
         )
+
         db.session.add(profile)
         db.session.commit()
 
@@ -111,23 +131,22 @@ def user_information(tgid, username, fname, lname):
         "last_name": profile.last_name
     }
 
-    
 # -----------------------------
 # Models
 # -----------------------------
 class Profile(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    tgid = db.Column(db.Integer, nullable=True)
+    tgid = db.Column(db.BigInteger, unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=True)
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
-    credit = db.Column(db.Integer, default=15000)
+    credit = db.Column(db.Integer, default=15000, nullable=False)
 
     def __repr__(self):
         return f"Profile(username={self.username}, credit={self.credit})"
 
     def increase_credit(self, amount):
         self.credit += amount
+
     def decrease_credit(self, amount):
         self.credit -= amount
 
@@ -140,14 +159,24 @@ with app.app_context():
 # -----------------------------
 @app.route("/", methods=["GET", "POST"])
 def home():
-    tgid = request.args.get("tgid")
+    tgid = request.args.get("tgid", type=int)
     username = request.args.get("username")
     fname = request.args.get("fname")
     lname = request.args.get("lname")
 
-    info = user_information(tgid, username, fname, lname)
-    return jsonify(info)
+    if tgid is None:
+        return jsonify({
+            "error": "tgid is required"
+        }), 400
 
+    info = user_information(
+        tgid,
+        username,
+        fname,
+        lname
+    )
+
+    return jsonify(info)
 
 # -----------------------------
 # TAROT
