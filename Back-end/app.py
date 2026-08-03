@@ -10,12 +10,25 @@ from flask_cors import CORS
 from google.genai import types
 import requests
 from flask_sqlalchemy import SQLAlchemy
+from groq import Groq
 
 # --------------------------------------------------
 # Environment
 # --------------------------------------------------
 load_dotenv()
 gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+
+# --------------------------------------------------
+# Variables
+# --------------------------------------------------
+
+groqModels = [
+    "qwen/qwen3.6-27b",#VLM and LLM
+    "groq/compound",#LLM
+    "groq/compound-mini",#LLM
+    "llama-3.1-8b-instant",#LLM
+    "openai/gpt-oss-120b",#LLM
+]
 
 # --------------------------------------------------
 # Flask And Database
@@ -130,6 +143,47 @@ def user_information(tgid, username, fname, lname):
         "first_name": profile.first_name,
         "last_name": profile.last_name
     }
+
+def fetchingGroq(model: str, prompt: str, url: str, vision: bool = True) -> str:
+    client = Groq(api_key=os.environ["GROQ_API_KEY"])
+
+    system_message = {
+        "role": "system",
+        "content": f"You are a Persian {'coffee horoscoper' if vision else 'Tarot horoscoper'}"
+    }
+
+    if vision:
+        user_message = {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": url}
+                }
+            ]
+        }
+    else:
+        user_message = {
+            "role": "user",
+            "content": prompt
+        }
+
+    completion = client.chat.completions.create(
+        model=model,
+        messages=[system_message, user_message],
+        temperature=1,
+        max_completion_tokens=2048,
+        top_p=1,
+        reasoning_effort="medium",
+        stream=True,
+    )
+
+    chunks = ""
+    for chunk in completion:
+        chunks += chunk.choices[0].delta.content or ""
+
+    return chunks
 
 # -----------------------------
 # Models
@@ -266,47 +320,43 @@ def coffee():
     if not files:
         return jsonify({"error": "No images uploaded"}), 400
 
-    uploaded_urls = []
+    # Use the first image only
+    file = files[0]
+    name = names[0]
 
-    for file, name in zip(files, names):
+    # Upload to Cloudinary
+    cloudinary.uploader.upload(
+        file,
+        public_id=name,
+        overwrite=True,
+    )
 
-        cloudinary.uploader.upload(
-            file,
-            public_id=name,
-            overwrite=True,
-        )
+    # Generate URL
+    image_url, _ = cloudinary_url(
+        name,
+        secure=True,
+        fetch_format="auto",
+        quality="auto",
+    )
 
-        image_url, _ = cloudinary_url(
-            name,
-            secure=True,
-            fetch_format="auto",
-            quality="auto",
-        )
+    logger.info("----->Calling Vision model...")
 
-        uploaded_urls.append(image_url)
-
-    logger.info("Calling Vision model...")
+    prompt = "این تصاویر قهوه را تحلیل کن و یک فال دقیق ارائه بده."
 
     try:
-
-        return jsonify(
-            {
-                "interpretation": "interpretation"
-            }
+        response = fetchingGroq(
+            model=groqModels[0],
+            prompt=prompt,
+            url=image_url,
         )
+
+        return jsonify({"interpretation": response})
 
     except Exception as e:
+        logger.exception("----->Coffee reading failed")
+        return jsonify({"error": str(e)}), 502
 
-        logger.exception("Coffee reading failed")
 
-        return (
-            jsonify(
-                {
-                    "error": str(e)
-                }
-            ),
-            502,
-        )
 # -----------------------------
 # STARS (HOROSCOPE)
 # -----------------------------
