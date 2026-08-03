@@ -96,27 +96,48 @@ def mistral_api(prompt: str, temprature:float=0.85):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-def gemini_api(prompt: str,
+def gemini_api(
+    prompt: str,
     model: str = "gemini-3.5-flash",
     temperature: float = 0.7,
-    max_tokens: int = 200
+    max_tokens: int = 200,
+    vision: bool = False,
+    file: object | None = None
 ) -> str:
-    """
-    Send a prompt to Gemini API with optional parameters.
-    """
-    grounding_tool = types.Tool(google_search=types.GoogleSearch())
-    generation_config = types.GenerateContentConfig(
-        temperature=temperature,
-        max_output_tokens=max_tokens, 
-        top_p=0.95,
+
+    if not vision:
+        generation_config = types.GenerateContentConfig(
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+            top_p=0.95,
         )
-    
-    response = gemini_client.models.generate_content(
-        model=model,
-        contents=prompt,
-        config=generation_config,
+
+        response = gemini_client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=generation_config,
+        )
+        return response.text
+
+    if file is None:
+        raise ValueError("Vision mode requires a file")
+
+    uploaded_file = gemini_client.files.upload(file)
+
+    interaction = gemini_client.interactions.create(
+        model="gemini-3.6-flash",
+        input=[
+            {"type": "text", "text": prompt},
+            {
+                "type": "image",
+                "uri": uploaded_file.uri,
+                "mime_type": uploaded_file.mime_type
+            }
+        ]
     )
-    return response.text
+
+    return interaction.output_text
+
 
 def user_information(tgid, username, fname, lname):
 
@@ -243,7 +264,7 @@ def tarot():
     
     cards_list = request.args.getlist("cards_list[]")
     cards_list = [card.strip() for card in cards_list if card.strip()]
-    
+    kindOfHoroscopy = request.args.get("kindOfHoroscopy")
     if not cards_list:
         return jsonify({"error": "No cards provided"}), 400
     
@@ -251,6 +272,12 @@ def tarot():
         return jsonify({"error": "Maximum 10 cards allowed"}), 400
     
     cards_text = ", ".join(cards_list)
+    extra_context = (
+        f"Main goal of horoscopy is: {kindOfHoroscopy}."
+        if kindOfHoroscopy and kindOfHoroscopy != "سایر"
+        else ""
+    )
+
     base_prompt = f"""
     You are a traditional Tarot scholar.
     For every card:
@@ -262,11 +289,9 @@ def tarot():
     5. Advice
 
     Do NOT answer as a numbered list.
-
     Write naturally as an experienced Tarot reader.
 
     Your interpretations should be:
-
     - mystical
     - psychologically insightful
     - compassionate
@@ -274,15 +299,16 @@ def tarot():
     - avoid deterministic predictions
     - explain both each card and the spread as a whole
 
-    Maximum 220 words.
+    {extra_context}
 
+    Maximum 220 words, and dedicate most of words to the final interpretation.
     IMPORTANT:
     Return the interpretation in Persian.
 
     Cards drawn:
-
     {cards_text}
     """
+
     
     try:
         response = mistral_api(prompt=base_prompt)
@@ -320,18 +346,15 @@ def coffee():
     if not files:
         return jsonify({"error": "No images uploaded"}), 400
 
-    # Use the first image only
     file = files[0]
     name = names[0]
 
-    # Upload to Cloudinary
     cloudinary.uploader.upload(
         file,
         public_id=name,
         overwrite=True,
     )
 
-    # Generate URL
     image_url, _ = cloudinary_url(
         name,
         secure=True,
@@ -349,6 +372,12 @@ def coffee():
             prompt=prompt,
             url=image_url,
         )
+        if not response:
+            response = gemini_api(
+                prompt=prompt,
+                vision=True,
+                file=file
+            )
 
         return jsonify({"interpretation": response})
 

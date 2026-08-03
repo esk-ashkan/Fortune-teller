@@ -16,6 +16,7 @@ function Tarot() {
   const [revealFortune, setRevealFortune] = useState(false);
   const [fortuneText, setFortuneText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [kindOfHoroscopy, setKindOfHoroscopy] = useState('');
 
   const hand = useMemo(() => {
     const picked = new Set<number>();
@@ -40,6 +41,10 @@ function Tarot() {
     setSelectedCards([]);
     setIsLoading(false);
   };
+  const handleSelectKind = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const v = e.target.value
+    setKindOfHoroscopy(v)
+  };
 
   const handleSelectedCard = (cardName: string) => {
     if (!maxNumOfCards) return;
@@ -58,6 +63,7 @@ function Tarot() {
         .get("https://fortune-teller-nhy4.onrender.com/tarot", {
           params: {
             cards_list: newSelectedCards,
+            kindOfHoroscopy:kindOfHoroscopy,
           },
         })
         .then((response) => {
@@ -127,7 +133,17 @@ function Tarot() {
             </div>
           </div>
         </div>
-
+        <Form.Select
+              className="tarot-select"
+              onChange={handleSelectKind}
+              defaultValue=""
+            >
+              <option value="">لطفا ابتدا تعداد کارت‌ها را انتخاب کنید</option>
+              <option value="عشقی">عشقی</option>
+              <option value="کاری">کاری</option>
+              <option value="مالی">مالی</option>
+              <option value="سایر">سایر</option>
+        </Form.Select>
         <div className="tarot-grid">
           {cardsList.map((name, idx) => (
             <CardsComponent
