@@ -3,12 +3,13 @@ import tarotImg from "../assets/tarot.png";
 
 interface CardProps {
   onSelect?: () => void;
+  selected?: boolean;
 }
 
-function CardsComponent({ onSelect }: CardProps) {
+function CardsComponent({ onSelect, selected = false }: CardProps) {
   return (
     <Card
-      className="tarot-card"
+      className={`tarot-card ${selected ? 'selected' : ''}`} 
       onClick={onSelect}
     >
       <Card.Img

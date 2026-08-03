@@ -97,57 +97,59 @@ function Tarot() {
         </div>
 
         <div className="tarot-header">
-          <h2 className="tarot-title">فال تاروت</h2>
-          <p className="tarot-subtitle">رویای کهنِ رنگ و رمز</p>
-          <p className="tarot-desc">
-            تعداد کارت را انتخاب کنید، سپس از بین کارت‌های نمایش داده شده روی هر کارت کلیک کنید.
-            وقتی تعداد انتخاب‌ها به پایان رسید، زمان تفسیر فرا می‌رسد.
-          </p>
+            <h2 className="tarot-title">فال تاروت</h2>
+            <p className="tarot-subtitle">رویای کهنِ رنگ و رمز</p>
+            <p className="tarot-desc">
+              تعداد کارت را انتخاب کنید، سپس از بین کارت‌های نمایش داده شده روی هر کارت کلیک کنید.
+              وقتی تعداد انتخاب‌ها به پایان رسید، زمان تفسیر فرا می‌رسد.
+            </p>
 
-          <div className="tarot-divider"></div>
+            <div className="tarot-divider"></div>
 
-          <div className="tarot-controls">
-            <Form.Select
-              className="tarot-select"
-              onChange={handleSelectValue}
-              defaultValue=""
-            >
-              <option value="">لطفا ابتدا تعداد کارت‌ها را انتخاب کنید</option>
-              <option value="1">فال تاروت ۱ کارته</option>
-              <option value="3">فال تاروت ۳ کارته</option>
-              <option value="5">فال تاروت ۵ کارته</option>
-              <option value="7">فال تاروت ۷ کارته</option>
-            </Form.Select>
+            <div className="tarot-controls">
+          <Form.Select
+            className="tarot-select"
+            onChange={handleSelectValue}
+            defaultValue=""
+          >
+            <option value="">لطفا ابتدا تعداد کارت‌ها را انتخاب کنید</option>
+            <option value="1">فال تاروت ۱ کارته</option>
+            <option value="3">فال تاروت ۳ کارته</option>
+            <option value="5">فال تاروت ۵ کارته</option>
+            <option value="7">فال تاروت ۷ کارته</option>
+          </Form.Select>
 
-            <div className="tarot-info">
-              <div className="tarot-info-box">
-                <div className="tarot-info-label">پیشرفت انتخاب</div>
-                <div className="tarot-info-value">
-                  {maxNumOfCards ? `${selectedCount} / ${maxNumOfCards}` : "—"}
-                </div>
+          {/* Move the second select HERE, inside tarot-controls */}
+          <Form.Select
+            className="tarot-select"
+            onChange={handleSelectKind}
+            defaultValue=""
+          >
+            <option value="">هدف اصلی این فال</option>
+            <option value="عشقی">عشقی</option>
+            <option value="کاری">کاری</option>
+            <option value="مالی">مالی</option>
+            <option value="سایر">سایر</option>
+          </Form.Select>
+
+          <div className="tarot-info">
+            <div className="tarot-info-box">
+              <div className="tarot-info-label">پیشرفت انتخاب</div>
+              <div className="tarot-info-value">
+                {maxNumOfCards ? `${selectedCount} / ${maxNumOfCards}` : "—"}
               </div>
-              <div className="tarot-info-box">
-                <div className="tarot-info-label">تعداد کارت‌های نمایشی</div>
-                <div className="tarot-info-value">{cardsList.length}</div>
-              </div>
+            </div>
+            <div className="tarot-info-box">
+              <div className="tarot-info-label">تعداد کارت‌های نمایشی</div>
+              <div className="tarot-info-value">{cardsList.length}</div>
             </div>
           </div>
         </div>
-        <Form.Select
-              className="tarot-select"
-              onChange={handleSelectKind}
-              defaultValue=""
-            >
-              <option value="">لطفا ابتدا تعداد کارت‌ها را انتخاب کنید</option>
-              <option value="عشقی">عشقی</option>
-              <option value="کاری">کاری</option>
-              <option value="مالی">مالی</option>
-              <option value="سایر">سایر</option>
-        </Form.Select>
         <div className="tarot-grid">
           {cardsList.map((name, idx) => (
             <CardsComponent
               key={`${name}-${idx}`}
+              selected={selectedCards.includes(name)}
               onSelect={() => {
                 if (!maxNumOfCards || selectedCount >= maxNumOfCards) return;
                 handleSelectedCard(name);
