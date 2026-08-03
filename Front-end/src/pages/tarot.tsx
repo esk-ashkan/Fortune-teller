@@ -97,39 +97,37 @@ function Tarot() {
         </div>
 
         <div className="tarot-header">
-            <h2 className="tarot-title">فال تاروت</h2>
-            <p className="tarot-subtitle">رویای کهنِ رنگ و رمز</p>
-            <p className="tarot-desc">
+          <h2 className="tarot-title">فال تاروت</h2>
+          <p className="tarot-subtitle">رویای کهنِ رنگ و رمز</p>
+          <p className="tarot-desc">
               تعداد کارت را انتخاب کنید، سپس از بین کارت‌های نمایش داده شده روی هر کارت کلیک کنید.
               وقتی تعداد انتخاب‌ها به پایان رسید، زمان تفسیر فرا می‌رسد.
-            </p>
+          </p>
 
-            <div className="tarot-divider"></div>
+          <div className="tarot-divider"></div>
 
-            <div className="tarot-controls">
+          <div className="tarot-controls">
           <Form.Select
-            className="tarot-select"
-            onChange={handleSelectValue}
-            defaultValue=""
-          >
-            <option value="">لطفا ابتدا تعداد کارت‌ها را انتخاب کنید</option>
-            <option value="1">فال تاروت ۱ کارته</option>
-            <option value="3">فال تاروت ۳ کارته</option>
-            <option value="5">فال تاروت ۵ کارته</option>
-            <option value="7">فال تاروت ۷ کارته</option>
+              className="tarot-select"
+              onChange={handleSelectValue}
+              defaultValue=""
+            >
+              <option value="">لطفا ابتدا تعداد کارت‌ها را انتخاب کنید</option>
+              <option value="1">فال تاروت ۱ کارته</option>
+              <option value="3">فال تاروت ۳ کارته</option>
+              <option value="5">فال تاروت ۵ کارته</option>
+              <option value="7">فال تاروت ۷ کارته</option>
           </Form.Select>
-
-          {/* Move the second select HERE, inside tarot-controls */}
           <Form.Select
-            className="tarot-select"
-            onChange={handleSelectKind}
-            defaultValue=""
-          >
-            <option value="">هدف اصلی این فال</option>
-            <option value="عشقی">عشقی</option>
-            <option value="کاری">کاری</option>
-            <option value="مالی">مالی</option>
-            <option value="سایر">سایر</option>
+              className="tarot-select"
+              onChange={handleSelectKind}
+              defaultValue=""
+            >
+              <option value="">هدف اصلی این فال</option>
+              <option value="عشقی">عشقی</option>
+              <option value="کاری">کاری</option>
+              <option value="مالی">مالی</option>
+              <option value="سایر">سایر</option>
           </Form.Select>
 
           <div className="tarot-info">
@@ -144,6 +142,7 @@ function Tarot() {
               <div className="tarot-info-value">{cardsList.length}</div>
             </div>
           </div>
+        </div>
         </div>
         <div className="tarot-grid">
           {cardsList.map((name, idx) => (
