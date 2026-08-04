@@ -122,7 +122,7 @@ def gemini_api(
     if file is None:
         raise ValueError("Vision mode requires a file")
 
-    uploaded_file = gemini_client.files.upload(file)
+    uploaded_file = gemini_client.files.upload(file=file)
 
     interaction = gemini_client.interactions.create(
         model="gemini-3.6-flash",
@@ -137,7 +137,6 @@ def gemini_api(
     )
 
     return interaction.output_text
-
 
 def user_information(tgid, username, fname, lname):
 
@@ -188,7 +187,7 @@ def fetchingGroq(model: str, prompt: str, url: str, vision: bool = True) -> str:
         model=model,
         messages=[system_message, user_message],
         temperature=1,
-        max_completion_tokens=2048,
+        max_completion_tokens=4096,
         top_p=1,
     )
     logging.info(f"----->\n{completion}\n<-----")
