@@ -160,6 +160,18 @@ useEffect(() => {
               situation={false}
             />
           </Col>
+          <Col xs={12}>
+            <SelectComponent
+              text="فال حافظ"
+              color="stars-btn"
+              icon={<GiStarSattelites />}
+              to="/stars"
+              onSelect={() => navigate("/hafez")} 
+              description="فال حافظ شیراز"
+              badge="نیت کنید"
+              situation={false}
+            />
+          </Col>
         </Row>
         <div className={`cosmic-footer ${mounted ? 'cosmic-fade-in-delay' : ''}`}>
           <p className="cosmic-footer-text">
