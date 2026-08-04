@@ -1,0 +1,447 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap');
+
+/* ===== Wrapper & Background ===== */
+.hafez-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #0a0618 0%, #1a0a2e 40%, #16213e 70%, #0f3460 100%);
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Vazirmatn', 'Segoe UI', sans-serif;
+}
+
+.hafez-bg-stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 215, 0, 0.3), transparent),
+    radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255, 215, 0, 0.2), transparent),
+    radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+  background-size: 200px 100px;
+  background-repeat: repeat;
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hafez-bg-glow {
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.03) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+  animation: hafez-glow-pulse 8s ease-in-out infinite;
+}
+
+@keyframes hafez-glow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* ===== Container ===== */
+.hafez-container {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ===== Loading ===== */
+.hafez-loading {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(145deg, #0a0618, #1a0a2e);
+}
+
+.hafez-loading-content {
+  text-align: center;
+  color: #c8a8e9;
+}
+
+.hafez-loading-icon {
+  font-size: 3rem;
+  color: #ffd700;
+  margin-bottom: 1rem;
+  animation: hafez-float 2s ease-in-out infinite;
+}
+
+.hafez-loading-content p {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  color: #b8c6db;
+}
+
+@keyframes hafez-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ===== Header ===== */
+.hafez-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem 0;
+}
+
+.hafez-header-decoration {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.hafez-header-icon {
+  font-size: 2.5rem;
+  color: #ffd700;
+  opacity: 0.6;
+  animation: hafez-float 3s ease-in-out infinite;
+}
+
+.hafez-title {
+  color: #ffd700;
+  font-size: 2.8rem;
+  font-weight: 900;
+  text-shadow: 0 0 40px rgba(255, 215, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.hafez-title-icon {
+  font-size: 2rem;
+  color: #c8a8e9;
+}
+
+.hafez-title-star {
+  font-size: 1.5rem;
+  color: #ffd700;
+  animation: hafez-spin 6s linear infinite;
+}
+
+@keyframes hafez-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.hafez-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem auto;
+  max-width: 300px;
+}
+
+.hafez-divider span {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
+}
+
+.hafez-divider-icon {
+  color: #ffd700;
+  font-size: 1.2rem;
+  animation: hafez-float 2.5s ease-in-out infinite;
+}
+
+.hafez-subtitle {
+  color: #b8c6db;
+  font-size: 1.1rem;
+  font-style: italic;
+  margin-top: 0.75rem;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+/* ===== Poem Section ===== */
+.hafez-poem-section {
+  margin-bottom: 2rem;
+}
+
+.hafez-poem-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hafez-poem-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(255, 215, 0, 0.1);
+}
+
+.hafez-poem-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+  padding-bottom: 0.75rem;
+}
+
+.hafez-poem-header h3 {
+  color: #ffd700;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.hafez-poem-icon {
+  color: #c8a8e9;
+  font-size: 1.5rem;
+}
+
+.hafez-poem-content {
+  direction: rtl;
+  text-align: right;
+}
+
+.hafez-poem-line {
+  color: #e0d5f5;
+  font-size: 1.1rem;
+  line-height: 2.2;
+  margin-bottom: 0.5rem;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  padding: 0.25rem 0.5rem;
+  border-right: 2px solid transparent;
+  transition: border-color 0.3s ease, background 0.3s ease;
+  border-radius: 4px;
+}
+
+.hafez-poem-line:hover {
+  border-right-color: rgba(255, 215, 0, 0.4);
+  background: rgba(255, 215, 0, 0.03);
+}
+
+/* ===== Interpretation Section ===== */
+.hafez-faal-section {
+  margin-bottom: 2rem;
+}
+
+.hafez-faal-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(200, 168, 233, 0.1);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hafez-faal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(200, 168, 233, 0.08);
+}
+
+.hafez-faal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(200, 168, 233, 0.1);
+  padding-bottom: 0.75rem;
+}
+
+.hafez-faal-header h3 {
+  color: #c8a8e9;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.hafez-faal-icon {
+  color: #ffd700;
+  font-size: 1.5rem;
+  animation: hafez-spin 12s linear infinite;
+}
+
+.hafez-faal-content {
+  direction: rtl;
+  text-align: right;
+  color: #d4c8e8;
+}
+
+.hafez-faal-subheader {
+  color: #ffd700;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 215, 0, 0.05);
+  border-radius: 8px;
+  border-right: 3px solid #ffd700;
+}
+
+.hafez-faal-paragraph {
+  font-size: 1rem;
+  line-height: 2;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.hafez-faal-bold {
+  font-weight: 700;
+  color: #e0d5f5;
+  font-size: 1.05rem;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 215, 0, 0.04);
+  border-radius: 12px;
+  border-right: 3px solid rgba(255, 215, 0, 0.3);
+}
+
+.hafez-faal-table-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 2fr;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.hafez-faal-table-row:hover {
+  background: rgba(255, 215, 0, 0.03);
+}
+
+.hafez-table-cell {
+  color: #b8c6db;
+  font-size: 0.95rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.hafez-table-cell:first-child {
+  font-weight: 700;
+  color: #ffd700;
+}
+
+/* ===== Footer ===== */
+.hafez-footer {
+  text-align: center;
+  padding: 2rem 0 1rem;
+  margin-top: 1rem;
+}
+
+.hafez-footer-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.hafez-footer-star {
+  color: rgba(255, 215, 0, 0.3);
+  font-size: 1rem;
+  animation: hafez-float 3s ease-in-out infinite;
+}
+
+.hafez-footer-star:nth-child(2) { animation-delay: 0.5s; }
+.hafez-footer-star:nth-child(3) { animation-delay: 1s; }
+.hafez-footer-star:nth-child(4) { animation-delay: 1.5s; }
+.hafez-footer-star:nth-child(5) { animation-delay: 2s; }
+
+.hafez-footer-text {
+  color: #6a5a8a;
+  font-size: 0.95rem;
+  font-style: italic;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* ===== Error ===== */
+.hafez-error {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(145deg, #0a0618, #1a0a2e);
+  color: #c8a8e9;
+  padding: 2rem;
+  text-align: center;
+}
+
+.hafez-error button {
+  margin-top: 1.5rem;
+  padding: 0.75rem 2rem;
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid #ffd700;
+  border-radius: 30px;
+  color: #ffd700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hafez-error button:hover {
+  background: rgba(255, 215, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .hafez-title {
+    font-size: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .hafez-title-icon,
+  .hafez-title-star {
+    font-size: 1.2rem;
+  }
+
+  .hafez-poem-card,
+  .hafez-faal-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .hafez-poem-line {
+    font-size: 0.95rem;
+    line-height: 2;
+  }
+
+  .hafez-faal-table-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+    padding: 0.75rem;
+  }
+
+  .hafez-table-cell {
+    font-size: 0.9rem;
+  }
+
+  .hafez-faal-subheader {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hafez-title {
+    font-size: 1.6rem;
+  }
+
+  .hafez-poem-line {
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+
+  .hafez-faal-paragraph {
+    font-size: 0.9rem;
+  }
+}
