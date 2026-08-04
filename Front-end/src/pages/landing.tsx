@@ -160,6 +160,7 @@ useEffect(() => {
               situation={false}
             />
           </Col>
+          
           <Col xs={12}>
             <SelectComponent
               text="فال حافظ"
@@ -169,7 +170,6 @@ useEffect(() => {
               onSelect={() => navigate("/hafez")} 
               description="فال حافظ شیراز"
               badge="نیت کنید"
-              situation={false}
             />
           </Col>
         </Row>
