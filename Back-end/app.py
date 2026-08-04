@@ -617,7 +617,8 @@ def hafez():
 
     ai_faal = fetchingGroq(
         model=groqModels[4],
-        prompt=f"با توجه به این شعر و معانی ابیات آن، یک فال حافظ برام بگیر.{poem}",
+        prompt=f"""با توجه به این شعر و معانی ابیات آن، یک فال حافظ برام بگیر.
+        لازم نیست شعر و تفسیر کنی.{poem}""",
         vision=False
     )
 
