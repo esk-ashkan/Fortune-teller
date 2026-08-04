@@ -164,41 +164,80 @@ def user_information(tgid, username, fname, lname):
         "last_name": profile.last_name
     }
 
-def fetchingGroq(model: str, prompt: str, url: str, vision: bool = True) -> str:
+def fetchingGroq(
+    model: str,
+    prompt: str,
+    url: str,
+    vision: bool = True
+) -> str:
+
     client = Groq(api_key=os.environ["GROQ_API_KEY"])
-    logging.info(f"----->Groq Requesting")
+
+    logging.info("-----> Groq Requesting")
+
     system_message = {
         "role": "system",
-        "content": f"You are a Persian {'coffee horoscoper' if vision else 'Tarot horoscoper'}"
+        "content": (
+            "You are a Persian coffee horoscoper."
+            if vision
+            else "You are a Persian Tarot horoscoper."
+        )
     }
 
     if vision:
         user_message = {
             "role": "user",
             "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": url}}
+                {
+                    "type": "text",
+                    "text": prompt
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": url
+                    }
+                }
             ]
         }
     else:
-        user_message = {"role": "user", "content": prompt}
+        user_message = {
+            "role": "user",
+            "content": prompt
+        }
 
     completion = client.chat.completions.create(
         model=model,
-        messages=[system_message, user_message],
+        messages=[
+            system_message,
+            user_message
+        ],
         temperature=1,
-        max_completion_tokens=4096,
+        max_completion_tokens=6144,
         top_p=1,
+        stream=False,
     )
-    logging.info(f"----->\n{completion}\n<-----")
-    chunks = ""
-    for event, data in completion:
-        if hasattr(data, "choices") and data.choices:
-            delta = data.choices[0].delta
-            if delta and delta.content:
-                chunks += delta.content
-    logging.info(f"----->\n{chunks}\n<-----")
-    return chunks
+
+    logging.info("-----> Groq response received")
+
+    logging.info(
+        "Finish reason: %s",
+        completion.choices[0].finish_reason
+    )
+
+    content = completion.choices[0].message.content
+
+    logging.info(
+        "Content length: %s",
+        len(content) if content else 0
+    )
+
+    logging.info(
+        "----->\n%s\n<-----",
+        content
+    )
+
+    return content or ""
 
 # -----------------------------
 # Models
