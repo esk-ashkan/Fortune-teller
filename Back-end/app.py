@@ -196,8 +196,6 @@ def fetchingGroq(model: str, prompt: str, url: str, vision: bool = True) -> str:
         temperature=1,
         max_completion_tokens=2048,
         top_p=1,
-        reasoning_effort="medium",
-        stream=True,
     )
 
     chunks = ""
