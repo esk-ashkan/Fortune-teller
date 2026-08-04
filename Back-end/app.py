@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from google import genai
 import cloudinary
 import cloudinary.uploader
@@ -11,6 +12,7 @@ from google.genai import types
 import requests
 from flask_sqlalchemy import SQLAlchemy
 from groq import Groq
+from openai import OpenAI
 
 # --------------------------------------------------
 # Environment
@@ -138,37 +140,13 @@ def gemini_api(
 
     return interaction.output_text
 
-def user_information(tgid, username, fname, lname):
-
-    if tgid is None:
-        raise ValueError("Telegram ID is required")
-
-    profile = Profile.query.filter_by(tgid=tgid).first()
-
-    if profile is None:
-        profile = Profile(
-            tgid=tgid,
-            username=username,
-            first_name=fname,
-            last_name=lname,
-            credit=15000
-        )
-
-        db.session.add(profile)
-        db.session.commit()
-
-    return {
-        "username": profile.username,
-        "credit": profile.credit,
-        "first_name": profile.first_name,
-        "last_name": profile.last_name
-    }
-
 def fetchingGroq(
+
     model: str,
     prompt: str,
-    url: str,
-    vision: bool = True
+    url: str="",
+    vision: bool = True,
+    tarot: bool = True
 ) -> str:
 
     client = Groq(api_key=os.environ["GROQ_API_KEY"])
@@ -180,7 +158,10 @@ def fetchingGroq(
         "content": (
             "You are a Persian coffee horoscoper."
             if vision
-            else "You are a Persian Tarot horoscoper."
+            else
+                "You are a Persian Tarot horoscoper." if tarot
+            else 
+                "You are a Persian Darvish."
         )
     }
 
@@ -238,6 +219,59 @@ def fetchingGroq(
     )
 
     return content or ""
+
+def huggingFaceAPI(prompt:str, imageUrl:str):
+    HF_client = OpenAI(
+        base_url="https://router.huggingface.co/v1",
+        api_key=os.environ["HFT"],
+    )
+    completion = HF_client.chat.completions.create(
+        model="google/gemma-3-4b-it:featherless-ai",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": imageUrl
+                        }
+                    }
+                ]
+            }
+        ],
+    )
+    return completion.choices[0].message
+
+def user_information(tgid, username, fname, lname):
+
+    if tgid is None:
+        raise ValueError("Telegram ID is required")
+
+    profile = Profile.query.filter_by(tgid=tgid).first()
+
+    if profile is None:
+        profile = Profile(
+            tgid=tgid,
+            username=username,
+            first_name=fname,
+            last_name=lname,
+            credit=15000
+        )
+
+        db.session.add(profile)
+        db.session.commit()
+
+    return {
+        "username": profile.username,
+        "credit": profile.credit,
+        "first_name": profile.first_name,
+        "last_name": profile.last_name
+    }
 
 # -----------------------------
 # Models
@@ -377,47 +411,152 @@ def coffee():
     names = request.form.getlist("images_name")
 
     if not files:
-        return jsonify({"error": "No images uploaded"}), 400
+        return jsonify({
+            "error": "No images uploaded"
+        }), 400
 
     file = files[0]
-    name = names[0]
-
-    cloudinary.uploader.upload(
-        file,
-        public_id=name,
-        overwrite=True,
-    )
-
-    image_url, _ = cloudinary_url(
-        name,
-        secure=True,
-        fetch_format="auto",
-        quality="auto",
-    )
-
-    logger.info("----->Calling Vision model...")
-
-    prompt = "این تصاویر قهوه را تحلیل کن و یک فال دقیق ارائه بده."
+    name = names[0] if names else f"coffee_{int(time.time())}"
+    prompt = """
+    این تصویر قهوه را با دقت تحلیل کن و یک فال قهوه دقیق، روان با لحنی امیدبخش
+    به زبان فارسی ارائه بده.
+    نشانه‌ها، شکل‌ها، خطوط و الگوهای قابل مشاهده در فنجان را بررسی کن.
+    تفسیر را بر اساس سنت فال قهوه انجام بده و از ادعاهای قطعی درباره
+    آینده خودداری کن.
+    """
+    errors = []
+    image_url = None
 
     try:
-        response = fetchingGroq(
-            model=groqModels[0],
-            prompt=prompt,
-            url=image_url,
-        )
-        if not response:
-            response = gemini_api(
-                prompt=prompt,
-                vision=True,
-                file=file
-            )
 
-        return jsonify({"interpretation": response})
+        logger.info("-----> Uploading coffee image to Cloudinary...")
+        cloudinary.uploader.upload(
+            file,
+            public_id=name,
+            overwrite=True,
+        )
+        image_url, _ = cloudinary_url(
+            name,
+            secure=True,
+            fetch_format="auto",
+            quality="auto",
+        )
+        logger.info("-----> Cloudinary upload successful")
 
     except Exception as e:
-        logger.exception("----->Coffee reading failed")
-        return jsonify({"error": str(e)}), 502
+        logger.exception(
+            "-----> Cloudinary upload failed"
+        )
+        errors.append({
+            "provider": "Cloudinary",
+            "error": str(e)
+        })
 
+    if image_url:
+        try:
+            logger.info(
+                "-----> Requesting Groq Vision..."
+            )
+            response = fetchingGroq(
+                model=groqModels[0],
+                prompt=prompt,
+                url=image_url,
+            )
+            if response:
+                logger.info(
+                    "-----> Groq Vision succeeded"
+                )
+                return jsonify({
+                    "interpretation": response,
+                    "provider": "groq"
+                }), 200
+            errors.append({
+                "provider": "Groq",
+                "error": "Empty response"
+            })
+
+        except Exception as e:
+            logger.exception(
+                "-----> Groq Vision failed"
+            )
+            errors.append({
+                "provider": "Groq",
+                "error": str(e)
+            })
+
+    try:
+        logger.info(
+            "-----> Requesting Gemini Vision..."
+        )
+        file.stream.seek(0)
+        response = gemini_api(
+            prompt=prompt,
+            vision=True,
+            file=file
+        )
+        if response:
+            logger.info(
+                "-----> Gemini Vision succeeded"
+            )
+            return jsonify({
+                "interpretation": response,
+                "provider": "gemini"
+            }), 200
+        errors.append({
+            "provider": "Gemini",
+            "error": "Empty response"
+        })
+
+    except Exception as e:
+        logger.exception(
+            "-----> Gemini Vision failed"
+        )
+        errors.append({
+            "provider": "Gemini",
+            "error": str(e)
+        })
+
+    if image_url:
+        try:
+            logger.info(
+                "-----> Requesting Hugging Face Vision..."
+            )
+            response = huggingFaceAPI(
+                prompt=prompt,
+                imageUrl=image_url
+            )
+            if response:
+
+                logger.info(
+                    "-----> Hugging Face Vision succeeded"
+                )
+
+                return jsonify({
+                    "interpretation": response,
+                    "provider": "huggingface"
+                }), 200
+            errors.append({
+                "provider": "Hugging Face",
+                "error": "Empty response"
+            })
+
+        except Exception as e:
+            logger.exception(
+                "-----> Hugging Face Vision failed"
+            )
+            errors.append({
+                "provider": "Hugging Face",
+                "error": str(e)
+            })
+
+    logger.error(
+        "-----> All coffee-reading providers failed"
+    )
+
+    return jsonify({
+        "error": "All vision providers failed.",
+        "details": errors
+    }), 502
 
 # -----------------------------
 # STARS (HOROSCOPE)
@@ -455,11 +594,41 @@ def stars():
     return jsonify({"horoscope_data": result["generated_text"]})
 
 # -----------------------------
-# HEALTH CHECK
+# HAFEZ
 # -----------------------------
-@app.route('/env-test')
-def health():
-    return {"status": "ok"}
+@app.route('/hafez')
+def hafez():
+    r = requests.get('https://ganjgah.ir/api/ganjoor/hafez/faal')
+
+    if r.status_code != 200:
+        return jsonify({"error": "Failed to fetch poem"}), 502
+
+    data = r.json()
+
+    poem = {
+        "poem": data.get("plainText"),
+        "summary": data.get("poemSummary"),
+        "interpretations": [
+            verse["text"]
+            for verse in data.get("verses", [])
+            if verse.get("text") is not None
+        ]
+    }
+
+    ai_faal = fetchingGroq(
+        model=groqModels[4],
+        prompt="با توجه به شعر و معانی ابیات، یک فال حافظ برام بگیر.",
+        vision=False
+    )
+
+    logging.info(f"----->{ai_faal}<-----")
+
+    return jsonify({
+        "poem": poem,
+        "ai_faal": ai_faal
+    })
+
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
