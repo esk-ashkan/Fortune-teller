@@ -167,7 +167,7 @@ def user_information(tgid, username, fname, lname):
 
 def fetchingGroq(model: str, prompt: str, url: str, vision: bool = True) -> str:
     client = Groq(api_key=os.environ["GROQ_API_KEY"])
-
+    logging.info(f"----->Groq Requesting")
     system_message = {
         "role": "system",
         "content": f"You are a Persian {'coffee horoscoper' if vision else 'Tarot horoscoper'}"
@@ -191,14 +191,14 @@ def fetchingGroq(model: str, prompt: str, url: str, vision: bool = True) -> str:
         max_completion_tokens=2048,
         top_p=1,
     )
-
+    logging.info(f"----->\n{completion}\n<-----")
     chunks = ""
     for event, data in completion:
         if hasattr(data, "choices") and data.choices:
             delta = data.choices[0].delta
             if delta and delta.content:
                 chunks += delta.content
-
+    logging.info(f"----->\n{chunks}\n<-----")
     return chunks
 
 # -----------------------------
