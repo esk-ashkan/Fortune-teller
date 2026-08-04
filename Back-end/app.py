@@ -178,17 +178,11 @@ def fetchingGroq(model: str, prompt: str, url: str, vision: bool = True) -> str:
             "role": "user",
             "content": [
                 {"type": "text", "text": prompt},
-                {
-                    "type": "image_url",
-                    "image_url": {"url": url}
-                }
+                {"type": "image_url", "image_url": {"url": url}}
             ]
         }
     else:
-        user_message = {
-            "role": "user",
-            "content": prompt
-        }
+        user_message = {"role": "user", "content": prompt}
 
     completion = client.chat.completions.create(
         model=model,
@@ -196,11 +190,16 @@ def fetchingGroq(model: str, prompt: str, url: str, vision: bool = True) -> str:
         temperature=1,
         max_completion_tokens=2048,
         top_p=1,
+        reasoning_effort="medium",
+        stream=True,
     )
 
     chunks = ""
-    for chunk in completion:
-        chunks += chunk.choices[0].delta.content or ""
+    for event, data in completion:
+        if hasattr(data, "choices") and data.choices:
+            delta = data.choices[0].delta
+            if delta and delta.content:
+                chunks += delta.content
 
     return chunks
 
