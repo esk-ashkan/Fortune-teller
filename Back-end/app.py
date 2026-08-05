@@ -18,7 +18,6 @@ from openai import OpenAI
 # Environment
 # --------------------------------------------------
 load_dotenv()
-gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 # --------------------------------------------------
 # Variables
@@ -106,6 +105,8 @@ def gemini_api(
     vision: bool = False,
     file: object | None = None
 ) -> str:
+    
+    gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
     if not vision:
         generation_config = types.GenerateContentConfig(
@@ -614,6 +615,20 @@ def hafez():
             if verse.get("text") is not None
         ]
     }
+    prompt = f"""
+                با توجه به این شعر و معانی ابیات آن، فقط یک فال حافظ برایم بگیر.
+
+                نکات مهم:
+                - شعر را نقل نکن.
+                - ابیات را تفسیر نکن.
+                - فقط نتیجهٔ فال را بده.
+                - لحن، الهام‌بخش، امیدوارکننده، معنوی و کمی رمزآلود.
+                - فال باید کوتاه، روان و قابل فهم باشد.
+                - از پیش‌گویی قطعی یا جملات منفی پرهیز کن.
+
+                متن شعر:
+                {poem}
+            """
 
     ai_faal = fetchingGroq(
         model=groqModels[4],
@@ -632,7 +647,6 @@ def hafez():
 # -----------------------------
 # KEEP PROJECT AWAKE
 # -----------------------------
-
 @app.route("/keepitawake")
 def keep_alive():
     logging.info("=====> I'm awake!")
