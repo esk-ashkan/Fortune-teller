@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Container, Row, Col, Spinner } from "react-bootstrap";
 import { FaBookOpen, FaStar, FaMoon, FaFeatherAlt } from "react-icons/fa";
-import { GiPlainDagger } from "react-icons/gi";
+import { FaFeatherPointed } from "react-icons/fa6";
 import "./hafez.css";
 
 function Hafez() {
@@ -58,7 +58,7 @@ function Hafez() {
         {/* Header */}
         <div className="hafez-header">
           <div className="hafez-header-decoration">
-            <GiPlainDagger className="hafez-header-icon" />
+            <FaFeatherPointed className="hafez-header-icon" />
           </div>
           <h1 className="hafez-title">
             <FaBookOpen className="hafez-title-icon" />
