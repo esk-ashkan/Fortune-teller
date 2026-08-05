@@ -629,6 +629,14 @@ def hafez():
         "ai_faal": ai_faal
     })
 
+# -----------------------------
+# KEEP PROJECT AWAKE
+# -----------------------------
+
+@app.route("/keepitawake")
+def keep_alive():
+    logging.info("=====> I'm awake!")
+    return "Success"
 
 
 if __name__ == '__main__':

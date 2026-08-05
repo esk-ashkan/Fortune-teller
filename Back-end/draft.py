@@ -33,3 +33,23 @@ if stream:
             print(line.decode("utf-8"))
 else:
     print(response.json())
+
+from flask import Flask
+from flask_apscheduler import APScheduler
+import datetime
+
+app = Flask(__name__)
+
+def my_job(text):
+    requests.get("https://fortune-teller-nhy4.onrender.com/keepitawake")
+
+@app.route("/keepitawake", methods=["GET", "POST"])
+def home():
+    logging.info("=====>I'am awake!")
+    return "Success"
+
+if (__name__ == "__main__"):
+    scheduler = APScheduler()
+    scheduler.add_job(func=my_job, args=['job run'], trigger='interval', id='job', seconds=5)
+    scheduler.start()
+    app.run(port = 8000)
