@@ -34,7 +34,7 @@ function Hafez() {
         <div className="hafez-loading-content">
           <FaFeatherAlt className="hafez-loading-icon" />
           <Spinner animation="grow" variant="warning" />
-          <p>در حال گشودن رازهای حافظ...</p>
+          <p>در حال تفأل زدن...</p>
         </div>
       </div>
     );
@@ -55,7 +55,6 @@ function Hafez() {
       <div className="hafez-bg-glow"></div>
       
       <Container className="hafez-container">
-        {/* Header */}
         <div className="hafez-header">
           <div className="hafez-header-decoration">
             <FaFeatherPointed className="hafez-header-icon" />
@@ -71,11 +70,9 @@ function Hafez() {
             <span></span>
           </div>
           <p className="hafez-subtitle">
-            "از نسیمِ بادِ صبحی، رازِ دل بر من فشان..."
+            " ای حافظ شیرازی! تو محرم هر رازی!..."
           </p>
         </div>
-
-        {/* Poem Section */}
         <Row className="hafez-poem-section">
           <Col xs={12}>
             <div className="hafez-poem-card">
@@ -163,7 +160,7 @@ function Hafez() {
             ))}
           </div>
           <p className="hafez-footer-text">
-            "زین میِ عشق، که حافظ راست، یک جرعه کافیست..."
+            "زین میِ عشق، که حافظ راست، جرعه‌ای مارا بس ..."
           </p>
         </div>
       </Container>
