@@ -32,7 +32,7 @@ function Hafez() {
   const [faal, setFaal] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [goal, setGoal] = useState<string | null>(null);
+  const [goal, setGoal] = useState<string|null>('');
 
   useEffect(() => {
     if (!goal) return;
@@ -117,7 +117,7 @@ function Hafez() {
                   onChange={handleSelectKind}
                   defaultValue=""
                 >
-                  <option value="">ابتدا نیت کنید و هدف اصلی این فال را انتخاب کنید</option>
+                  <option value="" className="hafez-select-option1">ابتدا نیت کنید و هدف اصلی این فال را انتخاب کنید</option>
                   <option value="عشقی">عشقی</option>
                   <option value="کاری">کاری</option>
                   <option value="مالی">مالی</option>

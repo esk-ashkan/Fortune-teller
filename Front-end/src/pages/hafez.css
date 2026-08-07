@@ -128,6 +128,20 @@
   border-radius: 10px;
 }
 
+.hafez-select-option1 {
+  font-size: 90%;
+  padding: 0.5rem 0.75rem;
+  background: #994df7;
+  color: #e0d5f5;
+  transition: background 0.2s ease;
+}
+
+/* Selected state */
+.hafez-select-option1:checked,
+.hafez-select-option1:selected {
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd700;
+}
 
 .hafez-back-wrapper:active {
   transform: scale(0.95);

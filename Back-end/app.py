@@ -6,7 +6,7 @@ import cloudinary
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, url_for
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from google.genai import types
 import requests
