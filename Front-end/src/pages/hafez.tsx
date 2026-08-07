@@ -118,10 +118,10 @@ function Hafez() {
                   defaultValue=""
                 >
                   <option value="" className="hafez-select-option1">ابتدا نیت کنید و هدف اصلی این فال را انتخاب کنید</option>
-                  <option value="عشقی">عشقی</option>
-                  <option value="کاری">کاری</option>
-                  <option value="مالی">مالی</option>
-                  <option value="سایر">سایر</option>
+                  <option value="عشقی">❤️عشقی</option>
+                  <option value="کاری">📈کاری</option>
+                  <option value="مالی">💰مالی</option>
+                  <option value="سایر">🎯سایر</option>
             </Form.Select>
           </div>
         </Row>

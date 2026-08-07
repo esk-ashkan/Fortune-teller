@@ -60,7 +60,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(145deg, #0a0618, #1a0a2e);
+  background: linear-gradient(145deg, hsl(253, 60%, 6%), #1a0a2e);
 }
 
 .hafez-loading-content {
@@ -124,23 +124,10 @@
 .hafez-select {
   width: 100%;
   padding: 12px;
-  font-size: 1.1rem;
+  font-size: 0.9rem !important;
   border-radius: 10px;
-}
-
-.hafez-select-option1 {
-  font-size: 90%;
-  padding: 0.5rem 0.75rem;
-  background: #994df7;
-  color: #e0d5f5;
-  transition: background 0.2s ease;
-}
-
-/* Selected state */
-.hafez-select-option1:checked,
-.hafez-select-option1:selected {
-  background: rgba(255, 215, 0, 0.15);
-  color: #ffd700;
+  background: #1a0a2e !important;
+  color: #f3f3f0 !important; 
 }
 
 .hafez-back-wrapper:active {
