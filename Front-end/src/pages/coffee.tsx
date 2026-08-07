@@ -3,11 +3,15 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
 import './Coffee.css';
+import { IoIosArrowRoundBack } from 'react-icons/io';
+import { useNavigate } from 'react-router-dom';
 
 export default function Coffee() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [fortuneText, setFortuneText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -53,6 +57,12 @@ export default function Coffee() {
 
   return (
     <div className="persian-container">
+      <div className="return-wrapper mb-2">
+                <IoIosArrowRoundBack
+                  className="coffee-back-icon" 
+                  onClick={() => navigate("/")}
+                />
+              </div>
       <div className="header-decoration">
         <div className="ornament">✦</div>
         <h1 className="persian-title">☕ فال قهوه</h1>

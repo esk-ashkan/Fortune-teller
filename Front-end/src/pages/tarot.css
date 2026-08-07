@@ -276,3 +276,13 @@
   z-index: 9999;
 }
 
+.back-icon {
+  position: fixed; 
+  top: 8px;
+  left: 8px;
+  font-size: 2rem;
+  color: #ffd700 !important;
+  cursor: pointer;
+  z-index: 1000; 
+}
+

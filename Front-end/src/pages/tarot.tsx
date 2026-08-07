@@ -7,6 +7,8 @@ import axios from "axios";
 import "./tarot.css";
 import RevealFortune from "./revealfortune";
 import TarotLoading from "./TarotLoading";
+import { IoIosArrowRoundBack } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 
 function Tarot() {
   const [cardsList, setCardsList] = useState<string[]>([]);
@@ -17,6 +19,8 @@ function Tarot() {
   const [fortuneText, setFortuneText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [kindOfHoroscopy, setKindOfHoroscopy] = useState('');
+
+  const navigate = useNavigate();
 
   const hand = useMemo(() => {
     const picked = new Set<number>();
@@ -86,9 +90,10 @@ function Tarot() {
     <div dir="rtl" className="tarot-bg">
       <Container className="py-3 py-md-4" fluid="sm">
         <div className="return-wrapper mb-2">
-          <a href="https://fortune-teller-front.onrender.com/" className="return-btn">
-            بازگشت به صفحه اصلی
-          </a>
+          <IoIosArrowRoundBack 
+            className="back-icon" 
+            onClick={() => navigate("/")}
+          />
         </div>
         <div className="return-wrapper mb-3">
           <a href="https://fortune-teller-front.onrender.com/user" className="return-btn">

@@ -1,6 +1,6 @@
 import { Container, Row, Col } from "react-bootstrap";
 import SelectComponent from "../components/selectcomponent";
-import { GiStarSattelites, GiCardPickup, GiSparkles } from "react-icons/gi";
+import { GiStarSattelites, GiCardPickup, GiSparkles, GiOpenBook } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
 import { FaCoffee, FaMoon } from "react-icons/fa";
 import { useEffect, useState } from "react";
@@ -147,8 +147,19 @@ useEffect(() => {
               badge="جدید"
             />
           </Col>
+          <Col xs={12} className="mb-3">
+            <SelectComponent
+              text="فال حافظ"
+              color="stars-btn"
+              icon={<GiOpenBook />}
+              to="/stars"
+              onSelect={() => navigate("/hafez")} 
+              description="فال حافظ شیراز"
+              badge="نیت کنید"
+            />
+          </Col>
 
-          <Col xs={12}>
+          <Col xs={12} >
             <SelectComponent
               text="فال نجوم"
               color="stars-btn"
@@ -161,17 +172,6 @@ useEffect(() => {
             />
           </Col>
           
-          <Col xs={12}>
-            <SelectComponent
-              text="فال حافظ"
-              color="stars-btn"
-              icon={<GiStarSattelites />}
-              to="/stars"
-              onSelect={() => navigate("/hafez")} 
-              description="فال حافظ شیراز"
-              badge="نیت کنید"
-            />
-          </Col>
         </Row>
         <div className={`cosmic-footer ${mounted ? 'cosmic-fade-in-delay' : ''}`}>
           <p className="cosmic-footer-text">

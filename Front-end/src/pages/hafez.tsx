@@ -1,17 +1,44 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Container, Row, Col, Spinner } from "react-bootstrap";
+import Form from 'react-bootstrap/Form';
 import { FaBookOpen, FaStar, FaMoon, FaFeatherAlt } from "react-icons/fa";
 import { FaFeatherPointed } from "react-icons/fa6";
+import { IoIosArrowRoundBack } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 import "./hafez.css";
 
+// Create a wrapper component for the back arrow
+function HafezWrapper({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="hafez-wrapper">
+      <div className="hafez-back-wrapper">
+        <IoIosArrowRoundBack 
+          className="hafez-back-icon" 
+          onClick={() => navigate("/")}
+        />
+      </div>
+      <div className="hafez-bg-stars"></div>
+      <div className="hafez-bg-glow"></div>
+      {children}
+    </div>
+  );
+}
+
 function Hafez() {
+  const navigate = useNavigate();
   const [poem, setPoem] = useState('');
   const [faal, setFaal] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [goal, setGoal] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!goal) return;
+
+    setLoading(true);
     axios
       .get("https://fortune-teller-nhy4.onrender.com/hafez")
       .then((response) => {
@@ -26,34 +53,42 @@ function Hafez() {
         setError('خطا در دریافت فال. لطفاً دوباره تلاش کنید.');
         setLoading(false);
       });
-  }, []);
+  }, [goal]);
 
+  const handleSelectKind = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setGoal(e.target.value);
+  };
+
+  // Loading state with back arrow
   if (loading) {
     return (
-      <div className="hafez-loading">
-        <div className="hafez-loading-content">
-          <FaFeatherAlt className="hafez-loading-icon" />
-          <Spinner animation="grow" variant="warning" />
-          <p>در حال تفأل زدن...</p>
+      <HafezWrapper>
+        <div className="hafez-loading">
+          <div className="hafez-loading-content">
+            <FaFeatherAlt className="hafez-loading-icon" />
+            <Spinner animation="grow" variant="warning" />
+            <p>در حال تفأل زدن...</p>
+          </div>
         </div>
-      </div>
+      </HafezWrapper>
     );
   }
 
+  // Error state with back arrow
   if (error) {
     return (
-      <div className="hafez-error">
-        <p>{error}</p>
-        <button onClick={() => window.location.reload()}>تلاش مجدد</button>
-      </div>
+      <HafezWrapper>
+        <div className="hafez-error">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>تلاش مجدد</button>
+        </div>
+      </HafezWrapper>
     );
   }
 
+  // Main content with back arrow
   return (
-    <div className="hafez-wrapper">
-      <div className="hafez-bg-stars"></div>
-      <div className="hafez-bg-glow"></div>
-      
+    <HafezWrapper>
       <Container className="hafez-container">
         <div className="hafez-header">
           <div className="hafez-header-decoration">
@@ -73,6 +108,21 @@ function Hafez() {
             " ای حافظ شیرازی! تو محرم هر رازی!..."
           </p>
         </div>
+        <Row>
+          <div className="hafez-goal-select" >
+            <Form.Select
+                  className="hafez-select"
+                  onChange={handleSelectKind}
+                  defaultValue=""
+                >
+                  <option value="">ابتدا نیت کنید و هدف اصلی این فال را انتخاب کنید</option>
+                  <option value="عشقی">عشقی</option>
+                  <option value="کاری">کاری</option>
+                  <option value="مالی">مالی</option>
+                  <option value="سایر">سایر</option>
+            </Form.Select>
+          </div>
+        </Row>
         <Row className="hafez-poem-section">
           <Col xs={12}>
             <div className="hafez-poem-card">
@@ -91,7 +141,6 @@ function Hafez() {
           </Col>
         </Row>
 
-        {/* Interpretation Section */}
         <Row className="hafez-faal-section">
           <Col xs={12}>
             <div className="hafez-faal-card">
@@ -103,7 +152,6 @@ function Hafez() {
                 {faal.split('\n').map((paragraph, index) => {
                   if (paragraph.trim() === '') return null;
                   
-                  // Check if it's a header (starts with ###)
                   if (paragraph.startsWith('###')) {
                     return (
                       <h4 key={index} className="hafez-faal-subheader">
@@ -112,7 +160,6 @@ function Hafez() {
                     );
                   }
                   
-                  // Check if it's a bold line (starts with **)
                   if (paragraph.startsWith('**')) {
                     return (
                       <p key={index} className="hafez-faal-bold">
@@ -121,9 +168,8 @@ function Hafez() {
                     );
                   }
                   
-                  // Check if it's a table row (contains |)
                   if (paragraph.includes('|') && paragraph.includes('---')) {
-                    return null; // Skip table separators
+                    return null;
                   }
                   
                   if (paragraph.includes('|')) {
@@ -140,7 +186,6 @@ function Hafez() {
                     return null;
                   }
                   
-                  // Regular paragraph
                   return (
                     <p key={index} className="hafez-faal-paragraph">
                       {paragraph}
@@ -152,7 +197,6 @@ function Hafez() {
           </Col>
         </Row>
 
-        {/* Footer */}
         <div className="hafez-footer">
           <div className="hafez-footer-stars">
             {[...Array(5)].map((_, i) => (
@@ -164,7 +208,7 @@ function Hafez() {
           </p>
         </div>
       </Container>
-    </div>
+    </HafezWrapper>
   );
 }
 
