@@ -28,7 +28,6 @@ function HafezWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function Hafez() {
-  const navigate = useNavigate();
   const [poem, setPoem] = useState('');
   const [faal, setFaal] = useState('');
   const [loading, setLoading] = useState(false);
