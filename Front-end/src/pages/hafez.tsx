@@ -39,7 +39,9 @@ function Hafez() {
 
     setLoading(true);
     axios
-      .get("https://fortune-teller-nhy4.onrender.com/hafez")
+      .get("https://fortune-teller-nhy4.onrender.com/hafez",{
+        params:{goal: goal}
+      })
       .then((response) => {
         console.log("SUCCESS");
         console.log(response.data);
@@ -55,7 +57,8 @@ function Hafez() {
   }, [goal]);
 
   const handleSelectKind = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setGoal(e.target.value);
+    const value = e.target.value;
+    setGoal(value && value !== 'سایر' ? value : null);
   };
 
   // Loading state with back arrow
