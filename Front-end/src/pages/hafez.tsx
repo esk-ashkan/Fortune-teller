@@ -57,11 +57,9 @@ function Hafez() {
   }, [goal]);
 
   const handleSelectKind = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setGoal(value && value !== 'سایر' ? value : null);
+    setGoal(e.target.value);
   };
 
-  // Loading state with back arrow
   if (loading) {
     return (
       <HafezWrapper>
@@ -76,7 +74,6 @@ function Hafez() {
     );
   }
 
-  // Error state with back arrow
   if (error) {
     return (
       <HafezWrapper>
@@ -88,7 +85,6 @@ function Hafez() {
     );
   }
 
-  // Main content with back arrow
   return (
     <HafezWrapper>
       <Container className="hafez-container">
@@ -121,7 +117,7 @@ function Hafez() {
                   <option value="عشقی">❤️عشقی</option>
                   <option value="کاری">📈کاری</option>
                   <option value="مالی">💰مالی</option>
-                  <option value="سایر">🎯سایر</option>
+                  <option value="روزانه">🎯روزانه</option>
             </Form.Select>
           </div>
         </Row>
