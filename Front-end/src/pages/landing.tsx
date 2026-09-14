@@ -35,52 +35,41 @@ function Landing() {
   const navigate = useNavigate();
 
   useEffect(() => {
-  setMounted(true);
-  const tg = (window as any).Telegram?.WebApp;
-
-  if (!tg) {
-    setError("Telegram WebApp SDK not loaded.");
-    return;
-  }
-
-  tg.ready();
-
-  const user = tg.initDataUnsafe.user;
-
-  if (!user) {
-    setError("No Telegram user.");
-    return;
-  }
-
-  setData({ user });
-}, []);
-
-useEffect(() => {
-  if (!data) return;
-  console.log(`----->\n${data.user.username}\n<-----`);
-  axios
-    .get("https://fortune-teller-nhy4.onrender.com/", {
-      params: {
-        tgid:data.user.id,
-        username: data.user.username,
-        fname: data.user.first_name,
-        lname: data.user.last_name,
-      },
-    })
-    .then((response) => {
-      console.log("SUCCESS");
-      console.log(response.data);
-      setThisUser(response.data);
-    })
-    .catch((err) => {
-      setError(err)
-      console.log(error);
-    });
-}, [data]);
-
+    if (!data) {
+      setMounted(true);
+      const tg = (window as any).Telegram?.WebApp;
+      if (!tg) {
+        setError("Telegram WebApp SDK not loaded.");
+        return;
+      }
+      tg.ready();
+      const user = tg.initDataUnsafe.user;
+      if (!user) {
+        window.location.reload();
+      }
+      setData({ user });
+    }
+    axios
+      .get("https://fortune-teller-nhy4.onrender.com/", {
+        params: {
+          tgid:data?.user.id,
+          username: data?.user.username,
+          fname: data?.user.first_name,
+          lname: data?.user.last_name,
+        },
+      })
+      .then((response) => {
+        console.log("SUCCESS");
+        console.log(response.data);
+        setThisUser(response.data);
+      })
+      .catch((err) => {
+        setError(err)
+        console.log(error);
+      });
+  }, [data]);
 
   return (
-    
     <div className="cosmic-wrapper">
       <div className="cosmic-bg-layer cosmic-bg-stars"></div>
       <div className="cosmic-bg-layer cosmic-bg-nebula"></div>
@@ -109,9 +98,12 @@ useEffect(() => {
           </div>
           
           {thisUser && (
-            <p className="cosmic-subtitle">
-              سلام {thisUser.username} عزیز، خوش اومدی!
-            </p>
+            <div>
+              <p className="cosmic-subtitle">
+                سلام {thisUser.username} عزیز، خوش اومدی!
+                میزان اعتبار شما{thisUser.credit}ريال است.
+              </p>
+            </div>
           )}
           <p className="cosmic-subtitle">
             سفری میان ستارگان، اسطوره‌ها و رازهای کهن ایرانی

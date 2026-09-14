@@ -8,7 +8,6 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import "./hafez.css";
 
-// Create a wrapper component for the back arrow
 function HafezWrapper({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   
