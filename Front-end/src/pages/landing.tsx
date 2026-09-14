@@ -1,4 +1,4 @@
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Row, Col, Dropdown  } from "react-bootstrap";
 import SelectComponent from "../components/selectcomponent";
 import { GiStarSattelites, GiCardPickup, GiSparkles, GiOpenBook } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
@@ -71,6 +71,13 @@ function Landing() {
 
   return (
     <div className="cosmic-wrapper">
+    {thisUser && (
+        <div>
+          <p className="cosmic-subtitle">
+           <Dropdown>{thisUser.credit}</Dropdown>     سلام {thisUser.username} عزیز، خوش اومدی!
+          </p>
+        </div>
+      )}
       <div className="cosmic-bg-layer cosmic-bg-stars"></div>
       <div className="cosmic-bg-layer cosmic-bg-nebula"></div>
       <div className="cosmic-bg-layer cosmic-bg-aurora"></div>
@@ -96,15 +103,6 @@ function Landing() {
             <GiSparkles className="cosmic-divider-icon" />
             <span className="cosmic-divider-line"></span>
           </div>
-          
-          {thisUser && (
-            <div>
-              <p className="cosmic-subtitle">
-                سلام {thisUser.username} عزیز، خوش اومدی!
-                میزان اعتبار شما{thisUser.credit}ريال است.
-              </p>
-            </div>
-          )}
           <p className="cosmic-subtitle">
             سفری میان ستارگان، اسطوره‌ها و رازهای کهن ایرانی
           </p>
