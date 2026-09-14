@@ -6,6 +6,8 @@ import { FaCoffee, FaMoon } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import "./landing.css";
 import axios from "axios";
+import DropDownComp from "../components/dropdown";
+import { BsDatabaseFillAdd } from "react-icons/bs";
 
 interface MiniAppData {
     user: {
@@ -71,10 +73,14 @@ function Landing() {
 
   return (
     <div className="cosmic-wrapper">
-    {thisUser && (
+      {thisUser && (
         <div>
           <p className="cosmic-subtitle">
-           <Dropdown>{thisUser.credit}</Dropdown>     سلام {thisUser.username} عزیز، خوش اومدی!
+            <DropDownComp
+              text={thisUser.username}
+              items={[`اعتبار: ${thisUser.credit}`]}
+              actions={['/profile']}
+            />
           </p>
         </div>
       )}
