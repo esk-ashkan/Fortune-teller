@@ -1,4 +1,4 @@
-import { Container, Row, Col, Dropdown  } from "react-bootstrap";
+import { Container, Row, Col  } from "react-bootstrap";
 import SelectComponent from "../components/selectcomponent";
 import { GiStarSattelites, GiCardPickup, GiSparkles, GiOpenBook } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import "./landing.css";
 import axios from "axios";
 import DropDownComp from "../components/dropdown";
-import { BsDatabaseFillAdd } from "react-icons/bs";
 
 interface MiniAppData {
     user: {
