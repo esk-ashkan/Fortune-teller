@@ -1,25 +1,39 @@
 import Dropdown from 'react-bootstrap/Dropdown';
+import { ReactNode } from 'react';
+import './dropdown.css';
 
-interface DPInterface {
-  text: string;
-  items: string[];
-  actions?: string[];
+interface DropDownItem {
+  label: ReactNode;
+  href?: string;
+  onClick?: () => void;
 }
 
-function DropDownComp({ text, items, actions = [] }: DPInterface) {
+interface DPInterface {
+  text: string | ReactNode;
+  items: DropDownItem[];
+  align?: 'start' | 'end';
+}
+
+function DropDownComp({ 
+  text, 
+  items, 
+  align = 'end'
+}: DPInterface) {
   return (
-    <Dropdown>
-      <Dropdown.Toggle variant="success" id="dropdown-basic">
+    <Dropdown align={align} className="cosmic-dropdown">
+      <Dropdown.Toggle variant="cosmic" id="cosmic-dropdown-toggle">
         {text}
       </Dropdown.Toggle>
 
-      <Dropdown.Menu>
+      <Dropdown.Menu className="cosmic-dropdown-menu">
         {items.map((item, index) => (
-          <Dropdown.Item 
+          <Dropdown.Item
             key={index}
-            href={actions[index] || '#'}
+            href={item.href}
+            onClick={item.onClick}
+            className="cosmic-dropdown-item"
           >
-            {item}
+            {item.label}
           </Dropdown.Item>
         ))}
       </Dropdown.Menu>

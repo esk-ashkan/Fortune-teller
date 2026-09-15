@@ -16,7 +16,7 @@ interface MiniAppData {
         is_premium?: boolean;
         photo_url?: string;
     };
-    chat: {
+    expense: {
         id: number;
         type: string;
         title?: string;
@@ -192,13 +192,13 @@ const TeleUserData: React.FC = () => {
                     </Col>
                     <Col xs={12}>
                         <Col xs={12}>
-                            <div className="user-chat-card">
-                                <div className="user-chat-header">
-                                    <GiRingedPlanet className="user-chat-icon" />
+                            <div className="user-expense-card">
+                                <div className="user-expense-header">
+                                    <GiRingedPlanet className="user-expense-icon" />
                                     <h3>افزایش اعتبار</h3>
                                 </div>
 
-                                <div className="user-chat-content">
+                                <div className="user-expense-content">
                                     <Stack
                                         direction="horizontal"
                                         gap={2}
@@ -238,7 +238,6 @@ const TeleUserData: React.FC = () => {
                                         className="user-credit-submit w-100"
                                         disabled={!expense || expense < 100000}
                                         onClick={() => {
-                                            // send expense to backend
                                             console.log('Charging:', expense);
                                         }}
                                     >

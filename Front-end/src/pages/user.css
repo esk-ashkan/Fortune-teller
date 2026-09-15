@@ -187,8 +187,8 @@
   font-size: 0.9rem;
 }
 
-/* ===== Chat Info Card ===== */
-.user-chat-card {
+/* ===== expense Info Card ===== */
+.user-expense-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(200, 168, 233, 0.15);
   border-radius: 20px;
@@ -198,12 +198,12 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.user-chat-card:hover {
+.user-expense-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 48px rgba(200, 168, 233, 0.08);
 }
 
-.user-chat-header {
+.user-expense-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -212,26 +212,26 @@
   padding-bottom: 0.75rem;
 }
 
-.user-chat-header h3 {
+.user-expense-header h3 {
   color: #c8a8e9;
   font-size: 1.15rem;
   font-weight: 700;
   margin: 0;
 }
 
-.user-chat-icon {
+.user-expense-icon {
   color: #ffd700;
   font-size: 1.4rem;
   animation: cosmicSparkle 3s ease-in-out infinite;
 }
 
-.user-chat-content {
+.user-expense-content {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.user-chat-row {
+.user-expense-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -241,17 +241,17 @@
   transition: background 0.3s ease;
 }
 
-.user-chat-row:hover {
+.user-expense-row:hover {
   background: rgba(255, 215, 0, 0.05);
 }
 
-.user-chat-label {
+.user-expense-label {
   color: #8a7aaa;
   font-size: 0.85rem;
   font-weight: 600;
 }
 
-.user-chat-value {
+.user-expense-value {
   color: #e0d5f5;
   font-size: 0.9rem;
   font-weight: 500;
@@ -343,20 +343,20 @@
     font-size: 1.5rem;
   }
 
-  .user-chat-card {
+  .user-expense-card {
     padding: 1.25rem 1rem;
   }
 
-  .user-chat-header h3 {
+  .user-expense-header h3 {
     font-size: 1rem;
   }
 
-  .user-chat-row {
+  .user-expense-row {
     padding: 0.5rem 0.75rem;
   }
 
-  .user-chat-label,
-  .user-chat-value {
+  .user-expense-label,
+  .user-expense-value {
     font-size: 0.8rem;
   }
 }

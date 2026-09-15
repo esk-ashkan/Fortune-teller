@@ -2,7 +2,7 @@ import { Container, Row, Col  } from "react-bootstrap";
 import SelectComponent from "../components/selectcomponent";
 import { GiStarSattelites, GiCardPickup, GiSparkles, GiOpenBook } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
-import { FaCoffee, FaMoon } from "react-icons/fa";
+import { FaCoffee, FaMoon, FaCoins, FaUser } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import "./landing.css";
 import axios from "axios";
@@ -77,8 +77,24 @@ function Landing() {
           <p className="cosmic-subtitle p-2">
             <DropDownComp
               text={thisUser.username}
-              items={[`اعتبار: ${thisUser.credit}`]}
-              actions={['/user']}
+              items={[
+                {
+                  label: (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <FaCoins /> اعتبار: {thisUser.credit.toLocaleString('fa-IR')}
+                    </span>
+                  ),
+                  href: '/user'
+                },
+                {
+                  label: (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <FaUser /> پروفایل
+                    </span>
+                  ),
+                  href: '/profile'
+                }
+              ]}
             />
           </p>
         </div>

@@ -1,0 +1,138 @@
+/* ============================================
+   COSMIC DROPDOWN
+   Matches landing page theme
+   ============================================ */
+
+/* ===== Toggle Button ===== */
+.cosmic-dropdown .dropdown-toggle,
+#cosmic-dropdown-toggle {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 215, 0, 0.3) !important;
+  color: #ffd700 !important;
+  border-radius: 50px !important;
+  padding: 0.5rem 1.1rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  font-family: 'Vazirmatn', sans-serif !important;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.05);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cosmic-dropdown .dropdown-toggle:hover,
+.cosmic-dropdown .dropdown-toggle:focus,
+.cosmic-dropdown .dropdown-toggle:active {
+  background: rgba(255, 215, 0, 0.15) !important;
+  border-color: rgba(255, 215, 0, 0.6) !important;
+  color: #ffd700 !important;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+.cosmic-dropdown .dropdown-toggle.show {
+  background: rgba(255, 215, 0, 0.2) !important;
+  border-color: rgba(255, 215, 0, 0.7) !important;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3) !important;
+}
+
+/* Remove default Bootstrap focus ring */
+.cosmic-dropdown .dropdown-toggle:focus-visible {
+  outline: 2px solid rgba(255, 215, 0, 0.5);
+  outline-offset: 2px;
+}
+
+.cosmic-dropdown .dropdown-toggle::after {
+  border-top-color: #ffd700 !important;
+  margin-right: 0.3rem;
+  transition: transform 0.3s ease;
+}
+
+.cosmic-dropdown .dropdown-toggle.show::after {
+  transform: rotate(180deg);
+}
+
+/* ===== Dropdown Menu ===== */
+.cosmic-dropdown .dropdown-menu,
+.cosmic-dropdown-menu {
+  background: rgba(26, 10, 46, 0.95) !important;
+  border: 1px solid rgba(255, 215, 0, 0.2) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.05) !important;
+  backdrop-filter: blur(16px);
+  padding: 0.5rem !important;
+  margin-top: 0.5rem !important;
+  min-width: 180px;
+  animation: cosmicDropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes cosmicDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Dropdown Items ===== */
+.cosmic-dropdown .dropdown-item,
+.cosmic-dropdown-item {
+  color: #e0d5f5 !important;
+  border-radius: 10px !important;
+  padding: 0.65rem 0.9rem !important;
+  font-size: 0.9rem !important;
+  font-family: 'Vazirmatn', sans-serif !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  direction: rtl;
+  text-align: right;
+}
+
+.cosmic-dropdown .dropdown-item:hover,
+.cosmic-dropdown .dropdown-item:focus,
+.cosmic-dropdown-item:hover,
+.cosmic-dropdown-item:focus {
+  background: rgba(255, 215, 0, 0.1) !important;
+  color: #ffd700 !important;
+  transform: translateX(-2px);
+}
+
+.cosmic-dropdown .dropdown-item:active,
+.cosmic-dropdown-item:active {
+  background: rgba(255, 215, 0, 0.15) !important;
+  transform: scale(0.98);
+}
+
+/* ===== Divider (if used) ===== */
+.cosmic-dropdown .dropdown-divider {
+  border-color: rgba(255, 215, 0, 0.1) !important;
+  margin: 0.35rem 0.5rem !important;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 576px) {
+  .cosmic-dropdown .dropdown-toggle,
+  #cosmic-dropdown-toggle {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.9rem !important;
+  }
+
+  .cosmic-dropdown .dropdown-menu,
+  .cosmic-dropdown-menu {
+    min-width: 160px;
+  }
+
+  .cosmic-dropdown .dropdown-item,
+  .cosmic-dropdown-item {
+    font-size: 0.85rem !important;
+    padding: 0.55rem 0.8rem !important;
+  }
+}
