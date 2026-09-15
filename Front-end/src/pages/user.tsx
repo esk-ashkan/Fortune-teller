@@ -16,14 +16,7 @@ interface MiniAppData {
         is_premium?: boolean;
         photo_url?: string;
     };
-    expense: {
-        id: number;
-        type: string;
-        title?: string;
-    };
     auth_date: number;
-    chat_type: string;
-    chat_instance: string;
 }
 
 const TeleUserData: React.FC = () => {
@@ -45,7 +38,6 @@ const TeleUserData: React.FC = () => {
         tg.ready();
 
         const user = tg.initDataUnsafe.user;
-        const chat = tg.initDataUnsafe.chat;
 
         if (!user) {
             setError("No Telegram user.");
@@ -54,12 +46,9 @@ const TeleUserData: React.FC = () => {
 
         setData({
             user,
-            chat,
             auth_date: tg.initDataUnsafe.auth_date,
-            chat_type: tg.initDataUnsafe.chat_type,
-            chat_instance: tg.initDataUnsafe.chat_instance
         });
-        
+
         setMounted(true);
     }, []);
 
@@ -191,63 +180,61 @@ const TeleUserData: React.FC = () => {
                         </div>
                     </Col>
                     <Col xs={12}>
-                        <Col xs={12}>
-                            <div className="user-expense-card">
-                                <div className="user-expense-header">
-                                    <GiRingedPlanet className="user-expense-icon" />
-                                    <h3>افزایش اعتبار</h3>
-                                </div>
-
-                                <div className="user-expense-content">
-                                    <Stack
-                                        direction="horizontal"
-                                        gap={2}
-                                        className="user-credit-badges"
-                                    >
-                                        {[
-                                            { value: 1000000, label: '۱,۰۰۰,۰۰۰' },
-                                            { value: 1500000, label: '۱,۵۰۰,۰۰۰' },
-                                            { value: 2000000, label: '۲,۰۰۰,۰۰۰' },
-                                            { value: 3000000, label: '۳,۰۰۰,۰۰۰' },
-                                        ].map(({ value, label }) => (
-                                            <Badge
-                                                key={value}
-                                                bg={expense === value ? 'warning' : 'secondary'}
-                                                className="user-credit-badge"
-                                                onClick={() => setExpense(value)}
-                                            >
-                                                {label}
-                                            </Badge>
-                                        ))}
-                                    </Stack>
-
-                                    <Form.Control
-                                        type="text"
-                                        inputMode="numeric"
-                                        className="user-credit-input"
-                                        placeholder="مبلغ به ریال"
-                                        value={expense === 0 ? '' : expense}
-                                        onChange={(e) => {
-                                            const raw = e.target.value.replace(/[^\d]/g, '');
-                                            setExpense(raw ? Number(raw) : 0);
-                                        }}
-                                    />
-
-                                    <Button
-                                        variant="warning"
-                                        className="user-credit-submit w-100"
-                                        disabled={!expense || expense < 100000}
-                                        onClick={() => {
-                                            console.log('Charging:', expense);
-                                        }}
-                                    >
-                                        {expense > 0
-                                            ? `پرداخت ${expense.toLocaleString('fa-IR')} ریال`
-                                            : 'پرداخت'}
-                                    </Button>
-                                </div>
+                        <div className="user-expense-card">
+                            <div className="user-expense-header">
+                                <GiRingedPlanet className="user-expense-icon" />
+                                <h3>افزایش اعتبار</h3>
                             </div>
-                        </Col>
+
+                            <div className="user-expense-content">
+                                <Stack
+                                    direction="horizontal"
+                                    gap={2}
+                                    className="user-credit-badges"
+                                >
+                                    {[
+                                        { value: 1000000, label: '۱,۰۰۰,۰۰۰' },
+                                        { value: 1500000, label: '۱,۵۰۰,۰۰۰' },
+                                        { value: 2000000, label: '۲,۰۰۰,۰۰۰' },
+                                        { value: 3000000, label: '۳,۰۰۰,۰۰۰' },
+                                    ].map(({ value, label }) => (
+                                        <Badge
+                                            key={value}
+                                            bg={expense === value ? 'warning' : 'secondary'}
+                                            className="user-credit-badge"
+                                            onClick={() => setExpense(value)}
+                                        >
+                                            {label}
+                                        </Badge>
+                                    ))}
+                                </Stack>
+
+                                <Form.Control
+                                    type="text"
+                                    inputMode="numeric"
+                                    className="user-credit-input"
+                                    placeholder="مبلغ به ریال"
+                                    value={expense === 0 ? '' : expense}
+                                    onChange={(e) => {
+                                        const raw = e.target.value.replace(/[^\d]/g, '');
+                                        setExpense(raw ? Number(raw) : 0);
+                                    }}
+                                />
+
+                                <Button
+                                    variant="warning"
+                                    className="user-credit-submit w-100"
+                                    disabled={!expense || expense < 100000}
+                                    onClick={() => {
+                                        console.log('Charging:', expense);
+                                    }}
+                                >
+                                    {expense > 0
+                                        ? `پرداخت ${expense.toLocaleString('fa-IR')} ریال`
+                                        : 'پرداخت'}
+                                </Button>
+                            </div>
+                        </div>
                     </Col>
                 </Row>
 

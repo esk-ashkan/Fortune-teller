@@ -1,5 +1,5 @@
 import Dropdown from 'react-bootstrap/Dropdown';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import './dropdown.css';
 
 interface DropDownItem {
