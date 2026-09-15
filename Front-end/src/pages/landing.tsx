@@ -74,11 +74,11 @@ function Landing() {
     <div className="cosmic-wrapper">
       {thisUser && (
         <div>
-          <p className="cosmic-subtitle">
+          <p className="cosmic-subtitle p-2">
             <DropDownComp
               text={thisUser.username}
               items={[`اعتبار: ${thisUser.credit}`]}
-              actions={['/profile']}
+              actions={['/user']}
             />
           </p>
         </div>
