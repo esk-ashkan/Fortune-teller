@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Stack, Badge, Form } from 'react-bootstrap';
+import { Container, Row, Col, Stack, Badge, Form, Button } from 'react-bootstrap';
 import { FaMoon, FaStar, FaGlobe, FaIdBadge, FaCrown, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GiSparkles, GiAstronautHelmet, GiRingedPlanet } from 'react-icons/gi';
 import { IoIosArrowRoundBack } from 'react-icons/io';
@@ -191,44 +191,64 @@ const TeleUserData: React.FC = () => {
                         </div>
                     </Col>
                     <Col xs={12}>
-                        <div className="user-chat-card">
-                            <div className="user-chat-header">
-                                <GiRingedPlanet className="user-chat-icon" />
-                                <h3>افزایش اعتبار</h3>
-                            </div>
+                        <Col xs={12}>
+                            <div className="user-chat-card">
+                                <div className="user-chat-header">
+                                    <GiRingedPlanet className="user-chat-icon" />
+                                    <h3>افزایش اعتبار</h3>
+                                </div>
 
-                            <div className="user-chat-content">
-                                <Stack direction="horizontal" gap={2} className="user-credit-badges">
-                                    {[
-                                        { value: 1000000, label: '۱,۰۰۰,۰۰۰ ریال' },
-                                        { value: 1500000, label: '۱,۵۰۰,۰۰۰ ریال' },
-                                        { value: 2000000, label: '۲,۰۰۰,۰۰۰ ریال' },
-                                        { value: 3000000, label: '۳,۰۰۰,۰۰۰ ریال' },
-                                    ].map(({ value, label }) => (
-                                        <Badge
-                                            key={value}
-                                            bg={expense === value ? 'warning' : 'secondary'}
-                                            className="user-credit-badge"
-                                            onClick={() => setExpense(value)}
-                                        >
-                                            {label}
-                                        </Badge>
-                                    ))}
-                                </Stack>
+                                <div className="user-chat-content">
+                                    <Stack
+                                        direction="horizontal"
+                                        gap={2}
+                                        className="user-credit-badges"
+                                    >
+                                        {[
+                                            { value: 1000000, label: '۱,۰۰۰,۰۰۰' },
+                                            { value: 1500000, label: '۱,۵۰۰,۰۰۰' },
+                                            { value: 2000000, label: '۲,۰۰۰,۰۰۰' },
+                                            { value: 3000000, label: '۳,۰۰۰,۰۰۰' },
+                                        ].map(({ value, label }) => (
+                                            <Badge
+                                                key={value}
+                                                bg={expense === value ? 'warning' : 'secondary'}
+                                                className="user-credit-badge"
+                                                onClick={() => setExpense(value)}
+                                            >
+                                                {label}
+                                            </Badge>
+                                        ))}
+                                    </Stack>
 
-                                <Form.Control
-                                    type="text"
-                                    inputMode="numeric"
-                                    className="user-credit-input"
-                                    placeholder="مبلغ را به ریال وارد کنید"
-                                    value={expense ? expense.toLocaleString('fa-IR') : ''}
-                                    onChange={(e) => {
-                                        const raw = e.target.value.replace(/[^\d]/g, '');
-                                        setExpense(raw ? Number(raw) : 0);
-                                    }}
-                                />
+                                    <Form.Control
+                                        type="text"
+                                        inputMode="numeric"
+                                        className="user-credit-input"
+                                        placeholder="مبلغ به ریال"
+                                        value={expense === 0 ? '' : expense}
+                                        onChange={(e) => {
+                                            const raw = e.target.value.replace(/[^\d]/g, '');
+                                            setExpense(raw ? Number(raw) : 0);
+                                        }}
+                                    />
+
+                                    <Button
+                                        variant="warning"
+                                        className="user-credit-submit w-100"
+                                        disabled={!expense || expense < 100000}
+                                        onClick={() => {
+                                            // send expense to backend
+                                            console.log('Charging:', expense);
+                                        }}
+                                    >
+                                        {expense > 0
+                                            ? `پرداخت ${expense.toLocaleString('fa-IR')} ریال`
+                                            : 'پرداخت'}
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
+                        </Col>
                     </Col>
                 </Row>
 
