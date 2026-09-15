@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import { FaMoon, FaStar, FaGlobe, FaIdBadge, FaCrown } from 'react-icons/fa';
+import { FaMoon, FaStar, FaGlobe, FaIdBadge, FaCrown, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GiSparkles, GiAstronautHelmet, GiRingedPlanet } from 'react-icons/gi';
 import { IoIosArrowRoundBack } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +30,7 @@ const TeleUserData: React.FC = () => {
     const [data, setData] = useState<MiniAppData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -108,13 +109,11 @@ const TeleUserData: React.FC = () => {
                 ))}
             </div>
 
-            {/* Back Button */}
             <div className="user-back-wrapper" onClick={() => navigate(-1)}>
                 <IoIosArrowRoundBack className="user-back-icon" />
             </div>
 
             <Container className="cosmic-content">
-                {/* Header */}
                 <div className={`cosmic-header ${mounted ? 'cosmic-fade-in' : ''}`}>
                     <div className="cosmic-moon-wrapper">
                         <FaMoon className="cosmic-moon-icon" />
@@ -137,7 +136,6 @@ const TeleUserData: React.FC = () => {
                     </p>
                 </div>
 
-                {/* User Card */}
                 <Row className={`cosmic-cards-row user-cards-row ${mounted ? 'cosmic-slide-up' : ''}`}>
                     <Col xs={12}>
                         <div className="user-profile-card">
@@ -173,12 +171,20 @@ const TeleUserData: React.FC = () => {
                             {user.username && (
                                 <p className="user-username">@{user.username}</p>
                             )}
-
-                            {/* Info Badges */}
                             <div className="user-badges">
                                 <div className="user-badge">
                                     <FaIdBadge className="user-badge-icon" />
-                                    <span>{user.id}</span>
+                                    <span className="user-badge-value">
+                                        {isVisible ? user.id : '*********'}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="user-badge-toggle"
+                                        onClick={() => setIsVisible(!isVisible)}
+                                        aria-label={isVisible ? "مخفی کردن شناسه" : "نمایش شناسه"}
+                                    >
+                                        {isVisible ? <FaEye /> : <FaEyeSlash />}
+                                    </button>
                                 </div>
                                 <div className="user-badge">
                                     <FaGlobe className="user-badge-icon" />
@@ -187,8 +193,6 @@ const TeleUserData: React.FC = () => {
                             </div>
                         </div>
                     </Col>
-
-                    {/* Chat Info Card */}
                     <Col xs={12}>
                         <div className="user-chat-card">
                             <div className="user-chat-header">
@@ -222,7 +226,6 @@ const TeleUserData: React.FC = () => {
                     </Col>
                 </Row>
 
-                {/* Footer */}
                 <div className={`cosmic-footer ${mounted ? 'cosmic-fade-in-delay' : ''}`}>
                     <p className="cosmic-footer-text">
                         اطلاعات این صفحه از حساب تلگرام شما دریافت شده است

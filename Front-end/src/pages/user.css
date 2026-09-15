@@ -381,3 +381,42 @@
     padding: 0.3rem 0.7rem;
   }
 }
+
+/* Badge value (the ID) */
+.user-badge-value {
+  font-variant-numeric: tabular-nums; /* Prevents layout shift when toggling */
+  min-width: 70px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* Toggle button */
+.user-badge-toggle {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  margin-right: 4px;
+  cursor: pointer;
+  color: #c8a8e9;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.user-badge-toggle:hover {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.user-badge-toggle:active {
+  transform: scale(0.9);
+}
+
+.user-badge-toggle:focus-visible {
+  outline: 2px solid rgba(255, 215, 0, 0.5);
+  outline-offset: 2px;
+}
