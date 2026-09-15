@@ -123,7 +123,7 @@ const TeleUserData: React.FC = () => {
 
                     <h1 className="cosmic-title">
                         <span className="cosmic-title-line">پروفایل</span>
-                        <span className="cosmic-title-accent">کیهانی</span>
+                        <span className="cosmic-title-accent">کاربری</span>
                     </h1>
 
                     <div className="cosmic-divider">
@@ -133,7 +133,7 @@ const TeleUserData: React.FC = () => {
                     </div>
 
                     <p className="cosmic-subtitle">
-                        سفری به درون هویت ستاره‌ای شما
+                        اطلاعات حساب کاربری شما
                     </p>
                 </div>
 
@@ -225,7 +225,7 @@ const TeleUserData: React.FC = () => {
                 {/* Footer */}
                 <div className={`cosmic-footer ${mounted ? 'cosmic-fade-in-delay' : ''}`}>
                     <p className="cosmic-footer-text">
-                        هویت شما، ستاره‌ای در کهکشان بی‌پایان
+                        اطلاعات این صفحه از حساب تلگرام شما دریافت شده است
                     </p>
                     <div className="cosmic-footer-stars">
                         {[...Array(5)].map((_, i) => (
