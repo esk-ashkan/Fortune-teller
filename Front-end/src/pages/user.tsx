@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col, Stack, Badge, Form } from 'react-bootstrap';
 import { FaMoon, FaStar, FaGlobe, FaIdBadge, FaCrown, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GiSparkles, GiAstronautHelmet, GiRingedPlanet } from 'react-icons/gi';
 import { IoIosArrowRoundBack } from 'react-icons/io';
@@ -31,6 +31,7 @@ const TeleUserData: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
+    const [expense, setExpense] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -95,11 +96,10 @@ const TeleUserData: React.FC = () => {
         );
     }
 
-    const { user, chat, chat_type } = data;
+    const { user } = data;
 
     return (
         <div className="cosmic-wrapper">
-            {/* Background Layers */}
             <div className="cosmic-bg-layer cosmic-bg-stars"></div>
             <div className="cosmic-bg-layer cosmic-bg-nebula"></div>
             <div className="cosmic-bg-layer cosmic-bg-aurora"></div>
@@ -139,7 +139,6 @@ const TeleUserData: React.FC = () => {
                 <Row className={`cosmic-cards-row user-cards-row ${mounted ? 'cosmic-slide-up' : ''}`}>
                     <Col xs={12}>
                         <div className="user-profile-card">
-                            {/* Avatar Section */}
                             <div className="user-avatar-section">
                                 <div className="user-avatar-wrapper">
                                     {user.photo_url ? (
@@ -162,8 +161,6 @@ const TeleUserData: React.FC = () => {
                                     </div>
                                 )}
                             </div>
-
-                            {/* Name Section */}
                             <h2 className="user-name">
                                 {user.first_name} {user.last_name || ''}
                             </h2>
@@ -197,30 +194,39 @@ const TeleUserData: React.FC = () => {
                         <div className="user-chat-card">
                             <div className="user-chat-header">
                                 <GiRingedPlanet className="user-chat-icon" />
-                                <h3>اطلاعات چت</h3>
+                                <h3>افزایش اعتبار</h3>
                             </div>
 
                             <div className="user-chat-content">
-                                <div className="user-chat-row">
-                                    <span className="user-chat-label">نوع</span>
-                                    <span className="user-chat-value">{chat_type}</span>
-                                </div>
+                                <Stack direction="horizontal" gap={2} className="user-credit-badges">
+                                    {[
+                                        { value: 1000000, label: '۱,۰۰۰,۰۰۰ ریال' },
+                                        { value: 1500000, label: '۱,۵۰۰,۰۰۰ ریال' },
+                                        { value: 2000000, label: '۲,۰۰۰,۰۰۰ ریال' },
+                                        { value: 3000000, label: '۳,۰۰۰,۰۰۰ ریال' },
+                                    ].map(({ value, label }) => (
+                                        <Badge
+                                            key={value}
+                                            bg={expense === value ? 'warning' : 'secondary'}
+                                            className="user-credit-badge"
+                                            onClick={() => setExpense(value)}
+                                        >
+                                            {label}
+                                        </Badge>
+                                    ))}
+                                </Stack>
 
-                                {chat && (
-                                    <>
-                                        <div className="user-chat-row">
-                                            <span className="user-chat-label">شناسه چت</span>
-                                            <span className="user-chat-value">{chat.id}</span>
-                                        </div>
-
-                                        {chat.title && (
-                                            <div className="user-chat-row">
-                                                <span className="user-chat-label">عنوان</span>
-                                                <span className="user-chat-value">{chat.title}</span>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
+                                <Form.Control
+                                    type="text"
+                                    inputMode="numeric"
+                                    className="user-credit-input"
+                                    placeholder="مبلغ را به ریال وارد کنید"
+                                    value={expense ? expense.toLocaleString('fa-IR') : ''}
+                                    onChange={(e) => {
+                                        const raw = e.target.value.replace(/[^\d]/g, '');
+                                        setExpense(raw ? Number(raw) : 0);
+                                    }}
+                                />
                             </div>
                         </div>
                     </Col>
