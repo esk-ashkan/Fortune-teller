@@ -26,7 +26,7 @@ export function PackageCard({
     <div className="pkg-card-wrapper">
       <div className="pkg-card-glow" aria-hidden="true" />
       
-      <Card className="pkg-card" radius="lg">
+      <Card className="pkg-card">
         <div className="pkg-card-top-line" aria-hidden="true" />
         
         <Card.Header className="pkg-card-header">
@@ -56,7 +56,6 @@ export function PackageCard({
           <Button 
             fullWidth
             size="lg"
-            radius="lg"
             className="pkg-btn"
             onPress={() => {
               navigate(link, {
