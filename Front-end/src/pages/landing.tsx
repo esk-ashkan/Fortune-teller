@@ -141,7 +141,11 @@ function Landing() {
               color="tarot"
               icon={<GiCardPickup />}
               to="/tarot"
-              onSelect={() => (navigate("/tarot"))}
+              onSelect={() => (navigate("/tarot",{
+                state:{
+                  tgid:data?.user.id
+                }}
+              ))}
               description="کارت‌های کهن، پیام‌های آینده"
               badge="محبوب‌ترین"
             />
@@ -153,7 +157,11 @@ function Landing() {
               color="coffee"
               icon={<FaCoffee />}
               to="/coffee"
-              onSelect={() => navigate("/coffee")}
+              onSelect={() => navigate("/coffee",{
+                state:{
+                  tgid:data?.user.id
+                }
+              })}
               description="رازهای درون فنجان"
               badge="جدید"
             />
@@ -164,7 +172,11 @@ function Landing() {
               color="stars-btn"
               icon={<GiOpenBook />}
               to="/stars"
-              onSelect={() => navigate("/hafez")} 
+              onSelect={() => navigate("/hafez",{
+                state:{
+                  tgid:data?.user.id
+                }
+              })} 
               description="فال حافظ شیراز"
               badge="نیت کنید"
             />
@@ -176,7 +188,11 @@ function Landing() {
               color="stars-btn"
               icon={<GiStarSattelites />}
               to="/stars"
-              onSelect={() => navigate("/stars")} 
+              onSelect={() => navigate("/stars",{
+                state:{
+                  tgid:data?.user.id
+                }
+              })} 
               description="ستارگان، سرنوشت شما"
               badge="به‌زودی"
               situation={false}

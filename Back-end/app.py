@@ -1,6 +1,6 @@
 import logging
 import os
-import time
+from datetime import datetime, timezone
 from google import genai
 import cloudinary
 import cloudinary.uploader
@@ -31,6 +31,9 @@ groqModels = [
     "openai/gpt-oss-120b",#LLM
 ]
 
+HAFEZ_PRICE = 799999
+TAROT_PRICE = 899999
+COFFEE_PRICE = 999999
 # --------------------------------------------------
 # Flask And Database
 # --------------------------------------------------
@@ -248,8 +251,7 @@ def huggingFaceAPI(prompt:str, imageUrl:str):
     )
     return completion.choices[0].message
 
-def user_information(tgid, username, fname, lname):
-
+def user_information(tgid, username=None, first_name=None, last_name=None, full_name=None):
     if tgid is None:
         raise ValueError("Telegram ID is required")
 
@@ -259,41 +261,134 @@ def user_information(tgid, username, fname, lname):
         profile = Profile(
             tgid=tgid,
             username=username,
-            first_name=fname,
-            last_name=lname,
+            first_name=first_name,
+            last_name=last_name,
+            full_name=full_name or f"{first_name or ''} {last_name or ''}".strip() or None,
             credit=15000
         )
-
         db.session.add(profile)
         db.session.commit()
+    else:
+        updated = False
+
+        if username and profile.username != username:
+            profile.username = username
+            updated = True
+        if first_name and profile.first_name != first_name:
+            profile.first_name = first_name
+            updated = True
+        if last_name and profile.last_name != last_name:
+            profile.last_name = last_name
+            updated = True
+        if full_name and profile.full_name != full_name:
+            profile.full_name = full_name
+            updated = True
+
+        profile.update_last_visit()
+        updated = True
+
+        if updated:
+            db.session.commit()
 
     return {
+        "tgid": profile.tgid,
         "username": profile.username,
-        "credit": profile.credit,
+        "full_name": profile.full_name,
         "first_name": profile.first_name,
-        "last_name": profile.last_name
+        "last_name": profile.last_name,
+        "credit": profile.credit,
+        "hafez_count": profile.hafez_count,
+        "coffee_count": profile.coffee_count,
+        "tarot_count": profile.tarot_count,
+        "remained_hafez": profile.remained_hafez,
+        "remained_coffee": profile.remained_coffee,
+        "remained_tarot": profile.remained_tarot,
+        "is_premium": profile.is_premium,
+        "registered_at": profile.registered_at.isoformat() if profile.registered_at else None,
+        "last_visit": profile.last_visit.isoformat() if profile.last_visit else None,
     }
-
 # -----------------------------
 # Models
 # -----------------------------
 class Profile(db.Model):
+    __tablename__ = "profile"
+
     id = db.Column(db.Integer, primary_key=True)
     tgid = db.Column(db.BigInteger, unique=True, nullable=False)
-    username = db.Column(db.String(50), unique=True, nullable=True)
-    first_name = db.Column(db.String(50), nullable=True)
-    last_name = db.Column(db.String(50), nullable=True)
-    credit = db.Column(db.Integer, default=15000, nullable=False)
+    username = db.Column(db.String(64), unique=True, nullable=True)
+    full_name = db.Column(db.String(100), nullable=True)
+    first_name = db.Column(db.String(64), nullable=True)
+    last_name = db.Column(db.String(64), nullable=True)
+    birthday = db.Column(db.Date, nullable=True)
 
+    credit = db.Column(db.Integer, nullable=False, default=15000)
+
+    hafez_count = db.Column(db.Integer, nullable=False, default=0)
+    coffee_count = db.Column(db.Integer, nullable=False, default=0)
+    tarot_count = db.Column(db.Integer, nullable=False, default=0)
+
+    remained_hafez = db.Column(db.Integer, nullable=False, default=0)
+    remained_coffee = db.Column(db.Integer, nullable=False, default=0)
+    remained_tarot = db.Column(db.Integer, nullable=False, default=0)
+
+    registered_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    last_visit = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    is_premium = db.Column(db.Boolean, nullable=False, default=False)
+    language = db.Column(db.String(10), default="fa")
+    total_spent = db.Column(db.Integer, nullable=False, default=0)
+    referral_code = db.Column(db.String(20), unique=True, nullable=True)
+    referred_by = db.Column(db.BigInteger, nullable=True)
 
     def __repr__(self):
-        return f"Profile(username={self.username}, credit={self.credit})"
+        return f"<Profile tgid={self.tgid} username={self.username} credit={self.credit}>"
 
-    def increase_credit(self, amount):
-        self.credit += amount
+    def increase_credit(self, amount: int):
+        if amount > 0:
+            self.credit += amount
 
-    def decrease_credit(self, amount):
+    def decrease_credit(self, amount: int) -> bool:
+        if amount <= 0 or self.credit < amount:
+            return False
         self.credit -= amount
+        return True
+
+    def use_hafez(self) -> bool:
+        if self.remained_hafez > 0:
+            self.remained_hafez -= 1
+            self.hafez_count += 1
+            return True
+        if self.credit > HAFEZ_PRICE:
+            self.credit -= HAFEZ_PRICE
+            self.hafez_count += 1
+            return True
+        return False
+
+    def use_coffee(self) -> bool:
+        if self.remained_coffee > 0:
+            self.remained_coffee -= 1
+            self.coffee_count += 1
+            return True
+        if self.credit > COFFEE_PRICE:
+            self.credit -= COFFEE_PRICE
+            self.coffee_count += 1
+            return True
+        return False
+
+    def use_tarot(self) -> bool:
+        if self.remained_tarot > 0:
+            self.remained_tarot -= 1
+            self.tarot_count += 1
+            return True
+        if self.credit > TAROT_PRICE:
+            self.credit -= TAROT_PRICE
+            self.tarot_count += 1
+            return True
+        return False
+
+    def update_last_visit(self):
+        self.last_visit = datetime.now(timezone.utc)
 
 with app.app_context():
     db.create_all()
@@ -304,25 +399,39 @@ with app.app_context():
 # -----------------------------
 @app.route("/", methods=["GET", "POST"])
 def home():
-    tgid = request.args.get("tgid", type=int)
-    username = request.args.get("username")
-    fname = request.args.get("fname")
-    lname = request.args.get("lname")
+    data = request.get_json(silent=True) or {}
+
+    tgid = request.args.get("tgid", type=int) or data.get("tgid")
+    username = request.args.get("username") or data.get("username")
+    first_name = (
+        request.args.get("fname")
+        or request.args.get("first_name")
+        or data.get("first_name")
+        or data.get("fname")
+    )
+    last_name = (
+        request.args.get("lname")
+        or request.args.get("last_name")
+        or data.get("last_name")
+        or data.get("lname")
+    )
+    full_name = request.args.get("full_name") or data.get("full_name")
 
     if tgid is None:
-        return jsonify({
-            "error": "tgid is required"
-        }), 400
+        return jsonify({"error": "tgid is required"}), 400
 
-    info = user_information(
-        tgid,
-        username,
-        fname,
-        lname
-    )
-
-    return jsonify(info)
-
+    try:
+        info = user_information(
+            tgid=tgid,
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            full_name=full_name
+        )
+        return jsonify(info)
+    except Exception as e:
+        logger.error(f"Error in home: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 # -----------------------------
 # TAROT
 # -----------------------------
@@ -646,7 +755,37 @@ def hafez():
         "poem": poem,
         "ai_faal": ai_faal
     })
+# -----------------------------
+# Credential Check
+# -----------------------------
+@app.route('/check')
+def check():
+    horoscopy_model = request.args.get("horoscopy_model")
+    tgid = request.args.get("tgid", type=int)
 
+    if not tgid:
+        return jsonify({"error": "tgid is required"}), 400
+
+    if horoscopy_model not in ["hafez", "coffee", "tarot"]:
+        return jsonify({"error": "Invalid horoscopy_model"}), 400
+
+    user = Profile.query.filter_by(tgid=tgid).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    try:
+        if horoscopy_model == 'hafez':
+            can_use = user.use_hafez()
+            return can_use
+        elif horoscopy_model == 'coffee':
+            can_use = user.use_coffee()
+            return can_use
+        elif horoscopy_model == 'tarot':
+            can_use = user.use_tarot()
+            return can_use
+    except Exception as e:
+        logger.error(f"Error in checking permission: {str(e)}")
+        return jsonify({"error": "Error in checking permission"}), 500 
+    
 # -----------------------------
 # KEEP PROJECT AWAKE
 # -----------------------------

@@ -8,7 +8,7 @@ import "./tarot.css";
 import RevealFortune from "./revealfortune";
 import TarotLoading from "./TarotLoading";
 import { IoIosArrowRoundBack } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function Tarot() {
   const [cardsList, setCardsList] = useState<string[]>([]);
@@ -21,6 +21,8 @@ function Tarot() {
   const [kindOfHoroscopy, setKindOfHoroscopy] = useState('');
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { tgid } = location.state || {};
 
   const hand = useMemo(() => {
     const picked = new Set<number>();
@@ -59,27 +61,43 @@ function Tarot() {
 
     setSelectedCards(newSelectedCards);
     setSelectedCount(nextCount);
-    console.log(`----->Counting Cards`);
+
     if (nextCount === maxNumOfCards) {
       setIsLoading(true);
-      console.log(`----->Start Requesting`);
+
       axios
-        .get("https://fortune-teller-nhy4.onrender.com/tarot", {
-          params: {
-            cards_list: newSelectedCards,
-            kindOfHoroscopy:kindOfHoroscopy,
-          },
+        .get("https://fortune-teller-nhy4.onrender.com/check", {
+          params: { model: "tarot", tgid: tgid }
         })
         .then((response) => {
-          console.log("SUCCESS");
-          console.log(response.data);
-          setFortuneText(response.data.interpretation);
-          setIsLoading(false);
-          setRevealFortune(true);
+          if (response.data.can_use) {
+            axios
+              .get("https://fortune-teller-nhy4.onrender.com/tarot", {
+                params: {
+                  cards_list: newSelectedCards,
+                  kindOfHoroscopy: kindOfHoroscopy,
+                },
+              })
+              .then((response) => {
+                setFortuneText(response.data.interpretation);
+                setIsLoading(false);
+                setRevealFortune(true);
+              })
+              .catch((err) => {
+                console.error(err);
+                setFortuneText("خطا");
+                setIsLoading(false);
+                setRevealFortune(true);
+              });
+          } else {
+            setFortuneText("متاسفانه اعتبار شما به پایان رسیده است.");
+            setIsLoading(false);
+            setRevealFortune(true);
+          }
         })
         .catch((err) => {
           console.error(err);
-          setFortuneText("خطا");
+          setFortuneText("خطا در بررسی وضعیت. لطفاً دوباره تلاش کنید.");
           setIsLoading(false);
           setRevealFortune(true);
         });

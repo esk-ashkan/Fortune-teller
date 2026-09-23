@@ -1,0 +1,171 @@
+/* ============================================
+   PAYMENTS PAGE
+   ============================================ */
+
+.payments-page {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  font-family: 'Vazirmatn', system-ui, sans-serif;
+  background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 40%, #fff7ed 100%);
+  color: #1c1917;
+}
+
+@media (prefers-color-scheme: dark) {
+  .payments-page {
+    background: linear-gradient(165deg, #1c1917 0%, #292524 50%, #1c1917 100%);
+    color: #fef3c7;
+  }
+}
+
+/* Soft background decorations */
+.payments-bg-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.18), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(239, 68, 68, 0.1), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.payments-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+.payments-bg-orb--1 {
+  width: 220px;
+  height: 220px;
+  background: #f59e0b;
+  top: 10%;
+  right: -60px;
+}
+
+.payments-bg-orb--2 {
+  width: 180px;
+  height: 180px;
+  background: #ef4444;
+  bottom: 15%;
+  left: -50px;
+}
+
+/* Content */
+.payments-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 16px 48px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Header */
+.payments-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.payments-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #92400e;
+  background: linear-gradient(135deg, #fde68a, #fbbf24);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+
+.payments-title {
+  margin: 0 0 6px;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #b45309, #dc2626);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .payments-title {
+    background: linear-gradient(135deg, #fbbf24, #f87171);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+}
+
+.payments-subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+/* Tabs */
+.payments-tabs {
+  width: 100%;
+}
+
+.payments-tabs-list-container {
+  margin-bottom: 8px;
+}
+
+.payments-tabs-list {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border: 1px solid rgba(245, 158, 11, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  backdrop-filter: blur(8px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .payments-tabs-list {
+    background: rgba(40, 35, 30, 0.7) !important;
+    border-color: rgba(245, 158, 11, 0.15) !important;
+  }
+}
+
+/* Cards grid */
+.payments-panel {
+  padding-top: 20px;
+}
+
+.payments-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+/* Empty state for special packages */
+.payments-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 20px;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.payments-empty-icon {
+  font-size: 2.4rem;
+}
+
+.payments-empty p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+}

@@ -1,0 +1,296 @@
+/* ============================================
+   PACKAGE CARD — Premium Payment Style
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@500;600;700;800;900&display=swap');
+
+:root {
+  --pkg-gold: #f59e0b;
+  --pkg-gold-soft: #fbbf24;
+  --pkg-red: #ef4444;
+  --pkg-red-deep: #dc2626;
+  --pkg-purple: #8b5cf6;
+}
+
+/* Wrapper */
+.pkg-card-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 270px;
+  margin: 0 auto;
+  font-family: 'Vazirmatn', system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Outer glow */
+.pkg-card-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--pkg-gold), var(--pkg-red), var(--pkg-purple));
+  opacity: 0.55;
+  filter: blur(6px);
+  z-index: 0;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.pkg-card-wrapper:hover .pkg-card-glow,
+.pkg-card-wrapper:active .pkg-card-glow {
+  opacity: 0.9;
+  filter: blur(8px);
+}
+
+/* Card */
+.pkg-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 251, 235, 0.95) 0%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  border-radius: 14px !important;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.04),
+    0 10px 20px rgba(245, 158, 11, 0.08);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pkg-card {
+    background: linear-gradient(
+      165deg,
+      rgba(50, 40, 20, 0.9) 0%,
+      rgba(30, 28, 26, 0.95) 100%
+    );
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+}
+
+.pkg-card-wrapper:hover .pkg-card {
+  transform: translateY(-4px);
+  box-shadow:
+    0 8px 12px rgba(0, 0, 0, 0.06),
+    0 16px 28px rgba(239, 68, 68, 0.15);
+}
+
+.pkg-card-wrapper:active .pkg-card {
+  transform: scale(0.98);
+}
+
+/* Top accent line */
+.pkg-card-top-line {
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, var(--pkg-gold), var(--pkg-red), transparent);
+  border-radius: 0 0 4px 4px;
+}
+
+/* Header */
+.pkg-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px 6px;
+}
+
+/* Icon box */
+.pkg-icon-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.22), rgba(239, 68, 68, 0.12));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+}
+
+.pkg-icon-pulse {
+  position: absolute;
+  inset: -3px;
+  border-radius: 13px;
+  background: rgba(245, 158, 11, 0.15);
+  animation: pkgPulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pkgPulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.12); opacity: 0; }
+}
+
+.pkg-icon {
+  font-size: 1.35rem;
+  color: var(--pkg-gold);
+  filter: drop-shadow(0 1px 3px rgba(245, 158, 11, 0.4));
+  position: relative;
+  z-index: 2;
+}
+
+/* Titles */
+.pkg-title-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.pkg-title {
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.25;
+  color: #1c1917;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pkg-title {
+    color: #fef3c7;
+  }
+}
+
+.pkg-subtitle {
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: #059669;
+  margin: 2px 0 0;
+}
+
+/* Content */
+.pkg-content {
+  padding: 2px 12px 8px;
+}
+
+.pkg-divider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.pkg-divider span:first-child,
+.pkg-divider span:last-child {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.25), transparent);
+}
+
+.pkg-divider span:nth-child(2) {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--pkg-gold);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+.pkg-desc {
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #44403c;
+  opacity: 0.9;
+  margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pkg-desc {
+    color: #d6d3d1;
+  }
+}
+
+/* Footer */
+.pkg-footer {
+  padding: 0 12px 12px;
+}
+
+/* CTA Button — strong payment signal */
+.pkg-btn {
+  position: relative;
+  overflow: hidden;
+  height: 40px !important;
+  min-height: 40px;
+  background: linear-gradient(135deg, var(--pkg-gold) 0%, var(--pkg-red) 100%) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  font-size: 0.85rem !important;
+  font-family: 'Vazirmatn', system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  border: none !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 4px 12px rgba(239, 68, 68, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.pkg-btn:hover {
+  box-shadow:
+    0 6px 18px rgba(239, 68, 68, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.pkg-btn:active {
+  transform: scale(0.97);
+}
+
+/* Shine on button */
+.pkg-btn-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 60%
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.pkg-btn:hover .pkg-btn-shine,
+.pkg-btn:active .pkg-btn-shine {
+  transform: translateX(120%);
+  transition: transform 0.55s ease;
+}
+
+.pkg-btn-text {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pkg-btn-arrow {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.15s ease;
+}
+
+.pkg-btn:hover .pkg-btn-arrow {
+  transform: translateX(3px);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .pkg-icon-pulse,
+  .pkg-btn-shine,
+  .pkg-card-glow {
+    animation: none;
+    transition: none;
+  }
+}

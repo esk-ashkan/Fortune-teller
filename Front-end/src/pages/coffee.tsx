@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
+import {Button} from 'react-bootstrap';
 import axios from 'axios';
 import { IoIosArrowRoundBack } from 'react-icons/io';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Coffee.css';
 
 export default function Coffee() {
@@ -12,6 +12,8 @@ export default function Coffee() {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { tgid } = location.state || {};
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -37,7 +39,21 @@ export default function Coffee() {
     });
 
     setIsLoading(true);
+
     try {
+      const checkRes = await axios.get(
+        "https://fortune-teller-nhy4.onrender.com/check",
+        {
+          params: { model: "coffee", tgid: tgid }
+        }
+      );
+
+      if (!checkRes.data.can_use) {
+        setFortuneText("You have no remaining coffee fortune attempts.");
+        setIsLoading(false);
+        return;
+      }
+
       const response = await axios.post(
         "https://fortune-teller-nhy4.onrender.com/coffee",
         formData,

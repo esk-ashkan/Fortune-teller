@@ -5,7 +5,7 @@ import Form from 'react-bootstrap/Form';
 import { FaBookOpen, FaStar, FaMoon, FaFeatherAlt } from "react-icons/fa";
 import { FaFeatherPointed } from "react-icons/fa6";
 import { IoIosArrowRoundBack } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./hafez.css";
 
 function HafezWrapper({ children }: { children: React.ReactNode }) {
@@ -33,24 +33,44 @@ function Hafez() {
   const [error, setError] = useState('');
   const [goal, setGoal] = useState<string|null>('');
 
+  const location = useLocation();
+  const { tgid } = location.state || {};
   useEffect(() => {
     if (!goal) return;
 
     setLoading(true);
+
     axios
-      .get("https://fortune-teller-nhy4.onrender.com/hafez",{
-        params:{goal: goal}
+      .get("https://fortune-teller-nhy4.onrender.com/check", {
+        params: { model: "hafez", tgid: tgid }
       })
       .then((response) => {
-        console.log("SUCCESS");
-        console.log(response.data);
-        setPoem(response.data.poem.poem);
-        setFaal(response.data.ai_faal);
-        setLoading(false);
+        if (response.data.can_use) {
+          axios
+            .get("https://fortune-teller-nhy4.onrender.com/hafez", {
+              params: { goal: goal }
+            })
+            .then((response) => {
+              console.log("SUCCESS");
+              console.log(response.data);
+
+              setPoem(response.data.poem.poem);
+              setFaal(response.data.ai_faal);
+              setLoading(false);
+            })
+            .catch((err) => {
+              console.log(err);
+              setError("خطا در دریافت فال. لطفاً دوباره تلاش کنید.");
+              setLoading(false);
+            });
+        } else {
+          setError("متاسفانه اعتبار شما به پایان رسیده است.");
+          setLoading(false);
+        }
       })
       .catch((err) => {
         console.log(err);
-        setError('خطا در دریافت فال. لطفاً دوباره تلاش کنید.');
+        setError("خطا در دریافت فال. لطفاً دوباره تلاش کنید.");
         setLoading(false);
       });
   }, [goal]);
