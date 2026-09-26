@@ -1,0 +1,400 @@
+/* ============================================
+   RESERVATION PAGE — Medium Dark, Fully Centered
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800&display=swap');
+
+:root {
+  --rc-bg-top: #5E244E;
+  --rc-bg-bottom: #FF7873;
+  --rc-card: rgba(255, 255, 255, 0.09);
+  --rc-card-border: rgba(8, 8, 8, 0.25);
+  --rc-gold: #dd164e;
+  --rc-gold-soft: #FFE8B4;
+  --rc-blue-soft: #b0a0d0;
+  --rc-text: #f2ecf5;
+  --rc-muted: #F5F5DC;
+}
+
+/* ---------- Wrapper ---------- */
+.reservation-wrapper {
+  position: relative;
+  min-height: 100vh;
+  padding: 3rem 0 4rem;
+  background: linear-gradient(180deg, var(--rc-bg-top) 0%, var(--rc-bg-bottom) 100%);
+  font-family: 'Vazirmatn', system-ui, sans-serif;
+  color: var(--rc-text);
+  overflow: hidden;
+  direction: rtl;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ---------- Background decor (subtle) ---------- */
+.reservation-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at center, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 75%);
+  pointer-events: none;
+}
+
+.reservation-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.reservation-bg-orb--1 {
+  width: 420px;
+  height: 420px;
+  background: var(--rc-blue-soft);
+  top: -140px;
+  right: -120px;
+}
+
+.reservation-bg-orb--2 {
+  width: 360px;
+  height: 360px;
+  background: var(--rc-gold);
+  bottom: -140px;
+  left: -100px;
+  opacity: 0.14;
+}
+
+/* ---------- Content container ---------- */
+.reservation-content {
+  position: relative;
+  z-index: 2;
+  max-width: 940px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ---------- Header ---------- */
+.reservation-header {
+  text-align: center;
+  margin-bottom: 2.75rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reservation-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.9rem;
+  background: rgba(226, 184, 102, 0.12);
+  border: 1px solid rgba(226, 184, 102, 0.35);
+  border-radius: 50px;
+  color: var(--rc-gold-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.reservation-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+.reservation-subtitle {
+  color: var(--rc-muted);
+  font-size: 0.98rem;
+  margin: 0 auto;
+  max-width: 420px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* ---------- Cards row ---------- */
+.reservation-cards-row {
+  margin-bottom: 3rem;
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+}
+
+.reservation-cards-row > [class*="col-"] {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+/* ---------- Card ---------- */
+.rc-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  background: var(--rc-card) !important;
+  border: 1px solid var(--rc-card-border) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(10px);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  color: var(--rc-text);
+  text-align: center !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.rc-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(226, 184, 102, 0.4) !important;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+}
+
+.rc-card-body {
+  padding: 1.75rem 1.5rem 1.5rem !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center !important;
+  justify-content: center;
+  text-align: center !important;
+  width: 100%;
+}
+
+/* ---------- Icon ---------- */
+.rc-icon-box {
+  width: 78px;
+  height: 78px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(226, 184, 102, 0.3);
+  margin: 0 auto 1rem;
+}
+
+.rc-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rc-icon-img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  opacity: 0.98;
+}
+
+/* ---------- Title group ---------- */
+.rc-title-group {
+  text-align: center !important;
+  margin-bottom: 0.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rc-specialty {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--rc-gold-soft);
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.rc-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+  color: #ffffff;
+  text-align: center !important;
+}
+
+/* ---------- Divider ---------- */
+.rc-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0.9rem 0;
+}
+
+.rc-divider span:first-child,
+.rc-divider span:last-child {
+  flex: 1;
+  max-width: 90px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.rc-divider span:nth-child(2) {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rc-gold);
+  opacity: 0.8;
+}
+
+/* ---------- Description ---------- */
+.rc-desc {
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: var(--rc-muted);
+  margin: 0 auto 1.1rem;
+  max-width: 320px;
+  text-align: center !important;
+}
+
+/* ---------- Meta chips ---------- */
+.rc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  width: 100%;
+}
+
+.rc-meta-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  background: rgba(165, 196, 245, 0.1);
+  border: 1px solid rgba(165, 196, 245, 0.22);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  color: #dbe6f5;
+}
+
+.rc-meta-icon {
+  color: var(--rc-gold-soft);
+  font-size: 0.85rem;
+}
+
+/* ---------- Button ---------- */
+.rc-btn {
+  background: rgba(226, 184, 102, 0.95) !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 1rem !important;
+  transition: background 0.2s ease, transform 0.15s ease;
+  max-width: 260px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.rc-btn:hover {
+  background: var(--rc-gold-soft) !important;
+  color: #1e293b !important;
+}
+
+.rc-btn:active {
+  transform: scale(0.98);
+}
+
+.rc-btn-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.rc-btn-arrow {
+  width: 16px;
+  height: 16px;
+  transform: scaleX(-1);
+  transition: transform 0.15s ease;
+}
+
+.rc-btn:hover .rc-btn-arrow {
+  transform: scaleX(-1) translateX(4px);
+}
+
+/* ---------- Features strip ---------- */
+.reservation-features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+  width: 100%;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .reservation-features {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.reservation-feature {
+  padding: 1.35rem 1.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.reservation-feature:hover {
+  border-color: rgba(226, 184, 102, 0.3);
+  transform: translateY(-2px);
+}
+
+.reservation-feature-icon {
+  font-size: 1.5rem;
+  color: var(--rc-gold-soft);
+  margin-bottom: 0.6rem;
+}
+
+.reservation-feature h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  color: #ffffff;
+  text-align: center;
+}
+
+.reservation-feature p {
+  font-size: 0.8rem;
+  color: var(--rc-muted);
+  margin: 0;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 576px) {
+  .reservation-wrapper { padding: 2rem 0 3rem; }
+  .reservation-title { font-size: 1.65rem; }
+  .reservation-subtitle { font-size: 0.9rem; }
+  .rc-card-body { padding: 1.4rem 1.1rem 1.2rem !important; }
+  .rc-icon-box { width: 68px; height: 68px; }
+  .rc-icon-img { width: 40px; height: 40px; }
+  .rc-name { font-size: 1.02rem; }
+}

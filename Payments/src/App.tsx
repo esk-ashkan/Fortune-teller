@@ -1,13 +1,13 @@
 import { Routes, Route } from "react-router-dom";
-import { Payments } from "./payment";
 import { ReceiptApp } from "./reciptapp";
+import Reservation from "./reservation";
 
 
 function App() {
   return(
     <Routes>
-      <Route index element={<ReceiptApp />} />
-      <Route path="step-2" element={<Payments />} />
+      <Route index element={<Reservation />} />
+      <Route path="/receipt" element={<ReceiptApp />} />
       <Route path="step-3" element='' />
     </Routes>
   );
