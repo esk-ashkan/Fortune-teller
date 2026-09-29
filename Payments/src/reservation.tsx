@@ -22,11 +22,11 @@ const CONSULTANTS: Consultant[] = [
     id: "math",
     icon: <img src={logarithmImg} alt="Mathematics" className="rc-icon-img" />,
     name: "دکتر شاه‌پرویزی",
-    specialty: "مشاوره ریاضی",
+    specialty: "دکترای ریاضی کاربردی",
     description:
-      "رفع اشکال، آماده‌سازی آزمون، تقویت پایه و برنامه‌ریزی مطالعه ریاضی در تمام مقاطع.",
+      "بررسی ریسک سبد سهام شما، و ارائه پیشنهادهای سرمایه گذاری براساس مدل‌های آماری و ریاضیات",
     duration: "۴۵ دقیقه",
-    link: "/receipt",
+    link: "/services",
   },
   {
     id: "finance",
@@ -34,9 +34,9 @@ const CONSULTANTS: Consultant[] = [
     name: "مهندس اسکندری",
     specialty: "مشاوره مالی و سرمایه‌گذاری",
     description:
-      "تحلیل بازار، مدیریت ریسک، برنامه‌ریزی مالی شخصی و راهنمایی سرمایه‌گذاری.",
+      "بررسی سبد سهام شما، و ارائه پیشنهادهای سرمایه گذاری براساس مدل‌های تکنیکال",
     duration: "۳۰ دقیقه",
-    link: "/receipt",
+    link: "/services",
   },
 ];
 
@@ -53,12 +53,10 @@ const ConsultantCard: React.FC<Consultant> = ({
   return (
     <Card className="rc-card">
       <Card.Body className="rc-card-body">
-        {/* Centered icon */}
         <div className="rc-icon-box">
           <div className="rc-icon">{icon}</div>
         </div>
 
-        {/* Centered title group */}
         <div className="rc-title-group">
           <span className="rc-specialty">{specialty}</span>
           <h3 className="rc-name">{name}</h3>

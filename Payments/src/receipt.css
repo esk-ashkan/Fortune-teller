@@ -1,22 +1,58 @@
 /* ============================================
    RECEIPT / CONFIRMATION CARD
+   Palette matched to reservation.css (plum → coral)
    ============================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap');
+
 .receipt-wrapper {
+  /* Shared reservation palette */
+  --rc-bg-top: #5E244E;
+  --rc-bg-bottom: #FF7873;
+  --rc-card-1: rgba(255, 255, 255, 0.10);
+  --rc-card-2: rgba(255, 255, 255, 0.06);
+  --rc-card-border: rgba(255, 232, 180, 0.28);
+  --rc-accent: #FFE8B4;
+  --rc-accent-strong: #dd164e;
+  --rc-title: #ffffff;
+  --rc-desc: #F5F5DC;
+  --rc-row-bg: rgba(255, 255, 255, 0.07);
+  --rc-row-border: rgba(255, 255, 255, 0.12);
+  --rc-label: #F5F5DC;
+  --rc-value: #ffffff;
+  --rc-price: #FFE8B4;
+  --rc-total-bg: rgba(221, 22, 78, 0.18);
+  --rc-total-border: rgba(221, 22, 78, 0.4);
+  --rc-cancel-text: #F5F5DC;
+  --rc-cancel-border: rgba(255, 232, 180, 0.3);
+  --rc-cancel-hover-bg: rgba(255, 255, 255, 0.1);
+  --rc-shadow-1: rgba(0, 0, 0, 0.2);
+  --rc-shadow-2: rgba(221, 22, 78, 0.25);
+
   position: relative;
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   margin: 0 auto;
+  padding: 3rem 1rem 4rem;
   font-family: 'Vazirmatn', system-ui, sans-serif;
+  direction: rtl;
+  background: linear-gradient(180deg, var(--rc-bg-top) 0%, var(--rc-bg-bottom) 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
+/* ---------- Glow + Card ---------- */
 .receipt-glow {
   position: absolute;
   inset: -2px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #f59e0b, #ef4444, #8b5cf6);
-  opacity: 0.45;
-  filter: blur(10px);
+  border-radius: 22px;
+  background: linear-gradient(135deg, #dd164e, #FF7873, #FFE8B4);
+  opacity: 0.35;
+  filter: blur(14px);
   z-index: 0;
 }
 
@@ -24,28 +60,17 @@
   position: relative;
   z-index: 1;
   overflow: hidden;
-  background: linear-gradient(
-    165deg,
-    rgba(255, 251, 235, 0.97) 0%,
-    rgba(255, 255, 255, 0.95) 100%
-  );
-  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  background: linear-gradient(165deg, var(--rc-card-1) 0%, var(--rc-card-2) 100%);
+  border: 1.5px solid var(--rc-card-border);
   border-radius: 18px !important;
   box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.05),
-    0 20px 40px rgba(245, 158, 11, 0.1);
+    0 8px 16px var(--rc-shadow-1),
+    0 20px 40px var(--rc-shadow-2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .receipt-card {
-    background: linear-gradient(
-      165deg,
-      rgba(50, 40, 22, 0.95) 0%,
-      rgba(28, 25, 23, 0.98) 100%
-    );
-    border-color: rgba(245, 158, 11, 0.25);
-  }
+  width: 100%;
+  color: var(--rc-value);
 }
 
 .receipt-top-line {
@@ -54,7 +79,7 @@
   left: 25%;
   right: 25%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #f59e0b, #ef4444, transparent);
+  background: linear-gradient(90deg, transparent, var(--rc-accent), var(--rc-accent-strong), transparent);
   border-radius: 0 0 4px 4px;
 }
 
@@ -63,14 +88,15 @@
   top: 12px;
   left: 12px;
   z-index: 5;
-  opacity: 0.6;
+  opacity: 0.7;
+  color: var(--rc-accent) !important;
 }
 
 .receipt-close:hover {
   opacity: 1;
 }
 
-/* Visual / Icon */
+/* ---------- Visual / Icon ---------- */
 .receipt-visual {
   display: flex;
   justify-content: center;
@@ -84,9 +110,9 @@
   width: 72px;
   height: 72px;
   border-radius: 20px;
-  background: linear-gradient(145deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.12));
-  border: 1.5px solid rgba(245, 158, 11, 0.4);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+  background: linear-gradient(145deg, rgba(221, 22, 78, 0.3), rgba(255, 120, 115, 0.18));
+  border: 1.5px solid var(--rc-card-border);
+  box-shadow: 0 4px 14px rgba(221, 22, 78, 0.3);
 }
 
 .receipt-icon {
@@ -94,7 +120,7 @@
   line-height: 1;
 }
 
-/* Header */
+/* ---------- Header ---------- */
 .receipt-header {
   display: flex;
   flex-direction: column;
@@ -109,30 +135,100 @@
   font-weight: 900 !important;
   letter-spacing: -0.02em;
   margin: 0;
-  color: #1c1917;
-}
-
-@media (prefers-color-scheme: dark) {
-  .receipt-title {
-    color: #fef3c7;
-  }
+  color: var(--rc-title) !important;
 }
 
 .receipt-desc {
   font-size: 0.85rem !important;
   font-weight: 500 !important;
-  opacity: 0.75;
-  line-height: 1.5;
+  color: var(--rc-desc) !important;
+  opacity: 0.9;
+  line-height: 1.6;
   margin: 0;
-  max-width: 280px;
+  max-width: 300px;
+  text-align: center;
 }
 
-/* Footer / Buttons */
+/* ---------- Details (rows) ---------- */
+.receipt-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.5rem 1.25rem;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 0.9rem;
+  background: var(--rc-row-bg);
+  border: 1px solid var(--rc-row-border);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+
+.receipt-row--multiline {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.receipt-row--multiline .receipt-value {
+  text-align: right;
+  line-height: 1.7;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--rc-desc);
+}
+
+.receipt-row--total {
+  background: var(--rc-total-bg);
+  border-color: var(--rc-total-border);
+  margin-top: 0.25rem;
+}
+
+.receipt-label {
+  font-size: 0.8rem;
+  color: var(--rc-label);
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.receipt-value {
+  font-size: 0.9rem;
+  color: var(--rc-value);
+  font-weight: 600;
+  text-align: left;
+}
+
+.receipt-price {
+  font-size: 1.05rem;
+  color: var(--rc-price);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-empty {
+  text-align: center;
+  color: var(--rc-desc);
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+/* ---------- Footer / Buttons ---------- */
 .receipt-footer {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 8px 20px 20px;
+  padding: 16px 20px 20px;
 }
 
 .receipt-btn {
@@ -144,30 +240,60 @@
 }
 
 .receipt-btn--confirm {
-  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%) !important;
-  color: #fff !important;
+  background: linear-gradient(135deg, #dd164e 0%, #FF7873 100%) !important;
+  color: #ffffff !important;
   border: none !important;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 14px rgba(221, 22, 78, 0.4);
 }
 
 .receipt-btn--confirm:hover {
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 6px 18px rgba(221, 22, 78, 0.55);
+}
+
+.receipt-btn--confirm:disabled,
+.receipt-btn--confirm[data-disabled="true"] {
+  opacity: 0.5;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .receipt-btn--cancel {
   background: transparent !important;
-  color: #78716c !important;
-  border: 1.5px solid rgba(120, 113, 108, 0.25) !important;
+  color: var(--rc-cancel-text) !important;
+  border: 1.5px solid var(--rc-cancel-border) !important;
 }
 
 .receipt-btn--cancel:hover {
-  background: rgba(0, 0, 0, 0.04) !important;
-  color: #44403c !important;
+  background: var(--rc-cancel-hover-bg) !important;
+  color: #ffffff !important;
+  border-color: var(--rc-accent) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  .receipt-btn--cancel {
-    color: #a8a29e !important;
-    border-color: rgba(168, 162, 158, 0.25) !important;
+/* ---------- Responsive ---------- */
+@media (max-width: 480px) {
+  .receipt-wrapper {
+    max-width: 100%;
+    padding: 2rem 1rem 3rem;
+  }
+
+  .receipt-details {
+    padding: 0.5rem 1rem;
+  }
+
+  .receipt-title {
+    font-size: 1.05rem !important;
+  }
+
+  .receipt-label,
+  .receipt-value {
+    font-size: 0.8rem;
+  }
+
+  .receipt-price {
+    font-size: 0.95rem;
+  }
+
+  .receipt-footer {
+    padding: 12px 16px 16px;
   }
 }
