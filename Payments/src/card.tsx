@@ -10,7 +10,7 @@ interface PackageCardProps {
   maindescription: string;
   link: string;
   buttonText: string;
-  state?: Record<string, any>;   // <-- new
+  state?: Record<string, any>;
 }
 
 export function PackageCard({

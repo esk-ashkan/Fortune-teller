@@ -4,6 +4,7 @@ import { PackageCard } from "./card";
 import logarithmImg from "./assets/logarithm.png";
 import trendImg from "./assets/trend.png";
 import "./services.css";
+import BackButton from "./BackButton";
 
 interface Service {
   icon: ReactNode;
@@ -80,6 +81,7 @@ function Services() {
 
   return (
     <div className="services-page">
+        <BackButton />
       <h1 className="services-title">
         {selectedName ? `خدمات ${selectedName}` : "خدمات مشاوره"}
       </h1>

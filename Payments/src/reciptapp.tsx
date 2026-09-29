@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Card, CloseButton } from "@heroui/react";
+import BackButton from "./BackButton";
 import "./receipt.css";
 
 interface ReceiptData {
@@ -27,7 +28,6 @@ export function ReceiptApp({
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Pull the receipt payload passed from Services.tsx
   const data = (location.state as { receipt?: ReceiptData } | null)?.receipt;
 
   const handleClose = () => {
@@ -37,17 +37,18 @@ export function ReceiptApp({
 
   const handleCancel = () => {
     if (onCancel) return onCancel();
-    navigate(-1);
+    navigate("/");
   };
 
   const handleConfirm = () => {
     if (onConfirm) return onConfirm();
-    // TODO: hook this to your real payment gateway
     console.log("Confirming payment for:", data);
   };
 
   return (
     <div className="receipt-wrapper">
+      <BackButton to="/services" />
+
       <div className="receipt-glow" aria-hidden="true" />
 
       <Card className="receipt-card">
@@ -66,7 +67,6 @@ export function ReceiptApp({
           <Card.Description className="receipt-desc">{receipt}</Card.Description>
         </Card.Header>
 
-        {/* Receipt details */}
         {data ? (
           <Card.Content className="receipt-details">
             <div className="receipt-row">
