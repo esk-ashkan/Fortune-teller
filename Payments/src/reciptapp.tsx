@@ -1,6 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Card, CloseButton } from "@heroui/react";
-import BackButton from "./BackButton";
 import "./receipt.css";
 
 interface ReceiptData {
@@ -47,7 +46,6 @@ export function ReceiptApp({
 
   return (
     <div className="receipt-wrapper">
-      <BackButton to="/services" />
 
       <div className="receipt-glow" aria-hidden="true" />
 
