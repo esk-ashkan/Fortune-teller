@@ -498,11 +498,9 @@ def tarot():
         return jsonify({"error": "Maximum 10 cards allowed"}), 400
 
     cards_text = ", ".join(cards_list)
-    extra_context = (
-        f"Main goal of horoscopy is: {kindOfHoroscopy}."
-        if kindOfHoroscopy and kindOfHoroscopy != "سایر"
-        else ""
-    )
+    extra_line = ""
+    if kindOfHoroscopy and kindOfHoroscopy != "سایر":
+        extra_line = f"Main goal of horoscopy is: {kindOfHoroscopy}."
 
     base_prompt = f"""
         You are a traditional Tarot scholar.
@@ -525,7 +523,7 @@ def tarot():
         - avoid deterministic predictions
         - explain both each card and the spread as a whole
 
-        {extra_context}
+        {extra_line}
 
         Maximum 220 words, and dedicate most of words to the final interpretation.
         IMPORTANT:
@@ -551,19 +549,6 @@ def tarot():
         errors.append(f"Mistral: {str(e)}")
 
     try:
-        response = gemini_api(prompt=base_prompt)
-        if response:
-            return jsonify({
-                "interpretation": response,
-                "cards": cards_list,
-                "provider": "gemini"
-            })
-        errors.append("Gemini returned empty response")
-    except Exception as e:
-        logger.warning("Gemini failed: %s", str(e))
-        errors.append(f"Gemini: {str(e)}")
-
-    try:
         response = fetchingGroq(
             model=groqModels[1],
             prompt=base_prompt,
@@ -580,6 +565,19 @@ def tarot():
     except Exception as e:
         logger.warning("Groq failed: %s", str(e))
         errors.append(f"Groq: {str(e)}")
+    
+    try:
+        response = gemini_api(prompt=base_prompt)
+        if response:
+            return jsonify({
+                "interpretation": response,
+                "cards": cards_list,
+                "provider": "gemini"
+            })
+        errors.append("Gemini returned empty response")
+    except Exception as e:
+        logger.warning("Gemini failed: %s", str(e))
+        errors.append(f"Gemini: {str(e)}")
 
     logger.error("All tarot providers failed: %s", errors)
     return jsonify({
