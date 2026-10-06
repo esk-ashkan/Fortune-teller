@@ -483,16 +483,17 @@ def home():
 @app.route("/tarot", methods=["GET"])
 def tarot():
     logger.info("-----> Tarot endpoint called.")
-    
+
     cards_list = request.args.getlist("cards_list[]")
     cards_list = [card.strip() for card in cards_list if card.strip()]
     kindOfHoroscopy = request.args.get("kindOfHoroscopy")
+
     if not cards_list:
         return jsonify({"error": "No cards provided"}), 400
-    
+
     if len(cards_list) > 10:
         return jsonify({"error": "Maximum 10 cards allowed"}), 400
-    
+
     cards_text = ", ".join(cards_list)
     extra_context = (
         f"Main goal of horoscopy is: {kindOfHoroscopy}."
@@ -501,61 +502,88 @@ def tarot():
     )
 
     base_prompt = f"""
-    You are a traditional Tarot scholar.
-    For every card:
+        You are a traditional Tarot scholar.
+        For every card:
 
-    1. Traditional meaning
-    2. Upright/Reversed meaning
-    3. Symbolism
-    4. Psychological message
-    5. Advice
+        1. Traditional meaning
+        2. Upright/Reversed meaning
+        3. Symbolism
+        4. Psychological message
+        5. Advice
 
-    Do NOT answer as a numbered list.
-    Write naturally as an experienced Tarot reader.
+        Do NOT answer as a numbered list.
+        Write naturally as an experienced Tarot reader.
 
-    Your interpretations should be:
-    - mystical
-    - psychologically insightful
-    - compassionate
-    - encouraging
-    - avoid deterministic predictions
-    - explain both each card and the spread as a whole
+        Your interpretations should be:
+        - mystical
+        - psychologically insightful
+        - compassionate
+        - encouraging
+        - avoid deterministic predictions
+        - explain both each card and the spread as a whole
 
-    {extra_context}
+        {extra_context}
 
-    Maximum 220 words, and dedicate most of words to the final interpretation.
-    IMPORTANT:
-    Return the interpretation in Persian.
+        Maximum 220 words, and dedicate most of words to the final interpretation.
+        IMPORTANT:
+        Return the interpretation in Persian.
 
-    Cards drawn:
-    {cards_text}
+        Cards drawn:
+        {cards_text}
     """
+    response = None
+    errors = []
 
-    
     try:
         response = mistral_api(prompt=base_prompt)
-        
-        if not response:
-            logger.warning("!Warning!\n----->Mistral returned empty response, trying Gemini...")
-            response = gemini_api(prompt=base_prompt)
-        
-        if not response:
+        if response:
             return jsonify({
-                "interpretation": "The spirits are quiet right now.",
-                "details": "Both models returned empty responses."
-            }), 502
-        
-        return jsonify({
-            "interpretation": response,
-            "cards": cards_list
-        })
-        
+                "interpretation": response,
+                "cards": cards_list,
+                "provider": "mistral"
+            })
+        errors.append("Mistral returned empty response")
     except Exception as e:
-        logger.error(f"!ERROR!:----->\nTarot API Error: {str(e)}")
-        return jsonify({
-            "interpretation": "The spirits are quiet right now.",
-            "details": str(e)
-        }), 502
+        logger.warning("Mistral failed: %s", str(e))
+        errors.append(f"Mistral: {str(e)}")
+
+    try:
+        response = gemini_api(prompt=base_prompt)
+        if response:
+            return jsonify({
+                "interpretation": response,
+                "cards": cards_list,
+                "provider": "gemini"
+            })
+        errors.append("Gemini returned empty response")
+    except Exception as e:
+        logger.warning("Gemini failed: %s", str(e))
+        errors.append(f"Gemini: {str(e)}")
+
+    try:
+        response = fetchingGroq(
+            model=groqModels[1],
+            prompt=base_prompt,
+            vision=False,
+            tarot=True,
+        )
+        if response:
+            return jsonify({
+                "interpretation": response,
+                "cards": cards_list,
+                "provider": "groq"
+            })
+        errors.append("Groq returned empty response")
+    except Exception as e:
+        logger.warning("Groq failed: %s", str(e))
+        errors.append(f"Groq: {str(e)}")
+
+    logger.error("All tarot providers failed: %s", errors)
+    return jsonify({
+        "interpretation": "روح‌ها الان ساکت هستند. لطفاً چند لحظه بعد دوباره تلاش کنید.",
+        "details": errors
+    }), 502
+
 # -----------------------------
 # COFFEE READING
 # -----------------------------
