@@ -321,7 +321,7 @@ class Profile(db.Model):
     last_name = db.Column(db.String(64), nullable=True)
     birthday = db.Column(db.Date, nullable=True)
 
-    credit = db.Column(db.Integer, nullable=False, default=15000)
+    credit = db.Column(db.Integer, nullable=False, default=150000)
 
     hafez_count = db.Column(db.Integer, nullable=False, default=0)
     coffee_count = db.Column(db.Integer, nullable=False, default=0)
@@ -354,12 +354,21 @@ class Profile(db.Model):
         self.credit -= amount
         return True
 
+    def can_use_hafez(self) -> bool:
+        return self.remained_hafez > 0
+
+    def can_use_coffee(self) -> bool:
+        return self.remained_coffee > 0
+
+    def can_use_tarot(self) -> bool:
+        return self.remained_tarot > 0
+    
     def use_hafez(self) -> bool:
         if self.remained_hafez > 0:
             self.remained_hafez -= 1
             self.hafez_count += 1
             return True
-        if self.credit > HAFEZ_PRICE:
+        if self.credit >= HAFEZ_PRICE:
             self.credit -= HAFEZ_PRICE
             self.hafez_count += 1
             return True
@@ -370,7 +379,7 @@ class Profile(db.Model):
             self.remained_coffee -= 1
             self.coffee_count += 1
             return True
-        if self.credit > COFFEE_PRICE:
+        if self.credit >= COFFEE_PRICE:
             self.credit -= COFFEE_PRICE
             self.coffee_count += 1
             return True
@@ -381,7 +390,7 @@ class Profile(db.Model):
             self.remained_tarot -= 1
             self.tarot_count += 1
             return True
-        if self.credit > TAROT_PRICE:
+        if self.credit >= TAROT_PRICE:
             self.credit -= TAROT_PRICE
             self.tarot_count += 1
             return True
@@ -709,6 +718,7 @@ def stars():
 @app.route('/hafez')
 def hafez():
     goal = request.args.get("goal")
+
     r = requests.get('https://ganjgah.ir/api/ganjoor/hafez/faal')
 
     if r.status_code != 200:
@@ -749,7 +759,11 @@ def hafez():
         vision=False
     )
 
-    logging.info(f"----->{ai_faal}<-----")
+    tgid = request.args.get("tgid", type=int)
+    if tgid:
+        user = Profile.query.filter_by(tgid=tgid).first()
+        if user and user.use_hafez():
+            db.session.commit()
 
     return jsonify({
         "poem": poem,
