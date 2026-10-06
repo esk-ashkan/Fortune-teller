@@ -760,31 +760,42 @@ def hafez():
 # -----------------------------
 @app.route('/check')
 def check():
-    horoscopy_model = request.args.get("horoscopy_model")
+    horoscopy_model = (
+        request.args.get("horoscopy_model")
+        or request.args.get("model")
+    )
     tgid = request.args.get("tgid", type=int)
 
     if not tgid:
         return jsonify({"error": "tgid is required"}), 400
 
     if horoscopy_model not in ["hafez", "coffee", "tarot"]:
-        return jsonify({"error": "Invalid horoscopy_model"}), 400
+        return jsonify({
+            "error": "Invalid or missing model. Use hafez, coffee, or tarot."
+        }), 400
 
     user = Profile.query.filter_by(tgid=tgid).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
+
     try:
-        if horoscopy_model == 'hafez':
-            can_use = user.use_hafez()
-            return can_use
-        elif horoscopy_model == 'coffee':
-            can_use = user.use_coffee()
-            return can_use
-        elif horoscopy_model == 'tarot':
-            can_use = user.use_tarot()
-            return can_use
+        if horoscopy_model == "hafez":
+            can_use = user.can_use_hafez() or user.credit >= HAFEZ_PRICE
+        elif horoscopy_model == "coffee":
+            can_use = user.can_use_coffee() or user.credit >= COFFEE_PRICE
+        else:  # tarot
+            can_use = user.can_use_tarot() or user.credit >= TAROT_PRICE
+
+        return jsonify({
+            "can_use": can_use,
+            "credit": user.credit,
+            "remained_hafez": user.remained_hafez,
+            "remained_coffee": user.remained_coffee,
+            "remained_tarot": user.remained_tarot,
+        })
     except Exception as e:
-        logger.error(f"Error in checking permission: {str(e)}")
-        return jsonify({"error": "Error in checking permission"}), 500 
+        logger.error(f"Error in check: {str(e)}")
+        return jsonify({"error": "Error in checking permission"}), 500
     
 # -----------------------------
 # KEEP PROJECT AWAKE
