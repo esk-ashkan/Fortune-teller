@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from google import genai
 import cloudinary
 import cloudinary.uploader
+import traceback
+import sys
 from cloudinary.utils import cloudinary_url
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
@@ -41,6 +43,38 @@ app = Flask(__name__)
 CORS(app)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+logging.basicConfig(
+    level=logging.DEBUG,  # more detail than INFO
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    stream=sys.stdout,
+)
+logger = logging.getLogger(__name__)
+
+@app.before_request
+def log_request():
+    logger.info(
+        "REQUEST %s %s args=%s",
+        request.method,
+        request.path,
+        dict(request.args),
+    )
+
+@app.after_request
+def log_response(response):
+    logger.info(
+        "RESPONSE %s %s status=%s",
+        request.method,
+        request.path,
+        response.status_code,
+    )
+    return response
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logger.error("UNHANDLED ERROR: %s", str(e))
+    logger.error(traceback.format_exc())
+    return jsonify({"error": "Internal server error", "details": str(e)}), 500
+
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not configured")
 
@@ -49,8 +83,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
-    "pool_recycle": 300,
-    "pool_timeout": 30,
+    "pool_recycle": 280,
+    "pool_size": 3,
+    "max_overflow": 0,
     "connect_args": {
         "connect_timeout": 10,
         "sslmode": "require",
@@ -441,6 +476,7 @@ def home():
     except Exception as e:
         logger.error(f"Error in home: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
 # -----------------------------
 # TAROT
 # -----------------------------
