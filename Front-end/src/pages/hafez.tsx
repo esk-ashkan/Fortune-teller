@@ -42,7 +42,7 @@ function Hafez() {
 
     axios
       .get("https://fortune-teller-nhy4.onrender.com/check", {
-        params: { model: "hafez", tgid: tgid }
+        params: { horoscopy_mode: "hafez", tgid: tgid }
       })
       .then((response) => {
         if (response.data.can_use) {
