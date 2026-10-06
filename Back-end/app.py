@@ -132,6 +132,9 @@ def mistral_api(prompt: str, temprature:float=0.85):
 
 
     r = requests.post(url, json=payload, headers=headers)
+    r = requests.post(url, json=payload, headers=headers)
+    if r.status_code != 200:
+        print(r.status_code, r.text)
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
