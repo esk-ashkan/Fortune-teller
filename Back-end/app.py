@@ -550,7 +550,7 @@ def tarot():
 
     try:
         response = fetchingGroq(
-            model=groqModels[1],
+            model=groqModels[4],
             prompt=base_prompt,
             vision=False,
             tarot=True,
