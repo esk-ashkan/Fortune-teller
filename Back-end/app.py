@@ -16,8 +16,6 @@ from flask_sqlalchemy import SQLAlchemy
 from groq import Groq
 from openai import OpenAI
 import time
-from io import BytesIO
-from PIL import Image
 
 # --------------------------------------------------
 # Environment
