@@ -793,37 +793,144 @@ def coffee():
 # -----------------------------
 # STARS (HOROSCOPE)
 # -----------------------------
-@app.route('/stars')
+@app.route("/stars", methods=["GET"])
 def stars():
-    lat = request.args.get('lat')
-    long = request.args.get('long')
+    logger.info("-----> Stars endpoint called.")
 
-    API_KEY = os.environ["IPGL_API_KEY"]
-    url = f"https://api.ipgeolocation.io/v3/astronomy?apiKey={API_KEY}&lat={lat}&long={long}&elevation=10"
+    lat = request.args.get("lat", type=float)
+    long = request.args.get("long", type=float)
+    tgid = request.args.get("tgid", type=int)
+    city_name = request.args.get("city") or "موقعیت انتخاب‌شده"
 
-    response = requests.get(url)
-    data = response.json()
+    # ---- validate location ----
+    if lat is None or long is None:
+        return jsonify({"error": "lat and long are required"}), 400
+    if not (-90 <= lat <= 90 and -180 <= long <= 180):
+        return jsonify({"error": "invalid coordinates"}), 400
+
+    # ---- optional permission / charge gate ----
+    user = None
+    if tgid:
+        user = Profile.query.filter_by(tgid=tgid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        # For now reuse credit; later you can add remained_stars
+        STARS_PRICE = 1000  # adjust
+        can_use = user.credit >= STARS_PRICE
+        if not can_use:
+            return jsonify({"error": "اعتبار کافی نیست."}), 403
+
+    # ---- fetch astronomy ----
+    try:
+        API_KEY = os.environ["IPGL_API_KEY"]
+        url = (
+            "https://api.ipgeolocation.io/v3/astronomy"
+            f"?apiKey={API_KEY}&lat={lat}&long={long}&elevation=10"
+        )
+        r = requests.get(url, timeout=20)
+        r.raise_for_status()
+        raw = r.json()
+    except Exception as e:
+        logger.exception("Astronomy API failed")
+        return jsonify({"error": "دریافت داده آسمان ناموفق بود", "details": str(e)}), 502
+
+    # ---- compress to short facts (token saver) ----
+    # Fields may differ slightly by API version; keep safe .get usage
+    astronomy = raw.get("astronomy") if isinstance(raw, dict) else None
+    if not isinstance(astronomy, dict):
+        astronomy = raw if isinstance(raw, dict) else {}
+
+    sky_facts = {
+        "city": city_name,
+        "lat": lat,
+        "long": long,
+        "date": astronomy.get("date") or raw.get("date"),
+        "sunrise": astronomy.get("sunrise"),
+        "sunset": astronomy.get("sunset"),
+        "moonrise": astronomy.get("moonrise"),
+        "moonset": astronomy.get("moonset"),
+        "moon_phase": astronomy.get("moon_phase") or astronomy.get("moonPhase"),
+        "moon_illumination": astronomy.get("moon_illumination")
+            or astronomy.get("moon_illumination_percentage"),
+        "solar_noon": astronomy.get("solar_noon"),
+        "day_length": astronomy.get("day_length"),
+    }
 
     prompt = f"""
-        You are an expert astrologer.
-        Based on the following astronomical data:
-        {data}
+            تو یک روایت‌گر لطیف طالع و آسمان هستی.
+            بر اساس این دادههای نجومی، یک متن کوتاه فارسی بنویس.
 
-        Generate a mystical horoscope in Farsi.
-        Avoid deterministic predictions.
-        Maximum 200 words.
-        IMPORTANT: Return horoscope in Persian.
-    """
+            دادهها:
+            {sky_facts}
 
-    result = query(prompt, TEXT_MODELS[0])
+            قوانین:
+            - لحنی گرم، عرفانی و امیدبخش داشته باش
+            - پیشگویی قطعی نکن
+            - از ترس و اغراق پرهیز کن
+            - ساختار:
+            1) حال کلی آسمان
+            2) انرژی روز
+            3) یک توصیه کوتاه
+            - حداکثر 140 کلمه
+            - فقط فارسی بنویس
+            """
 
-    if "error" in result:
+    interpretation = None
+    provider = None
+    errors = []
+
+    # Prefer cheap/fast text models you already have
+    try:
+        interpretation = mistral_api(prompt=prompt, temprature=0.8)
+        if interpretation:
+            provider = "mistral"
+    except Exception as e:
+        logger.warning("Stars Mistral failed: %s", e)
+        errors.append(f"mistral: {e}")
+
+    if not interpretation:
+        try:
+            interpretation = gemini_api(prompt=prompt, max_tokens=350, temperature=0.8)
+            if interpretation:
+                provider = "gemini"
+        except Exception as e:
+            logger.warning("Stars Gemini failed: %s", e)
+            errors.append(f"gemini: {e}")
+
+    if not interpretation:
+        try:
+            interpretation = fetchingGroq(
+                model=groqModels[1],
+                prompt=prompt,
+                vision=False,
+                tarot=False,
+            )
+            if interpretation:
+                provider = "groq"
+        except Exception as e:
+            logger.warning("Stars Groq failed: %s", e)
+            errors.append(f"groq: {e}")
+
+    if not interpretation:
         return jsonify({
-            "horoscope_data": "The spirits are quiet right now. Please try again in a moment.",
-            "details": result["error"]
+            "error": "الان خواندن آسمان ممکن نیست.",
+            "details": errors,
+            "sky_facts": sky_facts,
         }), 502
 
-    return jsonify({"horoscope_data": result["generated_text"]})
+    # ---- charge after success ----
+    if user is not None:
+        STARS_PRICE = 1000
+        if not user.decrease_credit(STARS_PRICE):
+            return jsonify({"error": "اعتبار کافی نیست."}), 403
+        db.session.commit()
+
+    return jsonify({
+        "sky_facts": sky_facts,
+        "interpretation": interpretation,
+        "provider": provider,
+        "credit": user.credit if user else None,
+    }), 200
 
 # -----------------------------
 # HAFEZ
