@@ -195,7 +195,6 @@ function Landing() {
               })} 
               description="ستارگان، سرنوشت شما"
               badge="به‌زودی"
-              situation={false}
             />
           </Col>
           
