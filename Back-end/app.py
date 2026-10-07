@@ -15,6 +15,9 @@ import requests
 from flask_sqlalchemy import SQLAlchemy
 from groq import Groq
 from openai import OpenAI
+import time
+from io import BytesIO
+from PIL import Image
 
 # --------------------------------------------------
 # Environment
@@ -345,6 +348,34 @@ def user_information(tgid, username=None, first_name=None, last_name=None, full_
         "registered_at": profile.registered_at.isoformat() if profile.registered_at else None,
         "last_visit": profile.last_visit.isoformat() if profile.last_visit else None,
     }
+
+def is_coffee_cup_image(file_storage) -> tuple[bool, str]:
+    """
+    Cheap gate: ask Gemini if image is coffee grounds in a cup.
+    Returns (is_valid, raw_answer)
+    """
+    file_storage.stream.seek(0)
+    prompt = (
+        "Look at this image. "
+        "Is it a photo of coffee grounds / coffee sediment inside a cup (fal gahve / coffee cup reading)? "
+        "Answer with ONLY one word: YES or NO."
+    )
+    try:
+        answer = gemini_api(
+            prompt=prompt,
+            vision=True,
+            file=file_storage,
+            max_tokens=10,
+            temperature=0.0,
+        )
+        text = (answer or "").strip().upper()
+        ok = text.startswith("YES")
+        return ok, text
+    except Exception as e:
+        logger.warning("Coffee cup validation failed: %s", str(e))
+        # Fail closed to save tokens if validator errors? 
+        # Better: fail open only when unsure is risky; fail closed is safer for cost.
+        return False, f"VALIDATOR_ERROR: {e}"
 # -----------------------------
 # Models
 # -----------------------------
@@ -590,157 +621,174 @@ def tarot():
 # -----------------------------
 @app.route("/coffee", methods=["POST"])
 def coffee():
+    logger.info("-----> Coffee endpoint called.")
 
     files = request.files.getlist("images")
     names = request.form.getlist("images_name")
+    tgid = request.form.get("tgid", type=int)
 
     if not files:
-        return jsonify({
-            "error": "No images uploaded"
-        }), 400
+        return jsonify({"error": "No images uploaded"}), 400
 
     file = files[0]
     name = names[0] if names else f"coffee_{int(time.time())}"
+
+    # ---------- 1) Basic file validation ----------
+    ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
+    MAX_BYTES = 3 * 1024 * 1024  # 3MB
+
+    mimetype = (file.mimetype or "").lower()
+    if mimetype not in ALLOWED:
+        return jsonify({
+            "error": "فرمت تصویر مجاز نیست. فقط jpg، png یا webp."
+        }), 400
+
+    file.stream.seek(0, 2)
+    size = file.stream.tell()
+    file.stream.seek(0)
+    if size <= 0:
+        return jsonify({"error": "فایل تصویر خالی است."}), 400
+    if size > MAX_BYTES:
+        return jsonify({"error": "حجم تصویر بیش از ۳ مگابایت است."}), 400
+
+    # ---------- 2) Permission check ----------
+    if tgid:
+        user = Profile.query.filter_by(tgid=tgid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        can_use = user.can_use_coffee() or user.credit >= COFFEE_PRICE
+        if not can_use:
+            return jsonify({
+                "error": "اعتبار یا سهمیه فال قهوه کافی نیست."
+            }), 403
+    else:
+        user = None
+        logger.warning("Coffee called without tgid")
+
+    # ---------- 3) Cheap cup validation (Gemini) ----------
+    file.stream.seek(0)
+    is_cup, validator_raw = is_coffee_cup_image(file)
+    logger.info("Cup validator result=%s raw=%s", is_cup, validator_raw)
+
+    if not is_cup:
+        return jsonify({
+            "error": "این تصویر شبیه فنجان قهوه / کف قهوه نیست. لطفاً عکس واضحی از کف فنجان بفرستید.",
+            "validator": validator_raw,
+        }), 400
+
+    # ---------- 4) Upload to Cloudinary (compressed) ----------
     prompt = """
-    این تصویر قهوه را با دقت تحلیل کن و یک فال قهوه دقیق، روان با لحنی امیدبخش
-    به زبان فارسی ارائه بده.
-    نشانه‌ها، شکل‌ها، خطوط و الگوهای قابل مشاهده در فنجان را بررسی کن.
-    تفسیر را بر اساس سنت فال قهوه انجام بده و از ادعاهای قطعی درباره
-    آینده خودداری کن.
-    """
+                این تصویر کف فنجان قهوه است.
+                یک فال قهوه کوتاه، روان و امیدبخش به زبان فارسی بنویس.
+                فقط بر اساس شکل‌ها و الگوهای قابل مشاهده در تصویر تفسیر کن.
+                ادعاهای قطعی درباره آینده نکن.
+                حداکثر ۱۲۰ کلمه.
+            """
+
     errors = []
     image_url = None
 
     try:
-
+        file.stream.seek(0)
         logger.info("-----> Uploading coffee image to Cloudinary...")
         cloudinary.uploader.upload(
             file,
             public_id=name,
             overwrite=True,
+            transformation=[
+                {"width": 768, "crop": "limit"},
+                {"quality": "auto:good"},
+                {"fetch_format": "auto"},
+            ],
         )
         image_url, _ = cloudinary_url(
             name,
             secure=True,
-            fetch_format="auto",
+            width=768,
+            crop="limit",
             quality="auto",
+            fetch_format="auto",
         )
         logger.info("-----> Cloudinary upload successful")
-
     except Exception as e:
-        logger.exception(
-            "-----> Cloudinary upload failed"
-        )
-        errors.append({
-            "provider": "Cloudinary",
-            "error": str(e)
-        })
+        logger.exception("-----> Cloudinary upload failed")
+        errors.append({"provider": "Cloudinary", "error": str(e)})
+
+    # ---------- 5) Vision interpretation (Groq -> Gemini -> HF) ----------
+    interpretation = None
+    provider = None
 
     if image_url:
         try:
-            logger.info(
-                "-----> Requesting Groq Vision..."
-            )
+            logger.info("-----> Requesting Groq Vision...")
             response = fetchingGroq(
                 model=groqModels[0],
                 prompt=prompt,
                 url=image_url,
+                vision=True,
+                tarot=False,
             )
             if response:
-                logger.info(
-                    "-----> Groq Vision succeeded"
-                )
-                return jsonify({
-                    "interpretation": response,
-                    "provider": "groq"
-                }), 200
-            errors.append({
-                "provider": "Groq",
-                "error": "Empty response"
-            })
-
+                interpretation = response
+                provider = "groq"
         except Exception as e:
-            logger.exception(
-                "-----> Groq Vision failed"
-            )
-            errors.append({
-                "provider": "Groq",
-                "error": str(e)
-            })
+            logger.exception("-----> Groq Vision failed")
+            errors.append({"provider": "Groq", "error": str(e)})
 
-    try:
-        logger.info(
-            "-----> Requesting Gemini Vision..."
-        )
-        file.stream.seek(0)
-        response = gemini_api(
-            prompt=prompt,
-            vision=True,
-            file=file
-        )
-        if response:
-            logger.info(
-                "-----> Gemini Vision succeeded"
-            )
-            return jsonify({
-                "interpretation": response,
-                "provider": "gemini"
-            }), 200
-        errors.append({
-            "provider": "Gemini",
-            "error": "Empty response"
-        })
-
-    except Exception as e:
-        logger.exception(
-            "-----> Gemini Vision failed"
-        )
-        errors.append({
-            "provider": "Gemini",
-            "error": str(e)
-        })
-
-    if image_url:
+    if not interpretation:
         try:
-            logger.info(
-                "-----> Requesting Hugging Face Vision..."
-            )
-            response = huggingFaceAPI(
+            logger.info("-----> Requesting Gemini Vision...")
+            file.stream.seek(0)
+            response = gemini_api(
                 prompt=prompt,
-                imageUrl=image_url
+                vision=True,
+                file=file,
+                max_tokens=400,
+                temperature=0.7,
             )
             if response:
-
-                logger.info(
-                    "-----> Hugging Face Vision succeeded"
-                )
-
-                return jsonify({
-                    "interpretation": response,
-                    "provider": "huggingface"
-                }), 200
-            errors.append({
-                "provider": "Hugging Face",
-                "error": "Empty response"
-            })
-
+                interpretation = response
+                provider = "gemini"
         except Exception as e:
-            logger.exception(
-                "-----> Hugging Face Vision failed"
-            )
-            errors.append({
-                "provider": "Hugging Face",
-                "error": str(e)
-            })
+            logger.exception("-----> Gemini Vision failed")
+            errors.append({"provider": "Gemini", "error": str(e)})
 
-    logger.error(
-        "-----> All coffee-reading providers failed"
-    )
+    if not interpretation and image_url:
+        try:
+            logger.info("-----> Requesting Hugging Face Vision...")
+            response = huggingFaceAPI(prompt=prompt, imageUrl=image_url)
+            # HF may return an object; normalize to text
+            if response:
+                interpretation = getattr(response, "content", None) or str(response)
+                provider = "huggingface"
+        except Exception as e:
+            logger.exception("-----> Hugging Face Vision failed")
+            errors.append({"provider": "Hugging Face", "error": str(e)})
+
+    if not interpretation:
+        logger.error("-----> All coffee-reading providers failed: %s", errors)
+        return jsonify({
+            "error": "خواندن فال قهوه الان ممکن نیست. کمی بعد دوباره تلاش کنید.",
+            "details": errors,
+        }), 502
+
+    # ---------- 6) Charge only after success ----------
+    if user is not None:
+        if not user.use_coffee():
+            # Race condition: credit changed after check
+            return jsonify({
+                "error": "اعتبار کافی نیست.",
+                "interpretation": interpretation,  # optional: still return or not
+            }), 403
+        db.session.commit()
+        logger.info("-----> Coffee usage charged for tgid=%s", tgid)
 
     return jsonify({
-        "error": "All vision providers failed.",
-        "details": errors
-    }), 502
+        "interpretation": interpretation,
+        "provider": provider,
+        "credit": user.credit if user else None,
+        "remained_coffee": user.remained_coffee if user else None,
+    }), 200
 
 # -----------------------------
 # STARS (HOROSCOPE)
