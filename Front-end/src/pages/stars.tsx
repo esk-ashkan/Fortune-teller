@@ -29,6 +29,17 @@ export default function Stars() {
     interpretation?: string;
     sky_facts?: Record<string, unknown>;
   } | null>(null);
+  const [birthDate, setBirthDate] = useState("");
+  const [sunSignFa, setSunSignFa] = useState<string | null>(null);
+
+  const saveBirth = async () => {
+    if (!tgid || !birthDate) return;
+    const res = await axios.post(`${API}/profile/birth`, {
+      tgid,
+      birth_date: birthDate, // from <input type="date" /> → YYYY-MM-DD
+    });
+    setSunSignFa(res.data.sun_sign_fa);
+  };
 
   const canSubmit = useMemo(() => !!selectedCity && !loading, [selectedCity, loading]);
 
@@ -147,6 +158,13 @@ export default function Stars() {
           <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>{result.interpretation}</p>
         </div>
       )}
+      <input
+        type="date"
+        value={birthDate}
+        onChange={(e) => setBirthDate(e.target.value)}
+      />
+      <button onClick={saveBirth}>ذخیره تاریخ تولد</button>
+      {sunSignFa && <p>برج شما: {sunSignFa}</p>}
     </div>
   );
 }

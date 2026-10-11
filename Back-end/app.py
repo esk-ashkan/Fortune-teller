@@ -16,6 +16,7 @@ from flask_sqlalchemy import SQLAlchemy
 from groq import Groq
 from openai import OpenAI
 import time
+from datetime import date
 
 # --------------------------------------------------
 # Environment
@@ -33,6 +34,21 @@ groqModels = [
     "llama-3.1-8b-instant",#LLM
     "openai/gpt-oss-120b",#LLM
 ]
+
+SUN_SIGN_FA = {
+    "Aries": "حمل (فروردین)",
+    "Taurus": "ثور (اردیبهشت)",
+    "Gemini": "جوزا (خرداد)",
+    "Cancer": "سرطان (تیر)",
+    "Leo": "اسد (مرداد)",
+    "Virgo": "سنبله (شهریور)",
+    "Libra": "میزان (مهر)",
+    "Scorpio": "عقرب (آبان)",
+    "Sagittarius": "قوس (آذر)",
+    "Capricorn": "جدی (دی)",
+    "Aquarius": "دلو (بهمن)",
+    "Pisces": "حوت (اسفند)",
+}
 
 HAFEZ_PRICE = 799999
 TAROT_PRICE = 899999
@@ -345,6 +361,9 @@ def user_information(tgid, username=None, first_name=None, last_name=None, full_
         "is_premium": profile.is_premium,
         "registered_at": profile.registered_at.isoformat() if profile.registered_at else None,
         "last_visit": profile.last_visit.isoformat() if profile.last_visit else None,
+        "birth_date": profile.birth_date.isoformat() if profile.birth_date else None,
+        "sun_sign": profile.sun_sign,
+        "sun_sign_fa": SUN_SIGN_FA.get(profile.sun_sign, profile.sun_sign) if profile.sun_sign else None,
     }
 
 def is_coffee_cup_image(file_storage) -> tuple[bool, str]:
@@ -374,6 +393,34 @@ def is_coffee_cup_image(file_storage) -> tuple[bool, str]:
         # Fail closed to save tokens if validator errors? 
         # Better: fail open only when unsure is risky; fail closed is safer for cost.
         return False, f"VALIDATOR_ERROR: {e}"
+
+def get_sun_sign(d: date) -> str:
+    m, day = d.month, d.day
+    if (m == 3 and day >= 21) or (m == 4 and day <= 19):
+        return "Aries"
+    if (m == 4 and day >= 20) or (m == 5 and day <= 20):
+        return "Taurus"
+    if (m == 5 and day >= 21) or (m == 6 and day <= 20):
+        return "Gemini"
+    if (m == 6 and day >= 21) or (m == 7 and day <= 22):
+        return "Cancer"
+    if (m == 7 and day >= 23) or (m == 8 and day <= 22):
+        return "Leo"
+    if (m == 8 and day >= 23) or (m == 9 and day <= 22):
+        return "Virgo"
+    if (m == 9 and day >= 23) or (m == 10 and day <= 22):
+        return "Libra"
+    if (m == 10 and day >= 23) or (m == 11 and day <= 21):
+        return "Scorpio"
+    if (m == 11 and day >= 22) or (m == 12 and day <= 21):
+        return "Sagittarius"
+    if (m == 12 and day >= 22) or (m == 1 and day <= 19):
+        return "Capricorn"
+    if (m == 1 and day >= 20) or (m == 2 and day <= 18):
+        return "Aquarius"
+    return "Pisces"  # Feb 19 – Mar 20
+
+
 # -----------------------------
 # Models
 # -----------------------------
@@ -387,7 +434,8 @@ class Profile(db.Model):
     first_name = db.Column(db.String(64), nullable=True)
     last_name = db.Column(db.String(64), nullable=True)
     birthday = db.Column(db.Date, nullable=True)
-
+    birth_date = db.Column(db.Date, nullable=True)
+    sun_sign = db.Column(db.String(20), nullable=True)
     credit = db.Column(db.Integer, nullable=False, default=150000)
 
     hafez_count = db.Column(db.Integer, nullable=False, default=0)
@@ -502,7 +550,8 @@ def home():
             username=username,
             first_name=first_name,
             last_name=last_name,
-            full_name=full_name
+            full_name=full_name,
+            
         )
         return jsonify(info)
     except Exception as e:
@@ -800,13 +849,11 @@ def stars():
     tgid = request.args.get("tgid", type=int)
     city_name = request.args.get("city") or "موقعیت انتخاب‌شده"
 
-    # ---- validate location ----
     if lat is None or long is None:
         return jsonify({"error": "lat and long are required"}), 400
     if not (-90 <= lat <= 90 and -180 <= long <= 180):
         return jsonify({"error": "invalid coordinates"}), 400
 
-    # ---- optional permission / charge gate ----
     user = None
     if tgid:
         user = Profile.query.filter_by(tgid=tgid).first()
@@ -818,7 +865,6 @@ def stars():
         if not can_use:
             return jsonify({"error": "اعتبار کافی نیست."}), 403
 
-    # ---- fetch astronomy ----
     try:
         API_KEY = os.environ["IPGL_API_KEY"]
         url = (
@@ -832,8 +878,6 @@ def stars():
         logger.exception("Astronomy API failed")
         return jsonify({"error": "دریافت داده آسمان ناموفق بود", "details": str(e)}), 502
 
-    # ---- compress to short facts (token saver) ----
-    # Fields may differ slightly by API version; keep safe .get usage
     astronomy = raw.get("astronomy") if isinstance(raw, dict) else None
     if not isinstance(astronomy, dict):
         astronomy = raw if isinstance(raw, dict) else {}
@@ -853,8 +897,26 @@ def stars():
         "solar_noon": astronomy.get("solar_noon"),
         "day_length": astronomy.get("day_length"),
     }
+    sun_sign = user.sun_sign if user and user.sun_sign else None
+    sun_sign_fa = SUN_SIGN_FA.get(sun_sign, sun_sign) if sun_sign else None
 
-    prompt = f"""
+    if sun_sign_fa:
+        prompt = f"""
+        تو یک روایت‌گر لطیف طالع و آسمان هستی.
+        کاربر متولد برج {sun_sign_fa} است.
+        دادههای آسمان امروز:
+        {sky_facts}
+
+        قوانین:
+        - حال آسمان امروز را با ویژگی‌های کلی برج {sun_sign_fa} ترکیب کن
+        - لحنی گرم و امیدبخش داشته باش
+        - پیشگویی قطعی نکن
+        - ساختار: حال کلی / انرژی روز برای این برج / یک توصیه
+        - حداکثر 150 کلمه
+        - فقط فارسی
+        """
+    else:
+        prompt = f"""
             تو یک روایت‌گر لطیف طالع و آسمان هستی.
             بر اساس این دادههای نجومی، یک متن کوتاه فارسی بنویس.
 
@@ -877,7 +939,6 @@ def stars():
     provider = None
     errors = []
 
-    # Prefer cheap/fast text models you already have
     try:
         interpretation = mistral_api(prompt=prompt, temprature=0.8)
         if interpretation:
@@ -916,7 +977,6 @@ def stars():
             "sky_facts": sky_facts,
         }), 502
 
-    # ---- charge after success ----
     if user is not None:
         STARS_PRICE = 1000
         if not user.decrease_credit(STARS_PRICE):
@@ -928,6 +988,8 @@ def stars():
         "interpretation": interpretation,
         "provider": provider,
         "credit": user.credit if user else None,
+        "sun_sign": sun_sign,
+        "sun_sign_fa": sun_sign_fa,
     }), 200
 
 # -----------------------------
@@ -1028,7 +1090,39 @@ def check():
     except Exception as e:
         logger.error(f"Error in check: {str(e)}")
         return jsonify({"error": "Error in checking permission"}), 500
-    
+
+# -----------------------------
+# Save BDay
+# -----------------------------
+@app.route("/profile/birth", methods=["POST"])
+def save_birth():
+    data = request.get_json(silent=True) or {}
+    tgid = data.get("tgid") or request.args.get("tgid", type=int)
+    birth_str = data.get("birth_date")  # "YYYY-MM-DD"
+
+    if not tgid or not birth_str:
+        return jsonify({"error": "tgid and birth_date are required"}), 400
+
+    try:
+        birth = date.fromisoformat(birth_str)
+    except ValueError:
+        return jsonify({"error": "birth_date must be YYYY-MM-DD"}), 400
+
+    user = Profile.query.filter_by(tgid=int(tgid)).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    user.birth_date = birth
+    user.sun_sign = get_sun_sign(birth)
+    db.session.commit()
+
+    return jsonify({
+        "tgid": user.tgid,
+        "birth_date": user.birth_date.isoformat(),
+        "sun_sign": user.sun_sign,
+        "sun_sign_fa": SUN_SIGN_FA.get(user.sun_sign, user.sun_sign),
+    })
+
 # -----------------------------
 # KEEP PROJECT AWAKE
 # -----------------------------
