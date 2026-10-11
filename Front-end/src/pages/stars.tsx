@@ -28,12 +28,17 @@ export default function Stars() {
   const [result, setResult] = useState<{
     interpretation?: string;
     sky_facts?: Record<string, unknown>;
+    sun_sign_fa?: string | null;
   } | null>(null);
+
   const [birthDate, setBirthDate] = useState("");
   const [sunSignFa, setSunSignFa] = useState<string | null>(null);
   const [birthMsg, setBirthMsg] = useState("");
 
-  const tgid = location.state?.tgid || localStorage.getItem("tgid");
+  const canSubmit = useMemo(
+    () => !!selectedCity && !loading,
+    [selectedCity, loading]
+  );
 
   const saveBirth = async () => {
     if (!tgid) {
@@ -46,9 +51,9 @@ export default function Stars() {
     }
 
     try {
-      const res = await axios.post("https://fortune-teller-nhy4.onrender.com/profile/birth", {
+      const res = await axios.post(`${API}/profile/birth`, {
         tgid: Number(tgid),
-        birth_date: birthDate, // from <input type="date" /> → already YYYY-MM-DD
+        birth_date: birthDate,
       });
       setSunSignFa(res.data.sun_sign_fa);
       setBirthMsg("تاریخ تولد ذخیره شد.");
@@ -56,8 +61,6 @@ export default function Stars() {
       setBirthMsg(e?.response?.data?.error || "خطا در ذخیره تاریخ تولد");
     }
   };
-
-  const canSubmit = useMemo(() => !!selectedCity && !loading, [selectedCity, loading]);
 
   const handleSelectProvince = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const province = iranCities.find((p) => p.name === e.target.value);
@@ -88,8 +91,11 @@ export default function Stars() {
         setResult(null);
       },
       (err) => {
-        if (err.code === err.PERMISSION_DENIED) alert("دسترسی به موقعیت مکانی رد شد.");
-        else alert("دریافت موقعیت ممکن نشد.");
+        if (err.code === err.PERMISSION_DENIED) {
+          alert("دسترسی به موقعیت مکانی رد شد.");
+        } else {
+          alert("دریافت موقعیت ممکن نشد.");
+        }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
@@ -112,6 +118,9 @@ export default function Stars() {
         timeout: 60000,
       });
       setResult(response.data);
+      if (response.data.sun_sign_fa) {
+        setSunSignFa(response.data.sun_sign_fa);
+      }
     } catch (err: any) {
       setError(err?.response?.data?.error || "خطا در دریافت طالع");
     } finally {
@@ -121,10 +130,42 @@ export default function Stars() {
 
   return (
     <div className="p-3" style={{ maxWidth: 480, margin: "0 auto" }}>
-      <IoIosArrowRoundBack size={28} onClick={() => navigate("/")} style={{ cursor: "pointer" }} />
+      <IoIosArrowRoundBack
+        size={28}
+        onClick={() => navigate("/")}
+        style={{ cursor: "pointer" }}
+      />
 
       <h2 className="mt-2 mb-3">✨ آسمان همین حالا</h2>
-      <p className="text-muted">موقعیتت را بده تا وضعیت آسمان و یک روایت کوتاه برایت ساخته شود.</p>
+      <p className="text-muted">
+        موقعیتت را بده تا وضعیت آسمان و یک روایت کوتاه برایت ساخته شود.
+      </p>
+
+      {/* Birth date — manual */}
+      <div className="mb-3 p-3 border rounded">
+        <label className="form-label">
+          تاریخ تولد (اختیاری، برای طالع شخصی‌تر)
+        </label>
+        <input
+          type="date"
+          className="form-control mb-2"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+        />
+        <Button
+          variant="outline-primary"
+          className="w-100"
+          onClick={saveBirth}
+        >
+          ذخیره تاریخ تولد
+        </Button>
+        {sunSignFa && (
+          <p className="mt-2 mb-0">
+            برج شما: <b>{sunSignFa}</b>
+          </p>
+        )}
+        {birthMsg && <p className="mt-2 mb-0 text-muted">{birthMsg}</p>}
+      </div>
 
       <Button onClick={handleCoordFinder} className="mb-3 w-100">
         یافتن خودکار موقعیت من
@@ -133,7 +174,9 @@ export default function Stars() {
       <Form.Select onChange={handleSelectProvince} className="mb-2">
         <option>استان را انتخاب کنید</option>
         {iranCities.map((ic) => (
-          <option value={ic.name} key={ic.name}>{ic.name}</option>
+          <option value={ic.name} key={ic.name}>
+            {ic.name}
+          </option>
         ))}
       </Form.Select>
 
@@ -141,7 +184,9 @@ export default function Stars() {
         <Form.Select onChange={handleSelectCity} className="mb-3">
           <option>شهر را انتخاب کنید</option>
           {cities.map((ct) => (
-            <option value={ct.name} key={ct.name}>{ct.name}</option>
+            <option value={ct.name} key={ct.name}>
+              {ct.name}
+            </option>
           ))}
         </Form.Select>
       )}
@@ -153,7 +198,11 @@ export default function Stars() {
         </Stack>
       )}
 
-      <Button onClick={handleReceive} disabled={!canSubmit} className="w-100 mb-3">
+      <Button
+        onClick={handleReceive}
+        disabled={!canSubmit}
+        className="w-100 mb-3"
+      >
         {loading ? "در حال خواندن آسمان..." : "دریافت طالع من"}
       </Button>
 
@@ -161,33 +210,34 @@ export default function Stars() {
 
       {result?.sky_facts && (
         <div className="mb-3 p-3 border rounded">
-          <div><b>شهر:</b> {String(result.sky_facts.city ?? "")}</div>
-          <div><b>طلوع خورشید:</b> {String(result.sky_facts.sunrise ?? "-")}</div>
-          <div><b>غروب خورشید:</b> {String(result.sky_facts.sunset ?? "-")}</div>
-          <div><b>فاز ماه:</b> {String(result.sky_facts.moon_phase ?? "-")}</div>
+          <div>
+            <b>شهر:</b> {String(result.sky_facts.city ?? "")}
+          </div>
+          <div>
+            <b>طلوع خورشید:</b> {String(result.sky_facts.sunrise ?? "-")}
+          </div>
+          <div>
+            <b>غروب خورشید:</b> {String(result.sky_facts.sunset ?? "-")}
+          </div>
+          <div>
+            <b>فاز ماه:</b> {String(result.sky_facts.moon_phase ?? "-")}
+          </div>
+          {(result.sun_sign_fa || sunSignFa) && (
+            <div>
+              <b>برج شما:</b> {result.sun_sign_fa || sunSignFa}
+            </div>
+          )}
         </div>
       )}
 
       {result?.interpretation && (
         <div className="p-3 border rounded">
           <h5>روایت آسمان</h5>
-          <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>{result.interpretation}</p>
+          <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
+            {result.interpretation}
+          </p>
         </div>
       )}
-      <div className="mb-3 p-3 border rounded">
-        <label className="form-label">تاریخ تولد (اختیاری، برای طالع شخصی‌تر)</label>
-        <input
-          type="date"
-          className="form-control mb-2"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
-        />
-        <button type="button" className="btn btn-outline-primary w-100" onClick={saveBirth}>
-          ذخیره تاریخ تولد
-        </button>
-        {sunSignFa && <p className="mt-2 mb-0">برج شما: <b>{sunSignFa}</b></p>}
-        {birthMsg && <p className="mt-2 mb-0 text-muted">{birthMsg}</p>}
-      </div>
     </div>
   );
 }
