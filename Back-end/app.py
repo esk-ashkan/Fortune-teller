@@ -917,19 +917,25 @@ def stars():
     
     if sun_sign_fa:
         prompt = f"""
-        تو یک روایت‌گر لطیف طالع و آسمان هستی.
-        کاربر متولد برج {sun_sign_fa} است.
-        دادههای آسمان امروز:
-        {sky_facts}
+            تو یک روایت‌گر طالع به زبان فارسی هستی.
 
-        قوانین:
-        - حال آسمان امروز را با ویژگی‌های کلی برج {sun_sign_fa} ترکیب کن
-        - لحنی گرم و امیدبخش داشته باش
-        - پیشگویی قطعی نکن
-        - ساختار: حال کلی / انرژی روز برای این برج / یک توصیه
-        - حداکثر 150 کلمه
-        - فقط فارسی
-        """
+            کاربر متولد برج {sun_sign_fa or "نامشخص"} است.
+            دادههای آسمان امروز:
+            {sky_facts}
+
+            دستورهای اجباری:
+            - تمام متن را فقط به فارسی بنویس
+            - هیچ کلمه یا عنوان انگلیسی استفاده نکن
+            - از عبارتهایی مثل Energy of the day یا New Moon یا Aries استفاده نکن
+            - فاز ماه را فارسی بگو (مثلاً ماه نو)
+            - نام برج را فارسی بگو (مثلاً حمل)
+            - پیشگویی قطعی نکن
+            - ساختار فقط با عناوین فارسی:
+            حال کلی
+            انرژی روز
+            یک توصیه
+            - حداکثر ۱۵۰ کلمه
+            """
     else:
         prompt = f"""
             تو یک روایت‌گر لطیف طالع و آسمان هستی.
@@ -955,12 +961,17 @@ def stars():
     errors = []
 
     try:
-        interpretation = mistral_api(prompt=prompt, temprature=0.8)
+        interpretation = fetchingGroq(
+            model=groqModels[1],
+            prompt=prompt,
+            vision=False,
+            tarot=False,
+            )
         if interpretation:
-            provider = "mistral"
+            provider = "groq"
     except Exception as e:
-        logger.warning("Stars Mistral failed: %s", e)
-        errors.append(f"mistral: {e}")
+        logger.warning("Stars Groq failed: %s", e)
+        errors.append(f"groq: {e}")
 
     if not interpretation:
         try:
@@ -970,21 +981,7 @@ def stars():
         except Exception as e:
             logger.warning("Stars Gemini failed: %s", e)
             errors.append(f"gemini: {e}")
-
-    if not interpretation:
-        try:
-            interpretation = fetchingGroq(
-                model=groqModels[1],
-                prompt=prompt,
-                vision=False,
-                tarot=False,
-            )
-            if interpretation:
-                provider = "groq"
-        except Exception as e:
-            logger.warning("Stars Groq failed: %s", e)
-            errors.append(f"groq: {e}")
-
+        
     if not interpretation:
         return jsonify({
             "error": "الان خواندن آسمان ممکن نیست.",
