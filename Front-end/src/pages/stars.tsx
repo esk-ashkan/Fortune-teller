@@ -31,14 +31,30 @@ export default function Stars() {
   } | null>(null);
   const [birthDate, setBirthDate] = useState("");
   const [sunSignFa, setSunSignFa] = useState<string | null>(null);
+  const [birthMsg, setBirthMsg] = useState("");
+
+  const tgid = location.state?.tgid || localStorage.getItem("tgid");
 
   const saveBirth = async () => {
-    if (!tgid || !birthDate) return;
-    const res = await axios.post(`${API}/profile/birth`, {
-      tgid,
-      birth_date: birthDate, // from <input type="date" /> → YYYY-MM-DD
-    });
-    setSunSignFa(res.data.sun_sign_fa);
+    if (!tgid) {
+      setBirthMsg("ابتدا از طریق ربات وارد شوید.");
+      return;
+    }
+    if (!birthDate) {
+      setBirthMsg("تاریخ تولد را وارد کنید.");
+      return;
+    }
+
+    try {
+      const res = await axios.post("https://fortune-teller-nhy4.onrender.com/profile/birth", {
+        tgid: Number(tgid),
+        birth_date: birthDate, // from <input type="date" /> → already YYYY-MM-DD
+      });
+      setSunSignFa(res.data.sun_sign_fa);
+      setBirthMsg("تاریخ تولد ذخیره شد.");
+    } catch (e: any) {
+      setBirthMsg(e?.response?.data?.error || "خطا در ذخیره تاریخ تولد");
+    }
   };
 
   const canSubmit = useMemo(() => !!selectedCity && !loading, [selectedCity, loading]);
@@ -158,13 +174,20 @@ export default function Stars() {
           <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>{result.interpretation}</p>
         </div>
       )}
-      <input
-        type="date"
-        value={birthDate}
-        onChange={(e) => setBirthDate(e.target.value)}
-      />
-      <button onClick={saveBirth}>ذخیره تاریخ تولد</button>
-      {sunSignFa && <p>برج شما: {sunSignFa}</p>}
+      <div className="mb-3 p-3 border rounded">
+        <label className="form-label">تاریخ تولد (اختیاری، برای طالع شخصی‌تر)</label>
+        <input
+          type="date"
+          className="form-control mb-2"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+        />
+        <button type="button" className="btn btn-outline-primary w-100" onClick={saveBirth}>
+          ذخیره تاریخ تولد
+        </button>
+        {sunSignFa && <p className="mt-2 mb-0">برج شما: <b>{sunSignFa}</b></p>}
+        {birthMsg && <p className="mt-2 mb-0 text-muted">{birthMsg}</p>}
+      </div>
     </div>
   );
 }
