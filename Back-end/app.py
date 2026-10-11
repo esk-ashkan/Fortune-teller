@@ -900,6 +900,21 @@ def stars():
     sun_sign = user.sun_sign if user and user.sun_sign else None
     sun_sign_fa = SUN_SIGN_FA.get(sun_sign, sun_sign) if sun_sign else None
 
+    MOON_FA = {
+        "NEW_MOON": "ماه نو",
+        "WAXING_CRESCENT": "هلال افزاینده",
+        "FIRST_QUARTER": "ربع اول",
+        "WAXING_GIBBOUS": "کوژ افزاینده",
+        "FULL_MOON": "ماه کامل",
+        "WANING_GIBBOUS": "کوژ کاهنده",
+        "LAST_QUARTER": "ربع آخر",
+        "WANING_CRESCENT": "هلال کاهنده",
+    }
+
+    phase = sky_facts.get("moon_phase")
+    if phase:
+        sky_facts["moon_phase"] = MOON_FA.get(str(phase).upper(), phase)
+    
     if sun_sign_fa:
         prompt = f"""
         تو یک روایت‌گر لطیف طالع و آسمان هستی.
