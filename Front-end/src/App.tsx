@@ -5,6 +5,7 @@ import Coffee from "./pages/coffee";
 import Stars from "./pages/stars";
 import TeleUserData from "./pages/user";
 import Hafez from "./pages/hafez";
+import PaymentsPage from "./pages/payments";
 
 function App() {
   return (
@@ -15,7 +16,7 @@ function App() {
       <Route path="/stars" element={<Stars />} />
       <Route path="/hafez" element={<Hafez />} />
       <Route path="/user" element={<TeleUserData />} />
-
+      <Route path="/payments" element={<PaymentsPage />} />
     </Routes>
   );
 }

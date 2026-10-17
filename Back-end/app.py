@@ -29,9 +29,7 @@ load_dotenv()
 
 groqModels = [
     "qwen/qwen3.6-27b",#VLM and LLM
-    "groq/compound",#LLM
-    "groq/compound-mini",#LLM
-    "llama-3.1-8b-instant",#LLM
+    "openai/gpt-oss-20b",#LLM
     "openai/gpt-oss-120b",#LLM
 ]
 
@@ -516,7 +514,281 @@ class Profile(db.Model):
 
 with app.app_context():
     db.create_all()
+
 # -----------------------------
+# PAYMENTS (Blupal)
+# -----------------------------
+BLUPAL_API_KEY = os.environ.get("BLUPAL_API_KEY", "")
+BLUPAL_BASE_URL = os.environ.get("BLUPAL_BASE_URL", "https://blupal.top/api")
+
+PACKAGES = {
+    "hafez_20": {
+        "id": "hafez_20",
+        "title": "۲۰ فال حافظ",
+        "description": "بسته ۲۰ تایی فال حافظ",
+        "amount_rial": 4_990_000,   # ~499,000 تومان
+        "grant": {"remained_hafez": 20},
+    },
+    "tarot_20": {
+        "id": "tarot_20",
+        "title": "۲۰ فال تاروت",
+        "description": "بسته ۲۰ تایی فال تاروت",
+        "amount_rial": 9_990_000,
+        "grant": {"remained_tarot": 20},
+    },
+    "coffee_20": {
+        "id": "coffee_20",
+        "title": "۲۰ فال قهوه",
+        "description": "بسته ۲۰ تایی فال قهوه",
+        "amount_rial": 17_990_000,
+        "grant": {"remained_coffee": 20},
+    },
+    "month_1": {
+        "id": "month_1",
+        "title": "پکیج ۱ ماهه",
+        "description": "روزانه حافظ + تاروت",
+        "amount_rial": 4_999_990,
+        "grant": {"remained_hafez": 30, "remained_tarot": 30},
+    },
+    "month_3": {
+        "id": "month_3",
+        "title": "پکیج ۳ ماهه",
+        "description": "حافظ + تاروت + قهوه هفتگی",
+        "amount_rial": 9_990_000,
+        "grant": {"remained_hafez": 90, "remained_tarot": 90, "remained_coffee": 12},
+    },
+    "year_1": {
+        "id": "year_1",
+        "title": "پکیج ۱ ساله",
+        "description": "روزانه حافظ + تاروت + قهوه",
+        "amount_rial": 17_990_000,
+        "grant": {"remained_hafez": 365, "remained_tarot": 365, "remained_coffee": 365},
+    },
+    "credit_50k": {
+        "id": "credit_50k",
+        "title": "شارژ اعتبار ۵۰٬۰۰۰",
+        "description": "افزایش credit داخلی",
+        "amount_rial": 500_000,
+        "grant": {"credit": 50000},
+    },
+}
+
+class PaymentInvoice(db.Model):
+    __tablename__ = "payment_invoice"
+
+    id = db.Column(db.Integer, primary_key=True)
+    tgid = db.Column(db.BigInteger, nullable=False, index=True)
+    package_id = db.Column(db.String(50), nullable=False)
+    blupal_invoice_id = db.Column(db.Integer, unique=True)
+    amount_rial = db.Column(db.Integer, nullable=False)
+    final_amount = db.Column(db.Integer)
+    status = db.Column(db.String(20), nullable=False, default="PENDING")
+    payment_link = db.Column(db.Text)
+    mode = db.Column(db.String(20))
+    transaction_id = db.Column(db.Integer)
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    paid_at = db.Column(db.DateTime(timezone=True))
+
+def blupal_headers():
+    return {
+        "Content-Type": "application/json",
+        "X-API-Key": BLUPAL_API_KEY,
+    }
+
+def grant_package(user: Profile, package_id: str) -> None:
+    pkg = PACKAGES.get(package_id)
+    if not pkg:
+        raise ValueError(f"Unknown package: {package_id}")
+
+    grant = pkg["grant"]
+    if "credit" in grant:
+        user.increase_credit(int(grant["credit"]))
+    if "remained_hafez" in grant:
+        user.remained_hafez += int(grant["remained_hafez"])
+    if "remained_tarot" in grant:
+        user.remained_tarot += int(grant["remained_tarot"])
+    if "remained_coffee" in grant:
+        user.remained_coffee += int(grant["remained_coffee"])
+
+    spent = int(pkg["amount_rial"])
+    user.total_spent = (user.total_spent or 0) + spent
+
+
+def fulfill_invoice(inv: PaymentInvoice) -> bool:
+    """Idempotent: apply package only once when status becomes PAID."""
+    if inv.status == "PAID":
+        return False  # already fulfilled
+
+    user = Profile.query.filter_by(tgid=inv.tgid).first()
+    if not user:
+        logger.error("Payment user not found tgid=%s invoice=%s", inv.tgid, inv.blupal_invoice_id)
+        return False
+
+    grant_package(user, inv.package_id)
+    inv.status = "PAID"
+    inv.paid_at = datetime.now(timezone.utc)
+    db.session.commit()
+    logger.info(
+        "Fulfilled package=%s tgid=%s blupal_invoice=%s",
+        inv.package_id, inv.tgid, inv.blupal_invoice_id,
+    )
+    return True
+
+@app.route("/payments/packages", methods=["GET"])
+def payments_packages():
+    items = []
+    for p in PACKAGES.values():
+        items.append({
+            "id": p["id"],
+            "title": p["title"],
+            "description": p["description"],
+            "amount_rial": p["amount_rial"],
+            "amount_toman": p["amount_rial"] // 10,
+            "grant": p["grant"],
+        })
+    return jsonify({"packages": items})
+
+@app.route("/payments/create", methods=["POST"])
+def payments_create():
+    if not BLUPAL_API_KEY:
+        return jsonify({"error": "Payment gateway not configured"}), 503
+
+    data = request.get_json(silent=True) or {}
+    tgid = data.get("tgid")
+    package_id = data.get("package_id")
+
+    if not tgid or not package_id:
+        return jsonify({"error": "tgid and package_id are required"}), 400
+
+    pkg = PACKAGES.get(package_id)
+    if not pkg:
+        return jsonify({"error": "invalid package_id"}), 400
+
+    user = Profile.query.filter_by(tgid=int(tgid)).first()
+    if not user:
+        return jsonify({"error": "User not found. Open app home first."}), 404
+
+    amount = int(pkg["amount_rial"])
+    if amount < 100_000:
+        return jsonify({"error": "amount below Blupal minimum"}), 400
+
+    try:
+        r = requests.post(
+            f"{BLUPAL_BASE_URL}/v1/invoices/create",
+            headers=blupal_headers(),
+            json={"amount": amount},
+            timeout=30,
+        )
+        body = r.json()
+    except Exception as e:
+        logger.exception("Blupal create failed")
+        return jsonify({"error": "gateway_error", "details": str(e)}), 502
+
+    if not body.get("success"):
+        return jsonify({
+            "error": body.get("error") or "create_failed",
+            "message": body.get("message"),
+            "raw": body,
+        }), 400
+
+    inv = PaymentInvoice(
+        tgid=int(tgid),
+        package_id=package_id,
+        blupal_invoice_id=body.get("invoice_id"),
+        amount_rial=body.get("amount") or amount,
+        final_amount=body.get("final_amount"),
+        status=body.get("status") or "PENDING",
+        payment_link=body.get("payment_link"),
+        mode=body.get("mode"),
+    )
+    db.session.add(inv)
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "local_id": inv.id,
+        "invoice_id": inv.blupal_invoice_id,
+        "amount": inv.amount_rial,
+        "final_amount": inv.final_amount,
+        "status": inv.status,
+        "payment_link": inv.payment_link,
+        "mode": inv.mode,
+        "package_id": package_id,
+        "card_number": body.get("card_number"),
+        "expires_at": body.get("expires_at"),
+    })
+
+@app.route("/payments/status/<int:invoice_id>", methods=["GET"])
+def payments_status(invoice_id: int):
+    """invoice_id = Blupal invoice id"""
+    inv = PaymentInvoice.query.filter_by(blupal_invoice_id=invoice_id).first()
+    if not inv:
+        return jsonify({"error": "not_found"}), 404
+
+    # If still pending, refresh from Blupal
+    if inv.status == "PENDING" and BLUPAL_API_KEY:
+        try:
+            r = requests.get(
+                f"{BLUPAL_BASE_URL}/v1/invoices/{invoice_id}",
+                headers=blupal_headers(),
+                timeout=20,
+            )
+            body = r.json()
+            if body.get("success") and body.get("status") == "PAID":
+                inv.transaction_id = body.get("transaction_id")
+                fulfill_invoice(inv)
+                inv = PaymentInvoice.query.filter_by(blupal_invoice_id=invoice_id).first()
+            elif body.get("status") in ("EXPIRED", "CANCELED"):
+                inv.status = body["status"]
+                db.session.commit()
+        except Exception as e:
+            logger.warning("Blupal status check failed: %s", e)
+
+    user = Profile.query.filter_by(tgid=inv.tgid).first()
+    return jsonify({
+        "invoice_id": inv.blupal_invoice_id,
+        "package_id": inv.package_id,
+        "status": inv.status,
+        "amount": inv.amount_rial,
+        "final_amount": inv.final_amount,
+        "payment_link": inv.payment_link,
+        "credit": user.credit if user else None,
+        "remained_hafez": user.remained_hafez if user else None,
+        "remained_tarot": user.remained_tarot if user else None,
+        "remained_coffee": user.remained_coffee if user else None,
+    })
+
+@app.route("/payments/webhook", methods=["POST"])
+def payments_webhook():
+    payload = request.get_json(silent=True) or {}
+    logger.info("Blupal webhook: %s", payload)
+
+    if payload.get("event") != "payment.completed" or payload.get("status") != "PAID":
+        return jsonify({"received": True, "ignored": True}), 200
+
+    invoice_id = payload.get("invoice_id")
+    if not invoice_id:
+        return jsonify({"error": "missing invoice_id"}), 400
+
+    inv = PaymentInvoice.query.filter_by(blupal_invoice_id=int(invoice_id)).first()
+    if not inv:
+        logger.error("Webhook unknown invoice_id=%s", invoice_id)
+        return jsonify({"error": "invoice not found locally"}), 404
+
+    if inv.status == "PAID":
+        return jsonify({"received": True, "already_paid": True}), 200
+
+    inv.transaction_id = payload.get("transaction_id")
+    inv.final_amount = payload.get("final_amount") or inv.final_amount
+    fulfill_invoice(inv)
+
+    return jsonify({"received": True}), 200
+
+#-----------------------------
 # Views
 # -----------------------------
 # HOME
@@ -842,8 +1114,6 @@ def coffee():
 # -----------------------------
 @app.route("/stars", methods=["GET"])
 def stars():
-    logger.info("-----> Stars endpoint called.")
-
     lat = request.args.get("lat", type=float)
     long = request.args.get("long", type=float)
     tgid = request.args.get("tgid", type=int)
