@@ -168,14 +168,6 @@ function Landing() {
                   href: "/user",
                 },
                 {
-                  label: (
-                    <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <FaUser /> پروفایل
-                    </span>
-                  ),
-                  href: "/profile",
-                },
-                {
                   label: <span>💳 خرید پکیج</span>,
                   href: "/payments",
                 },
