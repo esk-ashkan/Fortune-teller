@@ -135,4 +135,14 @@
     font-size: 0.85rem !important;
     padding: 0.55rem 0.8rem !important;
   }
+
+  .cosmic-dropdown {
+    position: relative;
+    z-index: 1000;
+  }
+
+  .cosmic-dropdown .dropdown-menu,
+  .cosmic-dropdown-menu {
+    z-index: 2000 !important;
+  }
 }

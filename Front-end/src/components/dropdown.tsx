@@ -18,30 +18,29 @@ interface DPInterface {
 function DropDownComp({ text, items, align = "end" }: DPInterface) {
   const navigate = useNavigate();
 
-  const handleClick = (item: DropDownItem) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (item.onClick) {
-      item.onClick();
-      return;
-    }
-    if (item.href) {
-      navigate(item.href);
-    }
-  };
-
   return (
     <Dropdown align={align} className="cosmic-dropdown">
       <Dropdown.Toggle variant="cosmic" id="cosmic-dropdown-toggle">
         {text}
       </Dropdown.Toggle>
 
-      <Dropdown.Menu className="cosmic-dropdown-menu">
+      <Dropdown.Menu
+        className="cosmic-dropdown-menu"
+        popperConfig={{ strategy: "fixed" }}
+        style={{ zIndex: 3000 }}
+      >
         {items.map((item, index) => (
           <Dropdown.Item
             key={index}
             as="button"
+            type="button"
             className="cosmic-dropdown-item"
-            onClick={handleClick(item)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (item.onClick) item.onClick();
+              else if (item.href) navigate(item.href);
+            }}
           >
             {item.label}
           </Dropdown.Item>

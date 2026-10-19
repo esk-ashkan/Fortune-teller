@@ -2,7 +2,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import SelectComponent from "../components/selectcomponent";
 import { GiStarSattelites, GiCardPickup, GiSparkles, GiOpenBook } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
-import { FaCoffee, FaMoon, FaCoins, FaUser } from "react-icons/fa";
+import { FaCoffee, FaMoon, FaCoins } from "react-icons/fa";
 import { useCallback, useEffect, useState } from "react";
 import "./landing.css";
 import axios from "axios";
@@ -136,7 +136,7 @@ function Landing() {
   return (
     <div className="cosmic-wrapper">
       {/* User header — never blocks the rest of the page */}
-      <div className="p-2" style={{ position: "relative", zIndex: 5 }}>
+      <div className="p-2" style={{ position: "relative", zIndex: 1000 }}>
         {loadingUser && (
           <p className="cosmic-subtitle p-2 mb-0">در حال اتصال به سرور...</p>
         )}
@@ -161,15 +161,14 @@ function Landing() {
                 {
                   label: (
                     <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <FaCoins /> اعتبار:{" "}
-                      {(thisUser.credit ?? 0).toLocaleString("fa-IR")}
+                      <FaCoins /> اعتبار: {(thisUser.credit ?? 0).toLocaleString("fa-IR")}
                     </span>
                   ),
-                  href: "/user",
+                  onClick: () => go("/user"),
                 },
                 {
                   label: <span>💳 خرید پکیج</span>,
-                  href: "/payments",
+                  onClick: () => go("/payments"),
                 },
               ]}
             />

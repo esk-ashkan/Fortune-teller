@@ -1316,7 +1316,7 @@ def hafez():
 
 
     ai_faal = fetchingGroq(
-        model=groqModels[4],
+        model=groqModels[1],
         prompt=prompt,
         vision=False
     )

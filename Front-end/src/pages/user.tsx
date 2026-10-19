@@ -17,7 +17,7 @@ interface CosmicPackageCardProps {
   title: string;
   description: string;
   maindescription: string;
-  link: string;
+  package_id: string;
   buttonText: string;
 }
 
@@ -26,17 +26,17 @@ const CosmicPackageCard: React.FC<CosmicPackageCardProps> = ({
   title,
   description,
   maindescription,
-  link,
+  package_id,
   buttonText,
 }) => {
   const navigate = useNavigate();
+  const tgid = localStorage.getItem("tgid");
 
   return (
     <div className="user-pkg-wrapper">
       <div className="user-pkg-glow" aria-hidden="true" />
       <Card className="user-pkg-card">
         <div className="user-pkg-top-line" aria-hidden="true" />
-
         <Card.Body className="user-pkg-body">
           <div className="user-pkg-header">
             <div className="user-pkg-icon-box">
@@ -50,9 +50,7 @@ const CosmicPackageCard: React.FC<CosmicPackageCardProps> = ({
           </div>
 
           <div className="user-pkg-divider" aria-hidden="true">
-            <span />
-            <span />
-            <span />
+            <span /><span /><span />
           </div>
 
           <p className="user-pkg-desc">{maindescription}</p>
@@ -60,29 +58,13 @@ const CosmicPackageCard: React.FC<CosmicPackageCardProps> = ({
           <Button
             className="user-pkg-btn w-100"
             onClick={() =>
-              navigate(link, {
-                state: { package: { title, description, maindescription } },
+              navigate("/payments", {
+                state: { tgid, package_id },
               })
             }
           >
             <span className="user-pkg-btn-shine" aria-hidden="true" />
-            <span className="user-pkg-btn-text">
-              {buttonText}
-              <svg
-                className="user-pkg-btn-arrow"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </span>
+            <span className="user-pkg-btn-text">{buttonText}</span>
           </Button>
         </Card.Body>
       </Card>
@@ -97,53 +79,53 @@ const PACKAGES = {
   intervallic: [
     {
       icon: <MdOutlineCalendarMonth />,
-      title: '۱ ماهه',
-      description: '۴۹۹,۹۹۹ تومان',
-      maindescription: 'روزانه ۱ فال حافظ و ۱ فال تاروت',
-      link: '/pay/1month',
-      buttonText: 'پرداخت',
+      title: "۱ ماهه",
+      description: "۴۹۹,۹۹۹ تومان",
+      maindescription: "روزانه ۱ فال حافظ و ۱ فال تاروت",
+      package_id: "month_1",
+      buttonText: "پرداخت",
     },
     {
       icon: <MdOutlineCalendarMonth />,
-      title: '۳ ماهه',
-      description: '۹۹۹,۰۰۰ تومان',
-      maindescription: 'روزانه ۱ فال حافظ، ۱ فال تاروت و هفته‌ای ۱ فال قهوه',
-      link: '/pay/3month',
-      buttonText: 'پرداخت',
+      title: "۳ ماهه",
+      description: "۹۹۹,۰۰۰ تومان",
+      maindescription: "روزانه ۱ فال حافظ، ۱ فال تاروت و هفته‌ای ۱ فال قهوه",
+      package_id: "month_3",
+      buttonText: "پرداخت",
     },
     {
       icon: <MdOutlineCalendarMonth />,
-      title: '۱ ساله',
-      description: '۱,۷۹۹,۰۰۰ تومان',
-      maindescription: 'روزانه ۱ فال حافظ، ۱ فال تاروت و ۱ فال قهوه',
-      link: '/pay/1year',
-      buttonText: 'پرداخت',
+      title: "۱ ساله",
+      description: "۱,۷۹۹,۰۰۰ تومان",
+      maindescription: "روزانه ۱ فال حافظ، ۱ فال تاروت و ۱ فال قهوه",
+      package_id: "year_1",
+      buttonText: "پرداخت",
     },
   ],
   aimful: [
     {
       icon: <GiFeather />,
-      title: '۲۰ درخواست حافظ',
-      description: '۴۹۹,۰۰۰ تومان',
-      maindescription: 'پکیج ۲۰ تایی فال حافظ، فعال تا ۴۰ روز پس از فعال‌سازی',
-      link: '/pay/hafez20',
-      buttonText: 'پرداخت',
+      title: "۲۰ درخواست حافظ",
+      description: "۴۹۹,۰۰۰ تومان",
+      maindescription: "پکیج ۲۰ تایی فال حافظ",
+      package_id: "hafez_20",
+      buttonText: "پرداخت",
     },
     {
       icon: <SiCoffeescript />,
-      title: '۲۰ درخواست قهوه',
-      description: '۱,۷۹۹,۰۰۰ تومان',
-      maindescription: 'پکیج ۲۰ تایی فال قهوه، فعال تا ۴۰ روز پس از فعال‌سازی',
-      link: '/pay/coffee20',
-      buttonText: 'پرداخت',
+      title: "۲۰ درخواست قهوه",
+      description: "۱,۷۹۹,۰۰۰ تومان",
+      maindescription: "پکیج ۲۰ تایی فال قهوه",
+      package_id: "coffee_20",
+      buttonText: "پرداخت",
     },
     {
       icon: <TbPlayCardStar />,
-      title: '۲۰ درخواست تاروت',
-      description: '۹۹۹,۰۰۰ تومان',
-      maindescription: 'پکیج ۲۰ تایی فال تاروت، فعال تا ۴۰ روز پس از فعال‌سازی',
-      link: '/pay/tarot20',
-      buttonText: 'پرداخت',
+      title: "۲۰ درخواست تاروت",
+      description: "۹۹۹,۰۰۰ تومان",
+      maindescription: "پکیج ۲۰ تایی فال تاروت",
+      package_id: "tarot_20",
+      buttonText: "پرداخت",
     },
   ],
 };
@@ -364,13 +346,18 @@ const TeleUserData: React.FC = () => {
                   variant="warning"
                   className="user-credit-submit w-100"
                   disabled={!expense || expense < 100000}
-                  onClick={() => {
-                    console.log('Charging:', expense);
-                  }}
+                  onClick={() =>
+                    navigate("/payments", {
+                      state: {
+                        tgid: localStorage.getItem("tgid"),
+                        custom_amount_rial: expense,
+                      },
+                    })
+                  }
                 >
                   {expense > 0
-                    ? `پرداخت ${expense.toLocaleString('fa-IR')} ریال`
-                    : 'پرداخت'}
+                    ? `ادامه پرداخت ${expense.toLocaleString("fa-IR")} ریال`
+                    : "پرداخت"}
                 </Button>
               </div>
             </div>
@@ -395,7 +382,7 @@ const TeleUserData: React.FC = () => {
                 <Tab eventKey="intervallic" title="پکیج دوره‌ای">
                   <div className="user-packages-grid">
                     {PACKAGES.intervallic.map((pkg) => (
-                      <CosmicPackageCard key={pkg.link} {...pkg} />
+                      <CosmicPackageCard key={pkg.package_id} {...pkg} />
                     ))}
                   </div>
                 </Tab>
@@ -403,7 +390,7 @@ const TeleUserData: React.FC = () => {
                 <Tab eventKey="aimful" title="پکیج خاص">
                   <div className="user-packages-grid">
                     {PACKAGES.aimful.map((pkg) => (
-                      <CosmicPackageCard key={pkg.link} {...pkg} />
+                      <CosmicPackageCard key={pkg.package_id} {...pkg} />
                     ))}
                   </div>
                 </Tab>

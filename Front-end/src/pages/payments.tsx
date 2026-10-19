@@ -18,6 +18,7 @@ export default function PaymentsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const tgid = location.state?.tgid || localStorage.getItem("tgid");
+  const preselectId: string | undefined = location.state?.package_id;
 
   const [packages, setPackages] = useState<Package[]>([]);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -31,6 +32,16 @@ export default function PaymentsPage() {
       .then((res) => setPackages(res.data.packages || []))
       .catch(() => setError("خطا در دریافت لیست پکیج‌ها"));
   }, []);
+
+  // If user came from profile with a package, start payment once list is ready
+  useEffect(() => {
+    if (!preselectId || packages.length === 0) return;
+    const exists = packages.some((p) => p.id === preselectId);
+    if (exists) {
+      buy(preselectId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preselectId, packages]);
 
   const buy = async (packageId: string) => {
     if (!tgid) {
@@ -52,19 +63,20 @@ export default function PaymentsPage() {
       setLastInvoiceId(invoiceId);
 
       if (link) {
-        // Telegram Mini App: open external payment page
         const tg = (window as any).Telegram?.WebApp;
-        if (tg?.openLink) {
-          tg.openLink(link);
-        } else {
-          window.open(link, "_blank");
-        }
+        if (tg?.openLink) tg.openLink(link);
+        else window.open(link, "_blank");
+
         setStatusText(
           `فاکتور ساخته شد. مبلغ نهایی را دقیق واریز کنید. شماره فاکتور: ${invoiceId}`
         );
       }
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.response?.data?.error || "خطا در ایجاد فاکتور");
+      setError(
+        e?.response?.data?.message ||
+          e?.response?.data?.error ||
+          "خطا در ایجاد فاکتور"
+      );
     } finally {
       setLoadingId(null);
     }
@@ -75,6 +87,7 @@ export default function PaymentsPage() {
     try {
       const res = await axios.get(`${API}/payments/status/${lastInvoiceId}`);
       if (res.data.status === "PAID") {
+        sessionStorage.removeItem("profile_cache");
         setStatusText(
           `پرداخت موفق ✅ اعتبار: ${res.data.credit} | حافظ: ${res.data.remained_hafez} | تاروت: ${res.data.remained_tarot} | قهوه: ${res.data.remained_coffee}`
         );
@@ -100,7 +113,15 @@ export default function PaymentsPage() {
       {statusText && <div className="alert alert-info">{statusText}</div>}
 
       {packages.map((p) => (
-        <div key={p.id} className="border rounded p-3 mb-3">
+        <div
+          key={p.id}
+          className="border rounded p-3 mb-3"
+          style={
+            preselectId === p.id
+              ? { borderColor: "#f59e0b", boxShadow: "0 0 0 1px #f59e0b" }
+              : undefined
+          }
+        >
           <h5 className="mb-1">{p.title}</h5>
           <p className="mb-2 text-muted">{p.description}</p>
           <div className="fw-bold mb-2">
