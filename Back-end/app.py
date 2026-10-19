@@ -111,14 +111,12 @@ db = SQLAlchemy(app)
 # --------------------------------------------------
 # Logging
 # --------------------------------------------------
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
-)
+    )
 
 logger = logging.getLogger(__name__)
-
 
 # --------------------------------------------------
 # Cloudinary
@@ -522,54 +520,140 @@ BLUPAL_API_KEY = os.environ.get("BLUPAL_API_KEY", "")
 BLUPAL_BASE_URL = os.environ.get("BLUPAL_BASE_URL", "https://blupal.top/api")
 
 PACKAGES = {
-    "hafez_20": {
-        "id": "hafez_20",
-        "title": "۲۰ فال حافظ",
-        "description": "بسته ۲۰ تایی فال حافظ",
-        "amount_rial": 4_990_000,   # ~499,000 تومان
-        "grant": {"remained_hafez": 20},
+    # --- تکی ---
+    "hafez_1": {
+        "id": "hafez_1",
+        "title": "۱ فال حافظ",
+        "description": "یک نوبت فال حافظ",
+        "tab": "single",
+        "amount_rial": 490_000,
+        "grant": {"remained_hafez": 1},
     },
-    "tarot_20": {
-        "id": "tarot_20",
-        "title": "۲۰ فال تاروت",
-        "description": "بسته ۲۰ تایی فال تاروت",
-        "amount_rial": 9_990_000,
-        "grant": {"remained_tarot": 20},
+    "tarot_1": {
+        "id": "tarot_1",
+        "title": "۱ فال تاروت",
+        "description": "یک نوبت فال تاروت",
+        "tab": "single",
+        "amount_rial": 990_000,
+        "grant": {"remained_tarot": 1},
     },
-    "coffee_20": {
-        "id": "coffee_20",
-        "title": "۲۰ فال قهوه",
-        "description": "بسته ۲۰ تایی فال قهوه",
-        "amount_rial": 17_990_000,
-        "grant": {"remained_coffee": 20},
+    "coffee_1": {
+        "id": "coffee_1",
+        "title": "۱ فال قهوه",
+        "description": "یک نوبت فال قهوه",
+        "tab": "single",
+        "amount_rial": 1_200_000,
+        "grant": {"remained_coffee": 1},
+    },
+    "stars_1": {
+        "id": "stars_1",
+        "title": "۱ فال نجوم",
+        "description": "یک نوبت خواندن آسمان",
+        "tab": "single",
+        "amount_rial": 790_000,
+        "grant": {"credit": 1},  
+    },
+
+    # --- بسته ---
+    "hafez_5": {
+        "id": "hafez_5",
+        "title": "۵ فال حافظ",
+        "description": "بسته کوچک حافظ",
+        "tab": "pack",
+        "amount_rial": 2_250_000,
+        "grant": {"remained_hafez": 5},
+    },
+    "hafez_10": {
+        "id": "hafez_10",
+        "title": "۱۰ فال حافظ",
+        "description": "به‌صرفه‌تر از تکی",
+        "tab": "pack",
+        "amount_rial": 4_200_000,
+        "grant": {"remained_hafez": 10},
+    },
+    "tarot_5": {
+        "id": "tarot_5",
+        "title": "۵ فال تاروت",
+        "description": "بسته کوچک تاروت",
+        "tab": "pack",
+        "amount_rial": 4_750_000,
+        "grant": {"remained_tarot": 5},
+    },
+    "tarot_10": {
+        "id": "tarot_10",
+        "title": "۱۰ فال تاروت",
+        "description": "بسته متوسط تاروت",
+        "tab": "pack",
+        "amount_rial": 9_500_000,
+        "grant": {"remained_tarot": 10},
+    },
+    "coffee_5": {
+        "id": "coffee_5",
+        "title": "۵ فال قهوه",
+        "description": "بسته کوچک قهوه",
+        "tab": "pack",
+        "amount_rial": 6_000_000,
+        "grant": {"remained_coffee": 5},
+    },
+    "mix_3": {
+        "id": "mix_3",
+        "title": "میکس ۳تایی",
+        "description": "۱ حافظ + ۱ تاروت + ۱ قهوه",
+        "tab": "pack",
+        "amount_rial": 2_490_000,
+        "grant": {
+            "remained_hafez": 1,
+            "remained_tarot": 1,
+            "remained_coffee": 1,
+        },
+    },
+
+    # --- دوره‌ای ---
+    "week_1": {
+        "id": "week_1",
+        "title": "پکیج ۱ هفته",
+        "description": "۷ حافظ + ۷ تاروت",
+        "tab": "period",
+        "amount_rial": 9_000_000,
+        "grant": {"remained_hafez": 7, "remained_tarot": 7},
     },
     "month_1": {
         "id": "month_1",
         "title": "پکیج ۱ ماهه",
-        "description": "روزانه حافظ + تاروت",
-        "amount_rial": 4_999_990,
+        "description": "۳۰ حافظ + ۳۰ تاروت",
+        "tab": "period",
+        "amount_rial": 2_900_000,
         "grant": {"remained_hafez": 30, "remained_tarot": 30},
     },
-    "month_3": {
-        "id": "month_3",
-        "title": "پکیج ۳ ماهه",
-        "description": "حافظ + تاروت + قهوه هفتگی",
-        "amount_rial": 9_990_000,
-        "grant": {"remained_hafez": 90, "remained_tarot": 90, "remained_coffee": 12},
-    },
-    "year_1": {
-        "id": "year_1",
-        "title": "پکیج ۱ ساله",
-        "description": "روزانه حافظ + تاروت + قهوه",
-        "amount_rial": 17_990_000,
-        "grant": {"remained_hafez": 365, "remained_tarot": 365, "remained_coffee": 365},
-    },
-    "credit_50k": {
-        "id": "credit_50k",
-        "title": "شارژ اعتبار ۵۰٬۰۰۰",
+    # "month_3": {
+    #     "id": "month_3",
+    #     "title": "پکیج ۳ ماهه",
+    #     "description": "۹۰ حافظ + ۹۰ تاروت + ۱۲ قهوه",
+    #     "tab": "period",
+    #     "amount_rial": 6_500_000,
+    #     "grant": {
+    #         "remained_hafez": 90,
+    #         "remained_tarot": 90,
+    #         "remained_coffee": 12,
+    #     },
+    # },
+
+    # --- اعتبار ---
+    "credit_300k": {
+        "id": "credit_300k",
+        "title": "شارژ اعتبار ۱۰۰٬۰۰۰",
         "description": "افزایش credit داخلی",
-        "amount_rial": 500_000,
-        "grant": {"credit": 50000},
+        "tab": "credit",
+        "amount_rial": 3_000_000,
+        "grant": {"credit": 3_000_000},
+    },
+    "credit_500k": {
+        "id": "credit_500k",
+        "title": "5شارژ اعتبار:۰۰٬۰۰۰",
+        "description": "شارژ بیشتر با تخفیف جزئی",
+        "tab": "credit",
+        "amount_rial": 5_000_000,
+        "grant": {"credit": 5_000_000},
     },
 }
 
@@ -1306,7 +1390,7 @@ def hafez():
                 - فقط نتیجهٔ فال را بده.
                 - فال باید لحن عرفانی، امیدوارکننده و کمی رمزآلود داشته باشد.
                 - فال باید دربارهٔ مسیر، نیت، گره‌ها، گشایش‌ها و حالِ درونی صحبت کند.
-                - فال نباید شامل پیش‌گویی قطعی یا جملات منفی باشد.
+                - فال نباید شامل پیش‌گویی قطعی باشد.
                 - فال باید کوتاه، روان و قابل فهم باشد.
                 - حداکثر 120 کلمه.
 

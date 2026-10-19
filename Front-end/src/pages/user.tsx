@@ -1,134 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Stack, Badge, Form, Button, Tabs, Tab, Card } from 'react-bootstrap';
+import { Container, Row, Col, Button} from 'react-bootstrap';
 import { FaMoon, FaStar, FaGlobe, FaIdBadge, FaCrown, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { GiSparkles, GiAstronautHelmet, GiRingedPlanet, GiFeather } from 'react-icons/gi';
-import { MdOutlineCalendarMonth } from 'react-icons/md';
-import { SiCoffeescript } from 'react-icons/si';
-import { TbPlayCardStar } from 'react-icons/tb';
+import { GiSparkles, GiAstronautHelmet, GiRingedPlanet,} from 'react-icons/gi';
 import { IoIosArrowRoundBack } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
 import './user.css';
+import axios from "axios";
 
-/* ============================================================
-   Cosmic Package Card (react-bootstrap, no HeroUI)
-   ============================================================ */
-interface CosmicPackageCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  maindescription: string;
-  package_id: string;
-  buttonText: string;
-}
+const API = "https://fortune-teller-nhy4.onrender.com";
 
-const CosmicPackageCard: React.FC<CosmicPackageCardProps> = ({
-  icon,
-  title,
-  description,
-  maindescription,
-  package_id,
-  buttonText,
-}) => {
-  const navigate = useNavigate();
-  const tgid = localStorage.getItem("tgid");
-
-  return (
-    <div className="user-pkg-wrapper">
-      <div className="user-pkg-glow" aria-hidden="true" />
-      <Card className="user-pkg-card">
-        <div className="user-pkg-top-line" aria-hidden="true" />
-        <Card.Body className="user-pkg-body">
-          <div className="user-pkg-header">
-            <div className="user-pkg-icon-box">
-              <div className="user-pkg-icon-pulse" aria-hidden="true" />
-              <div className="user-pkg-icon">{icon}</div>
-            </div>
-            <div className="user-pkg-title-group">
-              <h3 className="user-pkg-title">{title}</h3>
-              <p className="user-pkg-subtitle">{description}</p>
-            </div>
-          </div>
-
-          <div className="user-pkg-divider" aria-hidden="true">
-            <span /><span /><span />
-          </div>
-
-          <p className="user-pkg-desc">{maindescription}</p>
-
-          <Button
-            className="user-pkg-btn w-100"
-            onClick={() =>
-              navigate("/payments", {
-                state: { tgid, package_id },
-              })
-            }
-          >
-            <span className="user-pkg-btn-shine" aria-hidden="true" />
-            <span className="user-pkg-btn-text">{buttonText}</span>
-          </Button>
-        </Card.Body>
-      </Card>
-    </div>
-  );
+type Wallet = {
+  credit: number;
+  remained_hafez: number;
+  remained_tarot: number;
+  remained_coffee: number;
 };
 
-/* ============================================================
-   Package data
-   ============================================================ */
-const PACKAGES = {
-  intervallic: [
-    {
-      icon: <MdOutlineCalendarMonth />,
-      title: "۱ ماهه",
-      description: "۴۹۹,۹۹۹ تومان",
-      maindescription: "روزانه ۱ فال حافظ و ۱ فال تاروت",
-      package_id: "month_1",
-      buttonText: "پرداخت",
-    },
-    {
-      icon: <MdOutlineCalendarMonth />,
-      title: "۳ ماهه",
-      description: "۹۹۹,۰۰۰ تومان",
-      maindescription: "روزانه ۱ فال حافظ، ۱ فال تاروت و هفته‌ای ۱ فال قهوه",
-      package_id: "month_3",
-      buttonText: "پرداخت",
-    },
-    {
-      icon: <MdOutlineCalendarMonth />,
-      title: "۱ ساله",
-      description: "۱,۷۹۹,۰۰۰ تومان",
-      maindescription: "روزانه ۱ فال حافظ، ۱ فال تاروت و ۱ فال قهوه",
-      package_id: "year_1",
-      buttonText: "پرداخت",
-    },
-  ],
-  aimful: [
-    {
-      icon: <GiFeather />,
-      title: "۲۰ درخواست حافظ",
-      description: "۴۹۹,۰۰۰ تومان",
-      maindescription: "پکیج ۲۰ تایی فال حافظ",
-      package_id: "hafez_20",
-      buttonText: "پرداخت",
-    },
-    {
-      icon: <SiCoffeescript />,
-      title: "۲۰ درخواست قهوه",
-      description: "۱,۷۹۹,۰۰۰ تومان",
-      maindescription: "پکیج ۲۰ تایی فال قهوه",
-      package_id: "coffee_20",
-      buttonText: "پرداخت",
-    },
-    {
-      icon: <TbPlayCardStar />,
-      title: "۲۰ درخواست تاروت",
-      description: "۹۹۹,۰۰۰ تومان",
-      maindescription: "پکیج ۲۰ تایی فال تاروت",
-      package_id: "tarot_20",
-      buttonText: "پرداخت",
-    },
-  ],
-};
 
 /* ============================================================
    Telegram user data
@@ -151,8 +38,14 @@ const TeleUserData: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [expense, setExpense] = useState(0);
+  const [wallet, setWallet] = useState<Wallet | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!data?.user?.id) return;
+    localStorage.setItem("tgid", String(data.user.id));
+    loadWallet(false);
+  }, [data?.user?.id]);
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
@@ -178,6 +71,47 @@ const TeleUserData: React.FC = () => {
 
     setMounted(true);
   }, []);
+
+  const loadWallet = async (force = false) => {
+    const tgid =
+      localStorage.getItem("tgid") ||
+      (data?.user?.id ? String(data.user.id) : null);
+    if (!tgid) return;
+
+    if (!force) {
+      try {
+        const raw = sessionStorage.getItem("profile_cache");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.data) {
+            setWallet({
+              credit: parsed.data.credit ?? 0,
+              remained_hafez: parsed.data.remained_hafez ?? 0,
+              remained_tarot: parsed.data.remained_tarot ?? 0,
+              remained_coffee: parsed.data.remained_coffee ?? 0,
+            });
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    try {
+      const res = await axios.get(`${API}/`, {
+        params: { tgid },
+        timeout: 60000,
+      });
+      setWallet({
+        credit: res.data.credit ?? 0,
+        remained_hafez: res.data.remained_hafez ?? 0,
+        remained_tarot: res.data.remained_tarot ?? 0,
+        remained_coffee: res.data.remained_coffee ?? 0,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   if (error) {
     return (
@@ -302,99 +236,59 @@ const TeleUserData: React.FC = () => {
               </div>
             </div>
           </Col>
-
-          {/* ===== Existing expense card (unchanged) ===== */}
           <Col xs={12}>
             <div className="user-expense-card">
               <div className="user-expense-header">
                 <GiRingedPlanet className="user-expense-icon" />
-                <h3>افزایش اعتبار</h3>
+                <h3>کیف پول و سهمیه</h3>
               </div>
 
               <div className="user-expense-content">
-                <Stack direction="horizontal" gap={2} className="user-credit-badges">
-                  {[
-                    { value: 1000000, label: '۱,۰۰۰,۰۰۰' },
-                    { value: 1500000, label: '۱,۵۰۰,۰۰۰' },
-                    { value: 2000000, label: '۲,۰۰۰,۰۰۰' },
-                    { value: 3000000, label: '۳,۰۰۰,۰۰۰' },
-                  ].map(({ value, label }) => (
-                    <Badge
-                      key={value}
-                      bg={expense === value ? 'warning' : 'secondary'}
-                      className="user-credit-badge"
-                      onClick={() => setExpense(value)}
-                    >
-                      {label}
-                    </Badge>
-                  ))}
-                </Stack>
-
-                <Form.Control
-                  type="text"
-                  inputMode="numeric"
-                  className="user-credit-input"
-                  placeholder="مبلغ به ریال"
-                  value={expense === 0 ? '' : expense}
-                  onChange={(e) => {
-                    const raw = e.target.value.replace(/[^\d]/g, '');
-                    setExpense(raw ? Number(raw) : 0);
-                  }}
-                />
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>اعتبار</span>
+                    <strong>
+                      {(wallet?.credit ?? 0).toLocaleString("fa-IR")}
+                    </strong>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>فال حافظ باقی‌مانده</span>
+                    <strong>{wallet?.remained_hafez ?? 0}</strong>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>فال تاروت باقی‌مانده</span>
+                    <strong>{wallet?.remained_tarot ?? 0}</strong>
+                  </div>
+                  <div className="d-flex justify-content-between mb-3">
+                    <span>فال قهوه باقی‌مانده</span>
+                    <strong>{wallet?.remained_coffee ?? 0}</strong>
+                  </div>
+                </div>
 
                 <Button
                   variant="warning"
-                  className="user-credit-submit w-100"
-                  disabled={!expense || expense < 100000}
+                  className="user-credit-submit w-100 mb-2"
                   onClick={() =>
                     navigate("/payments", {
                       state: {
-                        tgid: localStorage.getItem("tgid"),
-                        custom_amount_rial: expense,
+                        tgid:
+                          localStorage.getItem("tgid") ||
+                          String(user.id),
                       },
                     })
                   }
                 >
-                  {expense > 0
-                    ? `ادامه پرداخت ${expense.toLocaleString("fa-IR")} ریال`
-                    : "پرداخت"}
+                  خرید پکیج و افزایش اعتبار
+                </Button>
+
+                <Button
+                  variant="outline-light"
+                  className="w-100"
+                  onClick={() => loadWallet(true)}
+                >
+                  بروزرسانی موجودی
                 </Button>
               </div>
-            </div>
-          </Col>
-
-          {/* ===== Packages section (integrated from Payments) ===== */}
-          <Col xs={12}>
-            <div className="user-packages-section">
-              <div className="user-packages-header">
-                <GiSparkles className="user-packages-icon" />
-                <h3>انتخاب پکیج</h3>
-              </div>
-              <p className="user-packages-subtitle">
-                بهترین تجربه فال را با پکیج‌های ویژه تجربه کنید
-              </p>
-
-              <Tabs
-                defaultActiveKey="intervallic"
-                className="user-packages-tabs"
-                justify
-              >
-                <Tab eventKey="intervallic" title="پکیج دوره‌ای">
-                  <div className="user-packages-grid">
-                    {PACKAGES.intervallic.map((pkg) => (
-                      <CosmicPackageCard key={pkg.package_id} {...pkg} />
-                    ))}
-                  </div>
-                </Tab>
-
-                <Tab eventKey="aimful" title="پکیج خاص">
-                  <div className="user-packages-grid">
-                    {PACKAGES.aimful.map((pkg) => (
-                      <CosmicPackageCard key={pkg.package_id} {...pkg} />
-                    ))}
-                  </div>
-                </Tab>
-              </Tabs>
             </div>
           </Col>
         </Row>

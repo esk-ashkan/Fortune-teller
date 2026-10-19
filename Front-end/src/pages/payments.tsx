@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
-import { IoIosArrowRoundBack } from "react-icons/io";
+import { Tab, Tabs } from "react-bootstrap";
+import BackButton from "./components/BackButton"; // Uses the shared back button we made
+import "./payments.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -12,7 +14,15 @@ type Package = {
   amount_rial: number;
   amount_toman: number;
   grant: Record<string, number>;
+  tab: "single" | "pack" | "period" | "credit" | string;
 };
+
+const TAB_META: { key: string; title: string }[] = [
+  { key: "single", title: "تکی" },
+  { key: "pack", title: "بسته" },
+  { key: "period", title: "دوره‌ای" },
+  { key: "credit", title: "اعتبار" },
+];
 
 export default function PaymentsPage() {
   const navigate = useNavigate();
@@ -25,23 +35,31 @@ export default function PaymentsPage() {
   const [error, setError] = useState("");
   const [lastInvoiceId, setLastInvoiceId] = useState<number | null>(null);
   const [statusText, setStatusText] = useState("");
+  const [activeTab, setActiveTab] = useState("single");
 
   useEffect(() => {
     axios
       .get(`${API}/payments/packages`)
-      .then((res) => setPackages(res.data.packages || []))
+      .then((res) => {
+        const list: Package[] = res.data.packages || [];
+        setPackages(list);
+        if (preselectId) {
+          const found = list.find((p) => p.id === preselectId);
+          if (found?.tab) setActiveTab(found.tab);
+        }
+      })
       .catch(() => setError("خطا در دریافت لیست پکیج‌ها"));
-  }, []);
+  }, [preselectId]);
 
-  // If user came from profile with a package, start payment once list is ready
-  useEffect(() => {
-    if (!preselectId || packages.length === 0) return;
-    const exists = packages.some((p) => p.id === preselectId);
-    if (exists) {
-      buy(preselectId);
+  const byTab = useMemo(() => {
+    const map: Record<string, Package[]> = {};
+    for (const p of packages) {
+      const t = p.tab || "pack";
+      if (!map[t]) map[t] = [];
+      map[t].push(p);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preselectId, packages]);
+    return map;
+  }, [packages]);
 
   const buy = async (packageId: string) => {
     if (!tgid) {
@@ -51,25 +69,19 @@ export default function PaymentsPage() {
     setLoadingId(packageId);
     setError("");
     setStatusText("");
-
     try {
       const res = await axios.post(`${API}/payments/create`, {
         tgid: Number(tgid),
         package_id: packageId,
       });
-
       const link = res.data.payment_link;
       const invoiceId = res.data.invoice_id;
       setLastInvoiceId(invoiceId);
-
       if (link) {
         const tg = (window as any).Telegram?.WebApp;
         if (tg?.openLink) tg.openLink(link);
         else window.open(link, "_blank");
-
-        setStatusText(
-          `فاکتور ساخته شد. مبلغ نهایی را دقیق واریز کنید. شماره فاکتور: ${invoiceId}`
-        );
+        setStatusText(`فاکتور ${invoiceId} ساخته شد. مبلغ نهایی را دقیق واریز کنید.`);
       }
     } catch (e: any) {
       setError(
@@ -89,59 +101,76 @@ export default function PaymentsPage() {
       if (res.data.status === "PAID") {
         sessionStorage.removeItem("profile_cache");
         setStatusText(
-          `پرداخت موفق ✅ اعتبار: ${res.data.credit} | حافظ: ${res.data.remained_hafez} | تاروت: ${res.data.remained_tarot} | قهوه: ${res.data.remained_coffee}`
+          `پرداخت موفق ✅ | حافظ: ${res.data.remained_hafez} | تاروت: ${res.data.remained_tarot} | قهوه: ${res.data.remained_coffee}`
         );
       } else {
-        setStatusText(`وضعیت فعلی: ${res.data.status}`);
+        setStatusText(`وضعیت: ${res.data.status}`);
       }
     } catch {
       setStatusText("خطا در بررسی وضعیت");
     }
   };
 
-  return (
-    <div className="p-3" style={{ maxWidth: 480, margin: "0 auto" }}>
-      <IoIosArrowRoundBack
-        size={28}
-        style={{ cursor: "pointer" }}
-        onClick={() => navigate("/")}
-      />
-      <h2 className="mt-2">💳 خرید پکیج</h2>
-      <p className="text-muted">پس از پرداخت، سهمیه به‌صورت خودکار اضافه می‌شود.</p>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-      {statusText && <div className="alert alert-info">{statusText}</div>}
-
-      {packages.map((p) => (
-        <div
-          key={p.id}
-          className="border rounded p-3 mb-3"
-          style={
-            preselectId === p.id
-              ? { borderColor: "#f59e0b", boxShadow: "0 0 0 1px #f59e0b" }
-              : undefined
-          }
-        >
-          <h5 className="mb-1">{p.title}</h5>
-          <p className="mb-2 text-muted">{p.description}</p>
-          <div className="fw-bold mb-2">
-            {p.amount_toman.toLocaleString("fa-IR")} تومان
-          </div>
-          <button
-            className="btn btn-primary w-100"
-            disabled={!!loadingId}
-            onClick={() => buy(p.id)}
-          >
-            {loadingId === p.id ? "در حال ایجاد فاکتور..." : "پرداخت"}
-          </button>
+  const renderList = (list: Package[] = []) => {
+    if (list.length === 0) return <p className="pkg-empty">پکیجی در این دسته وجود ندارد.</p>;
+    
+    return list.map((p) => (
+      <div
+        key={p.id}
+        className={`pay-pkg-card ${preselectId === p.id ? "pay-pkg-card--selected" : ""}`}
+      >
+        <h5 className="pay-pkg-title">{p.title}</h5>
+        <p className="pay-pkg-desc">{p.description}</p>
+        
+        <div className="pay-pkg-price">
+          {p.amount_toman.toLocaleString("fa-IR")} <span>تومان</span>
         </div>
-      ))}
 
-      {lastInvoiceId && (
-        <button className="btn btn-outline-secondary w-100" onClick={checkStatus}>
-          بررسی وضعیت پرداخت
+        <button
+          className="pay-btn"
+          disabled={!!loadingId}
+          onClick={() => buy(p.id)}
+        >
+          {loadingId === p.id ? "در حال ایجاد فاکتور..." : "پرداخت"}
         </button>
-      )}
+      </div>
+    ));
+  };
+
+  return (
+    <div className="payments-page">
+      <BackButton to="/" />
+      
+      <div className="payments-content">
+        <header className="payments-header">
+          <h2 className="payments-title">خرید پکیج</h2>
+          <p className="payments-subtitle">از تکی و ارزان تا بسته‌های دوره‌ای</p>
+        </header>
+
+        {error && <div className="pay-alert pay-alert--error">{error}</div>}
+        {statusText && <div className="pay-alert pay-alert--info">{statusText}</div>}
+
+        <Tabs
+          activeKey={activeTab}
+          onSelect={(k) => k && setActiveTab(k)}
+          className="payments-tabs mb-4"
+          justify
+        >
+          {TAB_META.map((t) => (
+            <Tab eventKey={t.key} title={t.title} key={t.key}>
+              <div className="payments-grid pt-3">
+                {renderList(byTab[t.key])}
+              </div>
+            </Tab>
+          ))}
+        </Tabs>
+
+        {lastInvoiceId && (
+          <button className="pay-btn pay-btn--outline mt-3" onClick={checkStatus}>
+            بررسی وضعیت پرداخت
+          </button>
+        )}
+      </div>
     </div>
   );
 }

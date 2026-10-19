@@ -45,7 +45,7 @@ async function loadProfile(
     try {
       return await axios.get(`${API}/`, {
         params,
-        timeout: 60000, // cold start on Render
+        timeout: 60000, 
       });
     } catch (e) {
       lastError = e;
@@ -105,7 +105,6 @@ function Landing() {
       tg.ready();
       user = tg.initDataUnsafe.user as TgUser;
     } else {
-      // local browser testing fallback (optional)
       const saved = localStorage.getItem("tgid");
       if (saved) {
         user = {
@@ -135,7 +134,6 @@ function Landing() {
 
   return (
     <div className="cosmic-wrapper">
-      {/* User header — never blocks the rest of the page */}
       <div className="p-2" style={{ position: "relative", zIndex: 1000 }}>
         {loadingUser && (
           <p className="cosmic-subtitle p-2 mb-0">در حال اتصال به سرور...</p>
