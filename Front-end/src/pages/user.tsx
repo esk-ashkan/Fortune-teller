@@ -244,7 +244,7 @@ const TeleUserData: React.FC = () => {
               </div>
 
               <div className="user-expense-content">
-                <div className="mb-3">
+                <div className="mb-3 user-wallet">
                   <div className="d-flex justify-content-between mb-2">
                     <span>اعتبار</span>
                     <strong>

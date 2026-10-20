@@ -748,6 +748,7 @@ def payments_packages():
             "amount_rial": p["amount_rial"],
             "amount_toman": p["amount_rial"] // 10,
             "grant": p["grant"],
+            "tab": p["tab"]
         })
     return jsonify({"packages": items})
 
