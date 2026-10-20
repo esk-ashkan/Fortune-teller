@@ -654,21 +654,19 @@ PACKAGES = {
     # --- اعتبار ---
     "credit_300k": {
         "id": "credit_300k",
-        "title": "شارژ اعتبار ۱۰۰٬۰۰۰",
-        "description": "افزایش credit داخلی",
+        "title": "شارژ اعتبار ۳٬۰۰۰٬۰۰۰",
+        "description": "افزایش اعتبار داخلی به میزان ۳ میلیون",
         "tab": "credit",
         "amount_rial": 3_000_000,
         "grant": {"credit": 3_000_000},
-        "tab": "credit",
     },
     "credit_500k": {
         "id": "credit_500k",
-        "title": "5شارژ اعتبار:۰۰٬۰۰۰",
+        "title": "شارژ اعتبار ۵٬۰۰۰٬۰۰۰",
         "description": "شارژ بیشتر با تخفیف جزئی",
         "tab": "credit",
         "amount_rial": 5_000_000,
         "grant": {"credit": 5_000_000},
-        "tab": "credit",
     },
 }
 
