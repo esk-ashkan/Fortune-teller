@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Tab, Tabs } from "react-bootstrap";
-import BackButton from "./components/BackButton"; // Uses the shared back button we made
+import BackButton from "./BackButton";
 import "./payments.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
@@ -25,7 +25,6 @@ const TAB_META: { key: string; title: string }[] = [
 ];
 
 export default function PaymentsPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const tgid = location.state?.tgid || localStorage.getItem("tgid");
   const preselectId: string | undefined = location.state?.package_id;

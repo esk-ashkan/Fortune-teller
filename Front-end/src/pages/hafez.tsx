@@ -1,21 +1,42 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Container, Row, Col, Spinner } from "react-bootstrap";
-import Form from 'react-bootstrap/Form';
+import Form from "react-bootstrap/Form";
 import { FaBookOpen, FaStar, FaMoon, FaFeatherAlt } from "react-icons/fa";
 import { FaFeatherPointed } from "react-icons/fa6";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./hafez.css";
 
+const API = "https://fortune-teller-nhy4.onrender.com";
+
+async function checkAccess(model: string, tgid: string | number, tries = 3) {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await axios.get(`${API}/check`, {
+        params: { model, tgid },
+        timeout: 60000,
+      });
+      if (res.data?.can_use) return { status: "allowed" as const };
+      return { status: "denied" as const };
+    } catch {
+      await new Promise((r) => setTimeout(r, 2000 * (i + 1)));
+    }
+  }
+  return {
+    status: "error" as const,
+    message: "سرور پاسخ نداد. لطفاً دوباره تلاش کنید.",
+  };
+}
+
 function HafezWrapper({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  
+
   return (
     <div className="hafez-wrapper">
       <div className="hafez-back-wrapper">
-        <IoIosArrowRoundBack 
-          className="hafez-back-icon" 
+        <IoIosArrowRoundBack
+          className="hafez-back-icon"
           onClick={() => navigate("/")}
         />
       </div>
@@ -27,66 +48,99 @@ function HafezWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function Hafez() {
-  const [poem, setPoem] = useState('');
-  const [faal, setFaal] = useState('');
+  const [poem, setPoem] = useState("");
+  const [faal, setFaal] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [goal, setGoal] = useState<string|null>('');
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState("");
+  const [denied, setDenied] = useState(false);
+  const [goal, setGoal] = useState<string | null>("");
 
+  const navigate = useNavigate();
   const location = useLocation();
-  const { tgid } = location.state || {};
+  const tgid =
+    location.state?.tgid || localStorage.getItem("tgid") || null;
+
   useEffect(() => {
     if (!goal) return;
 
-    setLoading(true);
+    let cancelled = false;
 
-    axios
-      .get("https://fortune-teller-nhy4.onrender.com/check", {
-        params: { model: "hafez", tgid: tgid }
-      })
-      .then((response) => {
-        if (response.data.can_use) {
-          axios
-            .get("https://fortune-teller-nhy4.onrender.com/hafez", {
-              params: { goal: goal }
-            })
-            .then((response) => {
-              console.log("SUCCESS");
-              console.log(response.data);
+    (async () => {
+      setLoading(true);
+      setChecking(true);
+      setError("");
+      setDenied(false);
+      setPoem("");
+      setFaal("");
 
-              setPoem(response.data.poem.poem);
-              setFaal(response.data.ai_faal);
-              setLoading(false);
-            })
-            .catch((err) => {
-              console.log(err);
-              setError("خطا در دریافت فال. لطفاً دوباره تلاش کنید.");
-              setLoading(false);
-            });
-        } else {
-          setError("متاسفانه اعتبار شما به پایان رسیده است.");
+      if (!tgid) {
+        if (!cancelled) {
+          setError("شناسه کاربر یافت نشد. لطفاً از طریق ربات وارد شوید.");
+          setChecking(false);
           setLoading(false);
         }
-      })
-      .catch((err) => {
+        return;
+       }
+
+      const access = await checkAccess("hafez", tgid);
+      if (cancelled) return;
+
+      setChecking(false);
+
+      if (access.status === "error") {
+        setError(access.message);
+        setLoading(false);
+        return;
+      }
+
+      if (access.status === "denied") {
+        setDenied(true);
+        setError("اعتبار یا سهمیه فال حافظ کافی نیست.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${API}/hafez`, {
+          params: { goal, tgid },
+          timeout: 120000,
+        });
+        setPoem(response.data.poem?.poem ?? response.data.poem ?? "");
+        setFaal(response.data.ai_faal ?? "");
+      } catch (err) {
         console.log(err);
         setError("خطا در دریافت فال. لطفاً دوباره تلاش کنید.");
-        setLoading(false);
-      });
-  }, [goal]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [goal, tgid]);
 
   const handleSelectKind = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setGoal(e.target.value);
   };
 
-  if (loading) {
+  const resetAndRetry = () => {
+    setError("");
+    setDenied(false);
+    setPoem("");
+    setFaal("");
+    setGoal("");
+  };
+
+  if (loading || checking) {
     return (
       <HafezWrapper>
         <div className="hafez-loading">
           <div className="hafez-loading-content">
             <FaFeatherAlt className="hafez-loading-icon" />
             <Spinner animation="grow" variant="warning" />
-            <p>در حال تفأل زدن...</p>
+            <p>{checking ? "در حال بررسی اعتبار..." : "در حال تفأل زدن..."}</p>
           </div>
         </div>
       </HafezWrapper>
@@ -98,7 +152,20 @@ function Hafez() {
       <HafezWrapper>
         <div className="hafez-error">
           <p>{error}</p>
-          <button onClick={() => window.location.reload()}>تلاش مجدد</button>
+          {denied ? (
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/payments", { state: { tgid } })
+              }
+            >
+              خرید پکیج
+            </button>
+          ) : (
+            <button type="button" onClick={resetAndRetry}>
+              تلاش مجدد
+            </button>
+          )}
         </div>
       </HafezWrapper>
     );
@@ -122,24 +189,28 @@ function Hafez() {
             <span></span>
           </div>
           <p className="hafez-subtitle">
-            " ای حافظ شیرازی! تو محرم هر رازی!..."
+            &quot; ای حافظ شیرازی! تو محرم هر رازی!...&quot;
           </p>
         </div>
+
         <Row>
-          <div className="hafez-goal-select" >
+          <div className="hafez-goal-select">
             <Form.Select
-                  className="hafez-select"
-                  onChange={handleSelectKind}
-                  defaultValue=""
-                >
-                  <option value="" className="hafez-select-option1">ابتدا نیت کنید و هدف اصلی این فال را انتخاب کنید</option>
-                  <option value="عشقی">❤️عشقی</option>
-                  <option value="کاری">📈کاری</option>
-                  <option value="مالی">💰مالی</option>
-                  <option value="روزانه">🎯روزانه</option>
+              className="hafez-select"
+              onChange={handleSelectKind}
+              value={goal || ""}
+            >
+              <option value="" className="hafez-select-option1">
+                ابتدا نیت کنید و هدف اصلی این فال را انتخاب کنید
+              </option>
+              <option value="عشقی">❤️عشقی</option>
+              <option value="کاری">📈کاری</option>
+              <option value="مالی">💰مالی</option>
+              <option value="روزانه">🎯روزانه</option>
             </Form.Select>
           </div>
         </Row>
+
         <Row className="hafez-poem-section">
           <Col xs={12}>
             <div className="hafez-poem-card">
@@ -148,7 +219,7 @@ function Hafez() {
                 <h3>متن شعر</h3>
               </div>
               <div className="hafez-poem-content">
-                {poem.split('\n').map((line, index) => (
+                {poem.split("\n").map((line, index) => (
                   <p key={index} className="hafez-poem-line">
                     {line}
                   </p>
@@ -166,43 +237,51 @@ function Hafez() {
                 <h3>تعبیر و تفسیر</h3>
               </div>
               <div className="hafez-faal-content">
-                {faal.split('\n').map((paragraph, index) => {
-                  if (paragraph.trim() === '') return null;
-                  
-                  if (paragraph.startsWith('###')) {
+                {faal.split("\n").map((paragraph, index) => {
+                  if (paragraph.trim() === "") return null;
+
+                  if (paragraph.startsWith("###")) {
                     return (
                       <h4 key={index} className="hafez-faal-subheader">
-                        {paragraph.replace('###', '').trim()}
+                        {paragraph.replace("###", "").trim()}
                       </h4>
                     );
                   }
-                  
-                  if (paragraph.startsWith('**')) {
+
+                  if (paragraph.startsWith("**")) {
                     return (
                       <p key={index} className="hafez-faal-bold">
-                        {paragraph.replace(/\*\*/g, '')}
+                        {paragraph.replace(/\*\*/g, "")}
                       </p>
                     );
                   }
-                  
-                  if (paragraph.includes('|') && paragraph.includes('---')) {
+
+                  if (paragraph.includes("|") && paragraph.includes("---")) {
                     return null;
                   }
-                  
-                  if (paragraph.includes('|')) {
-                    const cells = paragraph.split('|').filter(cell => cell.trim() !== '');
+
+                  if (paragraph.includes("|")) {
+                    const cells = paragraph
+                      .split("|")
+                      .filter((cell) => cell.trim() !== "");
                     if (cells.length >= 3) {
                       return (
                         <div key={index} className="hafez-faal-table-row">
-                          <span className="hafez-table-cell">{cells[0].trim()}</span>
-                          <span className="hafez-table-cell">{cells[1].trim()}</span>
-                          <span className="hafez-table-cell">{cells[2].trim()}</span>
+                          <span className="hafez-table-cell">
+                            {cells[0].trim()}
+                          </span>
+                          <span className="hafez-table-cell">
+                            {cells[1].trim()}
+                          </span>
+                          <span className="hafez-table-cell">
+                            {cells[2].trim()}
+                          </span>
                         </div>
                       );
                     }
                     return null;
                   }
-                  
+
                   return (
                     <p key={index} className="hafez-faal-paragraph">
                       {paragraph}
@@ -217,11 +296,13 @@ function Hafez() {
         <div className="hafez-footer">
           <div className="hafez-footer-stars">
             {[...Array(5)].map((_, i) => (
-              <span key={i} className="hafez-footer-star">✦</span>
+              <span key={i} className="hafez-footer-star">
+                ✦
+              </span>
             ))}
           </div>
           <p className="hafez-footer-text">
-            "زین میِ عشق، که حافظ راست، جرعه‌ای مارا بس ..."
+            &quot;زین میِ عشق، که حافظ راست، جرعه‌ای مارا بس ...&quot;
           </p>
         </div>
       </Container>

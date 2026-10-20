@@ -16,6 +16,25 @@ export interface Cities {
   altitude: number;
 }
 
+async function checkAccess(model: string, tgid: string | number, tries = 3) {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await axios.get(`${API}/check`, {
+        params: { model, tgid },
+        timeout: 60000,
+      });
+      if (res.data?.can_use) return { status: "allowed" as const };
+      return { status: "denied" as const };
+    } catch {
+      await new Promise((r) => setTimeout(r, 2000 * (i + 1)));
+    }
+  }
+  return {
+    status: "error" as const,
+    message: "سرور پاسخ نداد. لطفاً دوباره تلاش کنید.",
+  };
+}
+
 export default function Stars() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,6 +44,7 @@ export default function Stars() {
   const [selectedCity, setSelectedCity] = useState<Cities | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [denied, setDenied] = useState(false);
   const [result, setResult] = useState<{
     interpretation?: string;
     sky_facts?: Record<string, unknown>;
@@ -103,9 +123,36 @@ export default function Stars() {
 
   const handleReceive = async () => {
     if (!selectedCity) return;
+
     setLoading(true);
     setError("");
+    setDenied(false);
     setResult(null);
+
+    if (!tgid) {
+      setError("شناسه کاربر یافت نشد. از ربات وارد شوید.");
+      setLoading(false);
+      return;
+    }
+
+    // Prefer /check if backend supports model=stars; otherwise still safe:
+    // denied/error are explicit, 403 from /stars is treated as deny.
+    const access = await checkAccess("stars", tgid);
+
+    if (access.status === "error") {
+      // Fallback: try /stars anyway only if check endpoint doesn't know "stars"
+      // Safer UX: show network error, not "no credit"
+      setError(access.message);
+      setLoading(false);
+      return;
+    }
+
+    if (access.status === "denied") {
+      setDenied(true);
+      setError("اعتبار کافی نیست.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axios.get(`${API}/stars`, {
@@ -113,7 +160,7 @@ export default function Stars() {
           lat: selectedCity.latitude,
           long: selectedCity.longitude,
           city: selectedCity.name,
-          tgid: tgid || undefined,
+          tgid,
         },
         timeout: 60000,
       });
@@ -122,7 +169,14 @@ export default function Stars() {
         setSunSignFa(response.data.sun_sign_fa);
       }
     } catch (err: any) {
-      setError(err?.response?.data?.error || "خطا در دریافت طالع");
+      const status = err?.response?.status;
+      if (status === 403) {
+        setDenied(true);
+        setError("اعتبار کافی نیست.");
+      } else {
+        setDenied(false);
+        setError(err?.response?.data?.error || "خطا در دریافت طالع");
+      }
     } finally {
       setLoading(false);
     }
@@ -141,7 +195,6 @@ export default function Stars() {
         موقعیتت را بده تا وضعیت آسمان و یک روایت کوتاه برایت ساخته شود.
       </p>
 
-      {/* Birth date — manual */}
       <div className="mb-3 p-3 border rounded">
         <label className="form-label">
           تاریخ تولد (اختیاری، برای طالع شخصی‌تر)
@@ -152,11 +205,7 @@ export default function Stars() {
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
         />
-        <Button
-          variant="outline-primary"
-          className="w-100"
-          onClick={saveBirth}
-        >
+        <Button variant="outline-primary" className="w-100" onClick={saveBirth}>
           ذخیره تاریخ تولد
         </Button>
         {sunSignFa && (
@@ -167,11 +216,11 @@ export default function Stars() {
         {birthMsg && <p className="mt-2 mb-0 text-muted">{birthMsg}</p>}
       </div>
 
-      <Button onClick={handleCoordFinder} className="mb-3 w-100">
+      <Button onClick={handleCoordFinder} className="mb-3 w-100" disabled={loading}>
         یافتن خودکار موقعیت من
       </Button>
 
-      <Form.Select onChange={handleSelectProvince} className="mb-2">
+      <Form.Select onChange={handleSelectProvince} className="mb-2" disabled={loading}>
         <option>استان را انتخاب کنید</option>
         {iranCities.map((ic) => (
           <option value={ic.name} key={ic.name}>
@@ -181,7 +230,7 @@ export default function Stars() {
       </Form.Select>
 
       {cities.length > 0 && (
-        <Form.Select onChange={handleSelectCity} className="mb-3">
+        <Form.Select onChange={handleSelectCity} className="mb-3" disabled={loading}>
           <option>شهر را انتخاب کنید</option>
           {cities.map((ct) => (
             <option value={ct.name} key={ct.name}>
@@ -203,10 +252,25 @@ export default function Stars() {
         disabled={!canSubmit}
         className="w-100 mb-3"
       >
-        {loading ? "در حال خواندن آسمان..." : "دریافت طالع من"}
+        {loading ? "در حال بررسی اعتبار / خواندن آسمان..." : "دریافت طالع من"}
       </Button>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && (
+        <div className={`alert ${denied ? "alert-warning" : "alert-danger"}`}>
+          {error}
+          {denied && (
+            <div className="mt-2">
+              <Button
+                size="sm"
+                variant="warning"
+                onClick={() => navigate("/payments", { state: { tgid } })}
+              >
+                خرید پکیج
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {result?.sky_facts && (
         <div className="mb-3 p-3 border rounded">

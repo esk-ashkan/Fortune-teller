@@ -48,9 +48,10 @@ SUN_SIGN_FA = {
     "Pisces": "حوت (اسفند)",
 }
 
-HAFEZ_PRICE = 799999
-TAROT_PRICE = 899999
-COFFEE_PRICE = 999999
+HAFEZ_PRICE = 490000
+TAROT_PRICE = 990000
+COFFEE_PRICE = 1200000
+STARS_PRICE = 790000
 # --------------------------------------------------
 # Flask And Database
 # --------------------------------------------------
@@ -528,6 +529,7 @@ PACKAGES = {
         "tab": "single",
         "amount_rial": 490_000,
         "grant": {"remained_hafez": 1},
+        "tab": "single",
     },
     "tarot_1": {
         "id": "tarot_1",
@@ -536,6 +538,7 @@ PACKAGES = {
         "tab": "single",
         "amount_rial": 990_000,
         "grant": {"remained_tarot": 1},
+        "tab": "single",
     },
     "coffee_1": {
         "id": "coffee_1",
@@ -544,6 +547,7 @@ PACKAGES = {
         "tab": "single",
         "amount_rial": 1_200_000,
         "grant": {"remained_coffee": 1},
+        "tab": "single",
     },
     "stars_1": {
         "id": "stars_1",
@@ -552,6 +556,7 @@ PACKAGES = {
         "tab": "single",
         "amount_rial": 790_000,
         "grant": {"credit": 1},  
+        "tab": "single",
     },
 
     # --- بسته ---
@@ -562,6 +567,7 @@ PACKAGES = {
         "tab": "pack",
         "amount_rial": 2_250_000,
         "grant": {"remained_hafez": 5},
+        "tab": "pack",
     },
     "hafez_10": {
         "id": "hafez_10",
@@ -570,6 +576,7 @@ PACKAGES = {
         "tab": "pack",
         "amount_rial": 4_200_000,
         "grant": {"remained_hafez": 10},
+        "tab": "pack",
     },
     "tarot_5": {
         "id": "tarot_5",
@@ -578,6 +585,7 @@ PACKAGES = {
         "tab": "pack",
         "amount_rial": 4_750_000,
         "grant": {"remained_tarot": 5},
+        "tab": "pack",
     },
     "tarot_10": {
         "id": "tarot_10",
@@ -586,6 +594,7 @@ PACKAGES = {
         "tab": "pack",
         "amount_rial": 9_500_000,
         "grant": {"remained_tarot": 10},
+        "tab": "pack",
     },
     "coffee_5": {
         "id": "coffee_5",
@@ -594,6 +603,7 @@ PACKAGES = {
         "tab": "pack",
         "amount_rial": 6_000_000,
         "grant": {"remained_coffee": 5},
+        "tab": "pack",
     },
     "mix_3": {
         "id": "mix_3",
@@ -606,6 +616,7 @@ PACKAGES = {
             "remained_tarot": 1,
             "remained_coffee": 1,
         },
+        "tab": "pack",
     },
 
     # --- دوره‌ای ---
@@ -616,6 +627,7 @@ PACKAGES = {
         "tab": "period",
         "amount_rial": 9_000_000,
         "grant": {"remained_hafez": 7, "remained_tarot": 7},
+        "tab": "period",
     },
     "month_1": {
         "id": "month_1",
@@ -624,6 +636,7 @@ PACKAGES = {
         "tab": "period",
         "amount_rial": 2_900_000,
         "grant": {"remained_hafez": 30, "remained_tarot": 30},
+        "tab": "period",
     },
     # "month_3": {
     #     "id": "month_3",
@@ -646,6 +659,7 @@ PACKAGES = {
         "tab": "credit",
         "amount_rial": 3_000_000,
         "grant": {"credit": 3_000_000},
+        "tab": "credit",
     },
     "credit_500k": {
         "id": "credit_500k",
@@ -654,6 +668,7 @@ PACKAGES = {
         "tab": "credit",
         "amount_rial": 5_000_000,
         "grant": {"credit": 5_000_000},
+        "tab": "credit",
     },
 }
 
@@ -1443,7 +1458,9 @@ def check():
             can_use = user.can_use_hafez() or user.credit >= HAFEZ_PRICE
         elif horoscopy_model == "coffee":
             can_use = user.can_use_coffee() or user.credit >= COFFEE_PRICE
-        else:  # tarot
+        elif horoscopy_model == "stars":
+            can_use = user.credit >= STARS_PRICE
+        else: 
             can_use = user.can_use_tarot() or user.credit >= TAROT_PRICE
 
         return jsonify({
