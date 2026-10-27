@@ -48,6 +48,8 @@ SUN_SIGN_FA = {
     "Pisces": "حوت (اسفند)",
 }
 
+ALLOWED_LANGS = {"fa", "en"}
+
 HAFEZ_PRICE = 490000
 TAROT_PRICE = 990000
 COFFEE_PRICE = 1200000
@@ -303,11 +305,19 @@ def huggingFaceAPI(prompt:str, imageUrl:str):
     )
     return completion.choices[0].message
 
-def user_information(tgid, username=None, first_name=None, last_name=None, full_name=None):
+def user_information(
+    tgid,
+    username=None,
+    first_name=None,
+    last_name=None,
+    full_name=None,
+    language=None,
+):
     if tgid is None:
         raise ValueError("Telegram ID is required")
 
     profile = Profile.query.filter_by(tgid=tgid).first()
+    lang = normalize_lang(language) if language is not None else None
 
     if profile is None:
         profile = Profile(
@@ -316,7 +326,8 @@ def user_information(tgid, username=None, first_name=None, last_name=None, full_
             first_name=first_name,
             last_name=last_name,
             full_name=full_name or f"{first_name or ''} {last_name or ''}".strip() or None,
-            credit=15000
+            credit=15000,
+            language=lang or "fa",
         )
         db.session.add(profile)
         db.session.commit()
@@ -334,6 +345,10 @@ def user_information(tgid, username=None, first_name=None, last_name=None, full_
             updated = True
         if full_name and profile.full_name != full_name:
             profile.full_name = full_name
+            updated = True
+
+        if lang is not None and profile.language != lang:
+            profile.language = lang
             updated = True
 
         profile.update_last_visit()
@@ -356,6 +371,7 @@ def user_information(tgid, username=None, first_name=None, last_name=None, full_
         "remained_coffee": profile.remained_coffee,
         "remained_tarot": profile.remained_tarot,
         "is_premium": profile.is_premium,
+        "language": profile.language or "fa",
         "registered_at": profile.registered_at.isoformat() if profile.registered_at else None,
         "last_visit": profile.last_visit.isoformat() if profile.last_visit else None,
         "birth_date": profile.birth_date.isoformat() if profile.birth_date else None,
@@ -417,6 +433,11 @@ def get_sun_sign(d: date) -> str:
         return "Aquarius"
     return "Pisces"  # Feb 19 – Mar 20
 
+def normalize_lang(value) -> str:
+    if not value:
+        return "fa"
+    code = str(value).strip().lower()[:2]
+    return code if code in ALLOWED_LANGS else "fa"
 
 # -----------------------------
 # Models
@@ -910,6 +931,7 @@ def home():
         or data.get("lname")
     )
     full_name = request.args.get("full_name") or data.get("full_name")
+    language = request.args.get("language") or data.get("language")
 
     if tgid is None:
         return jsonify({"error": "tgid is required"}), 400
@@ -921,13 +943,13 @@ def home():
             first_name=first_name,
             last_name=last_name,
             full_name=full_name,
-            
+            language=language,
         )
         return jsonify(info)
     except Exception as e:
         logger.error(f"Error in home: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
-
+        return jsonify({"error": "internal error"}), 500
+    
 # -----------------------------
 # TAROT
 # -----------------------------
@@ -1503,6 +1525,35 @@ def save_birth():
         "birth_date": user.birth_date.isoformat(),
         "sun_sign": user.sun_sign,
         "sun_sign_fa": SUN_SIGN_FA.get(user.sun_sign, user.sun_sign),
+    })
+
+# -----------------------------
+# Save Language
+# -----------------------------
+@app.route("/profile/language", methods=["POST"])
+def save_language():
+    data = request.get_json(silent=True) or {}
+    tgid = data.get("tgid") or request.args.get("tgid", type=int)
+    language = normalize_lang(data.get("language"))
+
+    if not tgid:
+        return jsonify({"error": "tgid is required"}), 400
+
+    if str(data.get("language", "")).strip().lower()[:2] not in ALLOWED_LANGS:
+        return jsonify({"error": "language must be fa or en"}), 400
+
+    user = Profile.query.filter_by(tgid=int(tgid)).first()
+    if not user:
+        return jsonify({"error": "User not found. Open app home first."}), 404
+
+    user.language = language
+    user.update_last_visit()
+    db.session.commit()
+
+    return jsonify({
+        "ok": True,
+        "tgid": user.tgid,
+        "language": user.language,
     })
 
 # -----------------------------

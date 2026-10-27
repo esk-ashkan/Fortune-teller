@@ -3,6 +3,7 @@ import { Container, Row, Col, Button} from 'react-bootstrap';
 import { FaMoon, FaStar, FaGlobe, FaIdBadge, FaCrown, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GiSparkles, GiAstronautHelmet, GiRingedPlanet,} from 'react-icons/gi';
 import { IoIosArrowRoundBack } from 'react-icons/io';
+import { getStoredLang, setStoredLang } from "../lib/lang";
 import { useNavigate } from 'react-router-dom';
 import './user.css';
 import axios from "axios";
@@ -39,6 +40,8 @@ const TeleUserData: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [lang, setLang] = useState<"fa" | "en">(getStoredLang());
+  const [langMsg, setLangMsg] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -113,6 +116,30 @@ const TeleUserData: React.FC = () => {
     }
   };
 
+  const saveLanguage = async (next: "fa" | "en") => {
+    const tgid =
+      localStorage.getItem("tgid") ||
+      (data?.user?.id ? String(data.user.id) : null);
+    if (!tgid) {
+      setLangMsg("ابتدا از ربات وارد شوید.");
+      return;
+    }
+
+    setLang(next);
+    setStoredLang(next);
+
+    try {
+      await axios.post(`${API}/profile/language`, {
+        tgid: Number(tgid),
+        language: next,
+      });
+      setLangMsg(next === "fa" ? "زبان ذخیره شد: فارسی" : "Language saved: English");
+      sessionStorage.removeItem("profile_cache");
+    } catch {
+      setLangMsg(next === "fa" ? "خطا در ذخیره زبان" : "Failed to save language");
+    }
+  };
+
   if (error) {
     return (
       <div className="cosmic-wrapper">
@@ -158,7 +185,26 @@ const TeleUserData: React.FC = () => {
           <div key={i} className={`cosmic-particle cosmic-particle-${i % 5}`} />
         ))}
       </div>
-
+      <div className="mb-3">
+        <div className="mb-2">زبان / Language</div>
+        <div className="d-flex gap-2">
+          <Button
+            variant={lang === "fa" ? "warning" : "outline-light"}
+            className="flex-fill"
+            onClick={() => saveLanguage("fa")}
+          >
+            فارسی
+          </Button>
+          <Button
+            variant={lang === "en" ? "warning" : "outline-light"}
+            className="flex-fill"
+            onClick={() => saveLanguage("en")}
+          >
+            English
+          </Button>
+        </div>
+        {langMsg && <p className="mt-2 mb-0 text-muted">{langMsg}</p>}
+      </div>
       <div className="user-back-wrapper" onClick={() => navigate(-1)}>
         <IoIosArrowRoundBack className="user-back-icon" />
       </div>

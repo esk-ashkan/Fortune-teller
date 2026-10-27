@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import "./landing.css";
 import axios from "axios";
 import DropDownComp from "../components/dropdown";
+import { setStoredLang } from "../lib/lang";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -81,6 +82,9 @@ function Landing() {
         lname: user.last_name,
       });
       setThisUser(response.data);
+      if (response.data.language === "fa" || response.data.language === "en") {
+        setStoredLang(response.data.language);
+      }
       localStorage.setItem("tgid", String(user.id));
       if (response.data?.username) {
         localStorage.setItem("username", response.data.username);
@@ -88,7 +92,6 @@ function Landing() {
     } catch (err) {
       console.error(err);
       setUserError("اتصال به سرور برقرار نشد. دوباره تلاش کنید.");
-      // still keep telegram id for navigation
       localStorage.setItem("tgid", String(user.id));
     } finally {
       setLoadingUser(false);
@@ -97,7 +100,7 @@ function Landing() {
 
   useEffect(() => {
     setMounted(true);
-
+    
     const tg = (window as any).Telegram?.WebApp;
     let user: TgUser | null = null;
 

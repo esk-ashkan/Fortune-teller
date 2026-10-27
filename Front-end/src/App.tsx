@@ -6,6 +6,14 @@ import Stars from "./pages/stars";
 import TeleUserData from "./pages/user";
 import Hafez from "./pages/hafez";
 import PaymentsPage from "./pages/payments";
+import {  setStoredLang, detectTelegramLang } from "./lib/lang";
+
+const saved = localStorage.getItem("app_lang");
+if (saved === "fa" || saved === "en") {
+  setStoredLang(saved);
+} else {
+  setStoredLang(detectTelegramLang());
+}
 
 function App() {
   return (
