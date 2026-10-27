@@ -82,16 +82,21 @@ function Landing() {
         lname: user.last_name,
       });
       setThisUser(response.data);
+      setTgUser(user);
+
       if (response.data.language === "fa" || response.data.language === "en") {
         setStoredLang(response.data.language);
       }
+
       localStorage.setItem("tgid", String(user.id));
       if (response.data?.username) {
-        localStorage.setItem("username", response.data.username);
+        localStorage.setItem("tg_username", response.data.username);
       }
     } catch (err) {
       console.error(err);
-      setUserError("اتصال به سرور برقرار نشد. دوباره تلاش کنید.");
+      setUserError(
+        "اتصال به سرور برقرار نشد. می‌توانید دوباره تلاش کنید."
+      );
       localStorage.setItem("tgid", String(user.id));
     } finally {
       setLoadingUser(false);
@@ -99,33 +104,44 @@ function Landing() {
   }, []);
 
   useEffect(() => {
-    setMounted(true);
-    
     const tg = (window as any).Telegram?.WebApp;
-    let user: TgUser | null = null;
+    const user = tg?.initDataUnsafe?.user as TgUser | undefined;
 
-    if (tg?.initDataUnsafe?.user) {
-      tg.ready();
-      user = tg.initDataUnsafe.user as TgUser;
-    } else {
-      const saved = localStorage.getItem("tgid");
-      if (saved) {
-        user = {
-          id: Number(saved),
-          first_name: "User",
-          username: localStorage.getItem("username") || undefined,
-        };
+    if (user?.id) {
+      tg?.ready?.();
+      setTgUser(user);
+      setMounted(true);
+
+      localStorage.setItem("tgid", String(user.id));
+      if (user.username) localStorage.setItem("tg_username", user.username);
+      if (user.first_name) localStorage.setItem("tg_first_name", user.first_name);
+      if (user.last_name != null) {
+        localStorage.setItem("tg_last_name", user.last_name || "");
       }
-    }
 
-    if (!user?.id) {
-      setLoadingUser(false);
-      setUserError("کاربر تلگرام یافت نشد. از داخل ربات باز کنید.");
+      fetchUser(user);
       return;
     }
 
-    setTgUser(user);
-    fetchUser(user);
+    const tgid = localStorage.getItem("tgid");
+    if (tgid) {
+      const fallback: TgUser = {
+        id: Number(tgid),
+        first_name: localStorage.getItem("tg_first_name") || "کاربر",
+        last_name: localStorage.getItem("tg_last_name") || undefined,
+        username: localStorage.getItem("tg_username") || undefined,
+      };
+      setTgUser(fallback);
+      setMounted(true);
+      fetchUser(fallback); 
+      return;
+    }
+
+    setMounted(true);
+    setLoadingUser(false);
+    setUserError(
+      "اطلاعات تلگرام در دسترس نیست. لطفاً اپ را از داخل ربات باز کنید."
+    );
   }, [fetchUser]);
 
   const displayName =
@@ -138,7 +154,7 @@ function Landing() {
   return (
     <div className="cosmic-wrapper">
       <div className="p-2" style={{ position: "relative", zIndex: 1000 }}>
-        {loadingUser && (
+        {loadingUser && tgUser && (
           <p className="cosmic-subtitle p-2 mb-0">در حال اتصال به سرور...</p>
         )}
 
