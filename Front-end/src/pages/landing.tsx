@@ -8,6 +8,8 @@ import "./landing.css";
 import axios from "axios";
 import DropDownComp from "../components/dropdown";
 import { setStoredLang } from "../lib/lang";
+import i18n from "../i18n";
+import { useTranslation } from "react-i18next";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -65,6 +67,11 @@ function Landing() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [userError, setUserError] = useState("");
 
+  const { t } = useTranslation();
+
+  setUserError(t("landing.serverError"));
+  setUserError(t("landing.noTelegram"));
+
   const go = (path: string) => {
     const tgid = tgUser?.id || Number(localStorage.getItem("tgid")) || null;
     if (tgid) localStorage.setItem("tgid", String(tgid));
@@ -86,6 +93,7 @@ function Landing() {
 
       if (response.data.language === "fa" || response.data.language === "en") {
         setStoredLang(response.data.language);
+        void i18n.changeLanguage(response.data.language);
       }
 
       localStorage.setItem("tgid", String(user.id));
@@ -144,18 +152,18 @@ function Landing() {
     );
   }, [fetchUser]);
 
-  const displayName =
+    const displayName =
     thisUser?.username ||
     tgUser?.username ||
     thisUser?.first_name ||
     tgUser?.first_name ||
-    "کاربر";
+    t("landing.userFallback");
 
   return (
     <div className="cosmic-wrapper">
       <div className="p-2" style={{ position: "relative", zIndex: 1000 }}>
         {loadingUser && tgUser && (
-          <p className="cosmic-subtitle p-2 mb-0">در حال اتصال به سرور...</p>
+          <p className="cosmic-subtitle p-2 mb-0">{t("landing.connecting")}</p>
         )}
 
         {!loadingUser && userError && (
@@ -165,7 +173,7 @@ function Landing() {
               className="btn btn-sm btn-outline-light"
               onClick={() => tgUser && fetchUser(tgUser)}
             >
-              تلاش مجدد
+              {t("landing.retry")}
             </button>
           </div>
         )}
@@ -178,13 +186,13 @@ function Landing() {
                 {
                   label: (
                     <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <FaCoins /> اعتبار: {(thisUser.credit ?? 0).toLocaleString("fa-IR")}
+                      <FaCoins /> {t("landing.credit")}: {(thisUser.credit ?? 0).toLocaleString("fa-IR")}
                     </span>
                   ),
                   onClick: () => go("/user"),
                 },
                 {
-                  label: <span>💳 خرید پکیج</span>,
+                  label: <span>💳 {t("landing.buyPackage")}</span>,
                   onClick: () => go("/payments"),
                 },
               ]}
@@ -210,8 +218,8 @@ function Landing() {
           </div>
 
           <h1 className="cosmic-title">
-            <span className="cosmic-title-line">فال‌نامه</span>
-            <span className="cosmic-title-accent">کیهانی</span>
+            <span className="cosmic-title-line">{t("landing.titleLine")}</span>
+            <span className="cosmic-title-accent">{t("landing.titleAccent")}</span>
           </h1>
 
           <div className="cosmic-divider">
@@ -221,63 +229,63 @@ function Landing() {
           </div>
 
           <p className="cosmic-subtitle">
-            سفری میان ستارگان، اسطوره‌ها و رازهای کهن ایرانی
+            {t("landing.subtitle")}
           </p>
 
           <div className="cosmic-tagline">
-            <span className="cosmic-tag">✨ ستاره‌شناسی</span>
-            <span className="cosmic-tag">🔮 تاروت</span>
-            <span className="cosmic-tag">☕ قهوه</span>
+            <span className="cosmic-tag">✨ {t("landing.tagStars")}</span>
+            <span className="cosmic-tag">🔮 {t("landing.tagTarot")}</span>
+            <span className="cosmic-tag">☕ {t("landing.tagCoffee")}</span>
           </div>
         </div>
 
         <Row className={`cosmic-cards-row ${mounted ? "cosmic-slide-up" : ""}`}>
           <Col xs={12} className="mb-3">
             <SelectComponent
-              text="فال تاروت"
+              text={t("landing.tarot")}
               color="tarot"
               icon={<GiCardPickup />}
               to="/tarot"
               onSelect={() => go("/tarot")}
-              description="کارت‌های کهن، پیام‌های آینده"
-              badge="محبوب‌ترین"
+              description={t("landing.tarotDesc")}
+              badge={t("landing.tarotBadge")}
             />
           </Col>
 
           <Col xs={12} className="mb-3">
             <SelectComponent
-              text="فال قهوه"
+              text={t("landing.coffee")}
               color="coffee"
               icon={<FaCoffee />}
               to="/coffee"
               onSelect={() => go("/coffee")}
-              description="رازهای درون فنجان"
-              badge="به زودی"
+              description={t("landing.coffeeDesc")}
+              badge={t("landing.coffeeBadge")}
               disabled={true}
             />
           </Col>
 
           <Col xs={12} className="mb-3">
             <SelectComponent
-              text="فال حافظ"
+              text={t("landing.hafez")}
               color="stars-btn"
               icon={<GiOpenBook />}
               to="/hafez"
               onSelect={() => go("/hafez")}
-              description="فال حافظ شیراز"
-              badge="نیت کنید"
+              description={t("landing.hafezDesc")}
+              badge={t("landing.hafezBadge")}
             />
           </Col>
 
           <Col xs={12}>
             <SelectComponent
-              text="فال نجوم"
+              text={t("landing.stars")}
               color="stars-btn"
               icon={<GiStarSattelites />}
               to="/stars"
               onSelect={() => go("/stars")}
-              description="ستارگان، سرنوشت شما"
-              badge="به زودی"
+              description={t("landing.starsDesc")}
+              badge={t("landing.starsBadge")}
               disabled={true}
             />
           </Col>

@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 export type AppLang = "fa" | "en";
 
 export function getStoredLang(): AppLang {
@@ -9,6 +11,9 @@ export function setStoredLang(lang: AppLang) {
   localStorage.setItem("app_lang", lang);
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === "fa" ? "rtl" : "ltr";
+  if (i18n.language !== lang) {
+    void i18n.changeLanguage(lang);
+  }
 }
 
 export function detectTelegramLang(): AppLang {

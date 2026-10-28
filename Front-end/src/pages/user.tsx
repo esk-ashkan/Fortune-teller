@@ -7,6 +7,7 @@ import { getStoredLang, setStoredLang } from "../lib/lang";
 import { useNavigate } from 'react-router-dom';
 import './user.css';
 import axios from "axios";
+import i18n from "../i18n";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -151,6 +152,7 @@ const TeleUserData: React.FC = () => {
 
     setLang(next);
     setStoredLang(next);
+    void i18n.changeLanguage(next);
 
     try {
       await axios.post(`${API}/profile/language`, {

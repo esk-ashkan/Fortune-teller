@@ -1,0 +1,33 @@
+{
+  "landing": {
+    "connecting": "Connecting to server...",
+    "retry": "Retry",
+    "serverError": "Could not reach the server. Please try again.",
+    "noTelegram": "Telegram data is unavailable. Please open the app from the bot.",
+    "titleLine": "Cosmic",
+    "titleAccent": "Fortune",
+    "subtitle": "A journey through stars, myths, and ancient wisdom",
+    "tagStars": "✨ Astrology",
+    "tagTarot": "🔮 Tarot",
+    "tagCoffee": "☕ Coffee reading",
+    "tarot": "Tarot",
+    "tarotDesc": "Ancient cards, messages of the future",
+    "tarotBadge": "Most popular",
+    "coffee": "Coffee reading",
+    "coffeeDesc": "Secrets in the cup",
+    "coffeeBadge": "Soon",
+    "hafez": "Hafez",
+    "hafezDesc": "The Divan of Hafez of Shiraz",
+    "hafezBadge": "Set an intention",
+    "stars": "Sky reading",
+    "starsDesc": "The stars and your path",
+    "starsBadge": "Soon",
+    "footer": "Trust the cosmos and read what lies ahead",
+    "credit": "Credit",
+    "buyPackage": "💳 Buy package",
+    "userFallback": "User"
+  },
+  "common": {
+    "back": "Back"
+  }
+}
