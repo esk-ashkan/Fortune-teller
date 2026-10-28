@@ -11,6 +11,7 @@ import { setStoredLang } from "../lib/lang";
 import i18n from "../i18n";
 import { useTranslation } from "react-i18next";
 
+
 const API = "https://fortune-teller-nhy4.onrender.com";
 
 interface TgUser {
@@ -103,7 +104,7 @@ function Landing() {
     } catch (err) {
       console.error(err);
       setUserError(
-        "اتصال به سرور برقرار نشد. می‌توانید دوباره تلاش کنید."
+        t("landing.serverError")
       );
       localStorage.setItem("tgid", String(user.id));
     } finally {
@@ -135,7 +136,7 @@ function Landing() {
     if (tgid) {
       const fallback: TgUser = {
         id: Number(tgid),
-        first_name: localStorage.getItem("tg_first_name") || "کاربر",
+        first_name: localStorage.getItem("tg_first_name") || `user-${Number(tgid)}`,
         last_name: localStorage.getItem("tg_last_name") || undefined,
         username: localStorage.getItem("tg_username") || undefined,
       };
@@ -148,7 +149,7 @@ function Landing() {
     setMounted(true);
     setLoadingUser(false);
     setUserError(
-      "اطلاعات تلگرام در دسترس نیست. لطفاً اپ را از داخل ربات باز کنید."
+      t("landing.connecting")
     );
   }, [fetchUser]);
 
@@ -293,7 +294,7 @@ function Landing() {
 
         <div className={`cosmic-footer ${mounted ? "cosmic-fade-in-delay" : ""}`}>
           <p className="cosmic-footer-text">
-            با اعتماد به کیهان، آینده‌تان را بخوانید
+            {t("landing.footer")}
           </p>
           <div className="cosmic-footer-stars">
             {[...Array(5)].map((_, i) => (
