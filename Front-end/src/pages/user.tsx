@@ -52,27 +52,51 @@ const TeleUserData: React.FC = () => {
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
+    const tgUser = tg?.initDataUnsafe?.user;
 
-    if (!tg) {
-      setError('Telegram WebApp SDK not loaded.');
+    if (tgUser?.id) {
+      tg.ready?.();
+      setData({
+        user: {
+          id: tgUser.id,
+          first_name: tgUser.first_name,
+          last_name: tgUser.last_name,
+          username: tgUser.username,
+          language_code: tgUser.language_code || "fa",
+          is_premium: tgUser.is_premium,
+          photo_url: tgUser.photo_url,
+        },
+        auth_date: tg.initDataUnsafe?.auth_date ?? 0,
+      });
+      localStorage.setItem("tgid", String(tgUser.id));
+      if (tgUser.username) localStorage.setItem("tg_username", tgUser.username);
+      if (tgUser.first_name) localStorage.setItem("tg_first_name", tgUser.first_name);
+      if (tgUser.last_name != null) {
+        localStorage.setItem("tg_last_name", tgUser.last_name || "");
+      }
+      setMounted(true);
       return;
     }
 
-    tg.ready();
-
-    const user = tg.initDataUnsafe.user;
-
-    if (!user) {
-      setError('No Telegram user.');
+    const tgid = localStorage.getItem("tgid");
+    if (tgid) {
+      setData({
+        user: {
+          id: Number(tgid),
+          first_name: localStorage.getItem("tg_first_name") || "کاربر",
+          last_name: localStorage.getItem("tg_last_name") || "",
+          username: localStorage.getItem("tg_username") || undefined,
+          language_code: localStorage.getItem("app_lang") || "fa",
+        },
+        auth_date: 0,
+      });
+      setMounted(true);
       return;
     }
 
-    setData({
-      user,
-      auth_date: tg.initDataUnsafe.auth_date,
-    });
-
-    setMounted(true);
+    setError(
+      "اطلاعات تلگرام در دسترس نیست. لطفاً اپ را از داخل ربات باز کنید."
+    );
   }, []);
 
   const loadWallet = async (force = false) => {
