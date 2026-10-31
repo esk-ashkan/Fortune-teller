@@ -433,11 +433,44 @@ def get_sun_sign(d: date) -> str:
         return "Aquarius"
     return "Pisces"  # Feb 19 – Mar 20
 
+
 def normalize_lang(value) -> str:
     if not value:
         return "fa"
     code = str(value).strip().lower()[:2]
     return code if code in ALLOWED_LANGS else "fa"
+
+def resolve_request_lang(tgid=None) -> str:
+    """Priority: query/body lang → profile.language → fa"""
+    raw = request.args.get("lang") or request.args.get("language")
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        raw = raw or data.get("lang") or data.get("language")
+
+    if raw:
+        return normalize_lang(raw)
+
+    if tgid:
+        user = Profile.query.filter_by(tgid=int(tgid)).first()
+        if user and user.language:
+            return normalize_lang(user.language)
+
+    return "fa"
+
+def language_instruction(lang: str) -> str:
+    if lang == "en":
+        return (
+            "LANGUAGE (mandatory):\n"
+            "- Write the entire answer in English only.\n"
+            "- Do not use Persian/Farsi script.\n"
+            "- Do not mix languages.\n"
+        )
+    return (
+        "LANGUAGE (mandatory):\n"
+        "- Write the entire answer in Persian (Farsi) only.\n"
+        "- Do not use English words or Latin titles.\n"
+        "- Do not mix languages.\n"
+    )
 
 # -----------------------------
 # Models
@@ -960,44 +993,34 @@ def tarot():
     cards_list = request.args.getlist("cards_list[]")
     cards_list = [card.strip() for card in cards_list if card.strip()]
     kindOfHoroscopy = request.args.get("kindOfHoroscopy")
-
+    tgid = request.args.get("tgid", type=int)
+    lang = resolve_request_lang(tgid)
+    
     if not cards_list:
-        return jsonify({"error": "No cards provided"}), 400
+        return jsonify({"error": "No cards provided", "lang": lang}), 400
 
     if len(cards_list) > 10:
-        return jsonify({"error": "Maximum 10 cards allowed"}), 400
+        return jsonify({"error": "Maximum 10 cards allowed", "lang": lang}), 400
 
     cards_text = ", ".join(cards_list)
     extra_line = ""
-    if kindOfHoroscopy and kindOfHoroscopy != "سایر":
-        extra_line = f"Main goal of horoscopy is: {kindOfHoroscopy}."
+    if kindOfHoroscopy and kindOfHoroscopy not in ("سایر", "other", "Other", ""):
+        extra_line = f"Main topic of the reading: {kindOfHoroscopy}."
 
     base_prompt = f"""
         You are a traditional Tarot scholar.
-        For every card:
 
-        1. Traditional meaning
-        2. Upright/Reversed meaning
-        3. Symbolism
-        4. Psychological message
-        5. Advice
+        {language_instruction(lang)}
 
-        Do NOT answer as a numbered list.
-        Write naturally as an experienced Tarot reader.
+        For the reading as a whole (not a rigid numbered list):
+        - Traditional sense of the cards together
+        - Upright/reversed nuance where relevant
+        - Symbolism and psychological message
+        - Gentle advice
 
-        Your interpretations should be:
-        - mystical
-        - psychologically insightful
-        - compassionate
-        - encouraging
-        - avoid deterministic predictions
-        - explain both each card and the spread as a whole
+        Tone: warm, reflective, not fear-based. No absolute predictions.
 
         {extra_line}
-
-        Maximum 220 words, and dedicate most of words to the final interpretation.
-        IMPORTANT:
-        Return the interpretation in Persian.
 
         Cards drawn:
         {cards_text}
@@ -1397,17 +1420,17 @@ def stars():
 # -----------------------------
 # HAFEZ
 # -----------------------------
-@app.route('/hafez')
+@app.route("/hafez")
 def hafez():
     goal = request.args.get("goal")
+    tgid = request.args.get("tgid", type=int)
+    lang = resolve_request_lang(tgid)
 
-    r = requests.get('https://ganjgah.ir/api/ganjoor/hafez/faal')
-
+    r = requests.get("https://ganjgah.ir/api/ganjoor/hafez/faal")
     if r.status_code != 200:
         return jsonify({"error": "Failed to fetch poem"}), 502
 
     data = r.json()
-
     poem = {
         "poem": data.get("plainText"),
         "summary": data.get("poemSummary"),
@@ -1415,41 +1438,44 @@ def hafez():
             verse["text"]
             for verse in data.get("verses", [])
             if verse.get("text") is not None
-        ]
+        ],
     }
-    prompt = f"""
-                با توجه به فضای معنایی این شعر و پیام‌های پنهان در ابیات، یک فال حافظ برایم بگیر.
-                {f'هدف از گرفتن فال {goal} است'  if goal else ''}
-                دستورالعمل‌ها:
-                - شعر را نقل نکن.
-                - ابیات را جداگانه تحلیل نکن.
-                - فقط نتیجهٔ فال را بده.
-                - فال باید لحن عرفانی، امیدوارکننده و کمی رمزآلود داشته باشد.
-                - فال باید دربارهٔ مسیر، نیت، گره‌ها، گشایش‌ها و حالِ درونی صحبت کند.
-                - فال نباید شامل پیش‌گویی قطعی باشد.
-                - فال باید کوتاه، روان و قابل فهم باشد.
-                - حداکثر 120 کلمه.
 
-                شعر:
-                {poem}
+    goal_line = ""
+    if goal:
+        goal_line = f"The querent's intention/topic is: {goal}."
+
+    if lang == "en":
+        prompt = f"""
+            You write a Hafez-style fortune based on the meaning of this Persian poem.
+            Do not quote the poem line by line. Do not analyze each couplet separately.
+            Give only the fortune result: path, intention, knots, openings, inner state.
+            Mystical, hopeful, slightly enigmatic. No absolute predictions. Max 120 words.
+
+            {language_instruction(lang)}
+            {goal_line}
+
+            Poem data (Persian source — interpret, do not translate the whole poem unless helpful):
+            {poem}
+            """
+    else:
+        prompt = f"""
+            با توجه به فضای معنایی این شعر و پیام‌های پنهان در ابیات، یک فال حافظ بگیر.
+            شعر را نقل نکن. ابیات را جداگانه تحلیل نکن. فقط نتیجهٔ فال را بده.
+            لحن عرفانی، امیدوارکننده و کمی رمزآلود. بدون پیش‌گویی قطعی. حداکثر ۱۲۰ کلمه.
+
+            {language_instruction(lang)}
+            {f'هدف از گرفتن فال: {goal}' if goal else ''}
+
+            شعر:
+            {poem}
             """
 
-
-    ai_faal = fetchingGroq(
-        model=groqModels[1],
-        prompt=prompt,
-        vision=False
-    )
-
-    tgid = request.args.get("tgid", type=int)
-    if tgid:
-        user = Profile.query.filter_by(tgid=tgid).first()
-        if user and user.use_hafez():
-            db.session.commit()
-
+    ai_faal = fetchingGroq(model=groqModels[1], prompt=prompt, vision=False)
     return jsonify({
         "poem": poem,
-        "ai_faal": ai_faal
+        "ai_faal": ai_faal,
+        "lang": lang,
     })
 # -----------------------------
 # Credential Check
