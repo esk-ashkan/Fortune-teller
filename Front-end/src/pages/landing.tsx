@@ -92,7 +92,6 @@ function Landing() {
 
       if (response.data.language === "fa" || response.data.language === "en") {
         setStoredLang(response.data.language);
-        void i18n.changeLanguage(response.data.language);
       }
 
       localStorage.setItem("tgid", String(user.id));
@@ -101,14 +100,12 @@ function Landing() {
       }
     } catch (err) {
       console.error(err);
-      setUserError(
-        t("landing.serverError")
-      );
+      setUserError(i18n.t("landing.serverError"));
       localStorage.setItem("tgid", String(user.id));
     } finally {
       setLoadingUser(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
@@ -118,15 +115,13 @@ function Landing() {
       tg?.ready?.();
       setTgUser(user);
       setMounted(true);
-
       localStorage.setItem("tgid", String(user.id));
       if (user.username) localStorage.setItem("tg_username", user.username);
       if (user.first_name) localStorage.setItem("tg_first_name", user.first_name);
       if (user.last_name != null) {
         localStorage.setItem("tg_last_name", user.last_name || "");
       }
-
-      fetchUser(user);
+      void fetchUser(user);
       return;
     }
 
@@ -134,22 +129,20 @@ function Landing() {
     if (tgid) {
       const fallback: TgUser = {
         id: Number(tgid),
-        first_name: localStorage.getItem("tg_first_name") || `user-${Number(tgid)}`,
+        first_name: localStorage.getItem("tg_first_name") || `user-${tgid}`,
         last_name: localStorage.getItem("tg_last_name") || undefined,
         username: localStorage.getItem("tg_username") || undefined,
       };
       setTgUser(fallback);
       setMounted(true);
-      fetchUser(fallback); 
+      void fetchUser(fallback);
       return;
     }
 
     setMounted(true);
     setLoadingUser(false);
-    setUserError(
-      t("landing.connecting")
-    );
-  }, [fetchUser, t]);
+    setUserError(i18n.t("landing.noTelegram"));
+  }, []);
 
     const displayName =
     thisUser?.username ||
