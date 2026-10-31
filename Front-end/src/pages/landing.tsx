@@ -70,8 +70,6 @@ function Landing() {
 
   const { t } = useTranslation();
 
-  setUserError(t("landing.serverError"));
-  setUserError(t("landing.noTelegram"));
 
   const go = (path: string) => {
     const tgid = tgUser?.id || Number(localStorage.getItem("tgid")) || null;
@@ -110,7 +108,7 @@ function Landing() {
     } finally {
       setLoadingUser(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
@@ -151,7 +149,7 @@ function Landing() {
     setUserError(
       t("landing.connecting")
     );
-  }, [fetchUser]);
+  }, [fetchUser, t]);
 
     const displayName =
     thisUser?.username ||
