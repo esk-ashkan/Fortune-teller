@@ -1029,21 +1029,8 @@ def tarot():
     errors = []
 
     try:
-        response = mistral_api(prompt=base_prompt)
-        if response:
-            return jsonify({
-                "interpretation": response,
-                "cards": cards_list,
-                "provider": "mistral"
-            })
-        errors.append("Mistral returned empty response")
-    except Exception as e:
-        logger.warning("Mistral failed: %s", str(e))
-        errors.append(f"Mistral: {str(e)}")
-
-    try:
         response = fetchingGroq(
-            model=groqModels[4],
+            model=groqModels[1],
             prompt=base_prompt,
             vision=False,
             tarot=True,
@@ -1058,7 +1045,7 @@ def tarot():
     except Exception as e:
         logger.warning("Groq failed: %s", str(e))
         errors.append(f"Groq: {str(e)}")
-    
+
     try:
         response = gemini_api(prompt=base_prompt)
         if response:
@@ -1071,6 +1058,20 @@ def tarot():
     except Exception as e:
         logger.warning("Gemini failed: %s", str(e))
         errors.append(f"Gemini: {str(e)}")
+    
+
+    try:
+        response = mistral_api(prompt=base_prompt)
+        if response:
+            return jsonify({
+                "interpretation": response,
+                "cards": cards_list,
+                "provider": "mistral"
+            })
+        errors.append("Mistral returned empty response")
+    except Exception as e:
+        logger.warning("Mistral failed: %s", str(e))
+        errors.append(f"Mistral: {str(e)}")
 
     logger.error("All tarot providers failed: %s", errors)
     return jsonify({
@@ -1477,6 +1478,7 @@ def hafez():
         "ai_faal": ai_faal,
         "lang": lang,
     })
+
 # -----------------------------
 # Credential Check
 # -----------------------------
