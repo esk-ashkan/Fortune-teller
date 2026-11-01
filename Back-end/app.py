@@ -1284,7 +1284,7 @@ def stars():
         user = Profile.query.filter_by(tgid=tgid).first()
         if not user:
             return jsonify({"error": "User not found"}), 404
-        STARS_PRICE = 1000 
+        
         can_use = user.credit >= STARS_PRICE
         if not can_use:
             return jsonify({"error": "اعتبار کافی نیست."}), 403
@@ -1431,7 +1431,6 @@ def stars():
         }), 502
 
     if user is not None:
-        STARS_PRICE = 1000
         if not user.decrease_credit(STARS_PRICE):
             return jsonify({"error": "اعتبار کافی نیست."}), 403
         db.session.commit()
