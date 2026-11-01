@@ -1096,6 +1096,9 @@ def coffee():
     file = files[0]
     name = names[0] if names else f"coffee_{int(time.time())}"
 
+    tgid = request.args.get("tgid", type=int)
+    lang = resolve_request_lang(tgid)
+
     # ---------- 1) Basic file validation ----------
     ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
     MAX_BYTES = 3 * 1024 * 1024  # 3MB
@@ -1103,16 +1106,16 @@ def coffee():
     mimetype = (file.mimetype or "").lower()
     if mimetype not in ALLOWED:
         return jsonify({
-            "error": "فرمت تصویر مجاز نیست. فقط jpg، png یا webp."
+            "error": "فرمت تصویر مجاز نیست. فقط jpg، png یا webp." if lang == "fa" else "Image format not supported. Only JPG, PNG, or WebP are allowed."
         }), 400
 
     file.stream.seek(0, 2)
     size = file.stream.tell()
     file.stream.seek(0)
     if size <= 0:
-        return jsonify({"error": "فایل تصویر خالی است."}), 400
+        return jsonify({"error": "فایل تصویر خالی است." if lang == "fa" else "File is empty"}), 400
     if size > MAX_BYTES:
-        return jsonify({"error": "حجم تصویر بیش از ۳ مگابایت است."}), 400
+        return jsonify({"error": "حجم تصویر بیش از ۳ مگابایت است." if lang == "fa" else "Image is larger than 3MB"}), 400
 
     # ---------- 2) Permission check ----------
     if tgid:
@@ -1140,12 +1143,11 @@ def coffee():
         }), 400
 
     # ---------- 4) Upload to Cloudinary (compressed) ----------
-    prompt = """
-                این تصویر کف فنجان قهوه است.
-                یک فال قهوه کوتاه، روان و امیدبخش به زبان فارسی بنویس.
-                فقط بر اساس شکل‌ها و الگوهای قابل مشاهده در تصویر تفسیر کن.
-                ادعاهای قطعی درباره آینده نکن.
-                حداکثر ۱۲۰ کلمه.
+    prompt = f"""
+                This is an image of the bottom of a coffee cup.
+                Write a short, flowing, hopeful coffee-cup reading in {lang}.
+                Base your interpretation only on the shapes and patterns visible in the image.
+                Don’t make definite claims about the future. Keep it under 120 words.
             """
 
     errors = []
@@ -1231,7 +1233,7 @@ def coffee():
     if not interpretation:
         logger.error("-----> All coffee-reading providers failed: %s", errors)
         return jsonify({
-            "error": "خواندن فال قهوه الان ممکن نیست. کمی بعد دوباره تلاش کنید.",
+            "error": "خواندن فال قهوه الان ممکن نیست. کمی بعد دوباره تلاش کنید." if lang == "fa" else "Please Try again in a few minutes later",
             "details": errors,
         }), 502
 
@@ -1261,6 +1263,7 @@ def stars():
     lat = request.args.get("lat", type=float)
     long = request.args.get("long", type=float)
     tgid = request.args.get("tgid", type=int)
+    lang = resolve_request_lang(tgid)
     city_name = request.args.get("city") or "موقعیت انتخاب‌شده"
 
     if lat is None or long is None:
@@ -1329,8 +1332,9 @@ def stars():
     if phase:
         sky_facts["moon_phase"] = MOON_FA.get(str(phase).upper(), phase)
     
-    if sun_sign_fa:
-        prompt = f"""
+    if lang == "fa":
+        if sun_sign_fa:
+            prompt = f"""
             تو یک روایت‌گر طالع به زبان فارسی هستی.
 
             کاربر متولد برج {sun_sign_fa or "نامشخص"} است.
@@ -1350,26 +1354,58 @@ def stars():
             یک توصیه
             - حداکثر ۱۵۰ کلمه
             """
-    else:
-        prompt = f"""
-            تو یک روایت‌گر لطیف طالع و آسمان هستی.
-            بر اساس این دادههای نجومی، یک متن کوتاه فارسی بنویس.
+        else:
+            prompt = f"""
+                تو یک روایت‌گر لطیف طالع و آسمان هستی.
+                بر اساس این دادههای نجومی، یک متن کوتاه فارسی بنویس.
 
-            دادهها:
+                دادهها:
+                {sky_facts}
+
+                قوانین:
+                - لحنی گرم، عرفانی و امیدبخش داشته باش
+                - پیشگویی قطعی نکن
+                - از ترس و اغراق پرهیز کن
+                - ساختار:
+                1) حال کلی آسمان
+                2) انرژی روز
+                3) یک توصیه کوتاه
+                - حداکثر 140 کلمه
+                - فقط فارسی بنویس
+                """
+    elif lang == "en":
+        if sun_sign:
+            prompt = f"""
+            The user was born under the sign of {sun_sign_fa or "unknown"}.
+            Today's sky data:
             {sky_facts}
 
-            قوانین:
-            - لحنی گرم، عرفانی و امیدبخش داشته باش
-            - پیشگویی قطعی نکن
-            - از ترس و اغراق پرهیز کن
-            - ساختار:
-            1) حال کلی آسمان
-            2) انرژی روز
-            3) یک توصیه کوتاه
-            - حداکثر 140 کلمه
-            - فقط فارسی بنویس
+            Mandatory instructions:
+            - Do not make definite predictions.
+            - Use only these headings:
+                Overall outlook
+                Energy of the day
+                One recommendation
+            - Maximum 150 words.
             """
+    else:
+        prompt = f"""
+            You are a gentle narrator of horoscopes and the sky.
+            Based on this astronomical data, write a short text in Persian.
 
+            Data:
+            {sky_facts}
+
+            Rules:
+            - Use a warm, mystical, and hopeful tone.
+            - Do not make definite predictions.
+            - Avoid fear and exaggeration.
+            - Structure:
+            1) Overall state of the sky
+            2) Energy of the day
+            3) One brief recommendation
+            - Maximum 140 words.
+            """
     interpretation = None
     provider = None
     errors = []
