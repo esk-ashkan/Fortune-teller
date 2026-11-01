@@ -442,7 +442,12 @@ def normalize_lang(value) -> str:
 
 def resolve_request_lang(tgid=None) -> str:
     """Priority: query/body lang → profile.language → fa"""
-    raw = request.args.get("lang") or request.args.get("language")
+    raw = (
+        request.args.get("lang")
+        or request.args.get("language")
+        or request.form.get("lang")
+        or request.form.get("language")
+    )
     if request.is_json:
         data = request.get_json(silent=True) or {}
         raw = raw or data.get("lang") or data.get("language")
@@ -1097,11 +1102,8 @@ def coffee():
     name = names[0] if names else f"coffee_{int(time.time())}"
 
     tgid = request.form.get("tgid", type=int) or request.args.get("tgid", type=int)
-    lang = (
-        normalize_lang(request.form.get("lang") or request.args.get("lang"))
-        if (request.form.get("lang") or request.args.get("lang"))
-        else resolve_request_lang(tgid)
-    )
+    lang_raw = request.form.get("lang") or request.args.get("lang")
+    lang = normalize_lang(lang_raw) if lang_raw else resolve_request_lang(tgid)
 
     # ---------- 1) Basic file validation ----------
     ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
@@ -1148,12 +1150,12 @@ def coffee():
 
     # ---------- 4) Upload to Cloudinary (compressed) ----------
     prompt = f"""
-                This is a photo of coffee grounds in a cup.
-                Write a short, flowing, hopeful coffee-cup reading.
-                Base it only on visible shapes/patterns.
-                No definite predictions about the future. Max 120 words.
+            This is a photo of coffee grounds in a cup.
+            Write a short, flowing, hopeful coffee-cup reading.
+            Base it only on visible shapes and patterns.
+            No definite predictions. Max 120 words.
 
-                {language_instruction(lang)}
+            {language_instruction(lang)}
             """
 
     errors = []
@@ -1282,8 +1284,7 @@ def stars():
         user = Profile.query.filter_by(tgid=tgid).first()
         if not user:
             return jsonify({"error": "User not found"}), 404
-        # For now reuse credit; later you can add remained_stars
-        STARS_PRICE = 1000  # adjust
+        STARS_PRICE = 1000 
         can_use = user.credit >= STARS_PRICE
         if not can_use:
             return jsonify({"error": "اعتبار کافی نیست."}), 403
@@ -1337,7 +1338,7 @@ def stars():
     phase = sky_facts.get("moon_phase")
     if phase and lang == "fa":
         sky_facts["moon_phase"] = MOON_FA.get(str(phase).upper(), phase)
-    
+
     if lang == "fa":
         if sun_sign_fa:
             prompt = f"""
@@ -1386,15 +1387,15 @@ def stars():
             "The user has not set a birth sign."
         )
         prompt = f"""
-                You are a gentle sky narrator.
-                {sign_line}
-                Today's sky data:
-                {sky_facts}
+            You are a gentle sky narrator.
+            {sign_line}
+            Today's sky data:
+            {sky_facts}
 
-                {language_instruction("en")}
-                - No definite predictions.
-                - Headings only: Overall outlook / Energy of the day / One recommendation
-                - Max 150 words.
+            {language_instruction("en")}
+            - No definite predictions.
+            - Headings only: Overall outlook / Energy of the day / One recommendation
+            - Max 150 words.
             """
     interpretation = None
     provider = None
