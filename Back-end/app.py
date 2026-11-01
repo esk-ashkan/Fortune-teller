@@ -1096,8 +1096,12 @@ def coffee():
     file = files[0]
     name = names[0] if names else f"coffee_{int(time.time())}"
 
-    tgid = request.args.get("tgid", type=int)
-    lang = resolve_request_lang(tgid)
+    tgid = request.form.get("tgid", type=int) or request.args.get("tgid", type=int)
+    lang = (
+        normalize_lang(request.form.get("lang") or request.args.get("lang"))
+        if (request.form.get("lang") or request.args.get("lang"))
+        else resolve_request_lang(tgid)
+    )
 
     # ---------- 1) Basic file validation ----------
     ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
@@ -1144,10 +1148,12 @@ def coffee():
 
     # ---------- 4) Upload to Cloudinary (compressed) ----------
     prompt = f"""
-                This is an image of the bottom of a coffee cup.
-                Write a short, flowing, hopeful coffee-cup reading in {lang}.
-                Base your interpretation only on the shapes and patterns visible in the image.
-                Don’t make definite claims about the future. Keep it under 120 words.
+                This is a photo of coffee grounds in a cup.
+                Write a short, flowing, hopeful coffee-cup reading.
+                Base it only on visible shapes/patterns.
+                No definite predictions about the future. Max 120 words.
+
+                {language_instruction(lang)}
             """
 
     errors = []
@@ -1329,7 +1335,7 @@ def stars():
     }
 
     phase = sky_facts.get("moon_phase")
-    if phase:
+    if phase and lang == "fa":
         sky_facts["moon_phase"] = MOON_FA.get(str(phase).upper(), phase)
     
     if lang == "fa":
@@ -1374,37 +1380,21 @@ def stars():
                 - فقط فارسی بنویس
                 """
     elif lang == "en":
-        if sun_sign:
-            prompt = f"""
-            The user was born under the sign of {sun_sign_fa or "unknown"}.
-            Today's sky data:
-            {sky_facts}
-
-            Mandatory instructions:
-            - Do not make definite predictions.
-            - Use only these headings:
-                Overall outlook
-                Energy of the day
-                One recommendation
-            - Maximum 150 words.
-            """
-    else:
+        sign_line = (
+            f"The user was born under the sign of {sun_sign}."
+            if sun_sign else
+            "The user has not set a birth sign."
+        )
         prompt = f"""
-            You are a gentle narrator of horoscopes and the sky.
-            Based on this astronomical data, write a short text in Persian.
+                You are a gentle sky narrator.
+                {sign_line}
+                Today's sky data:
+                {sky_facts}
 
-            Data:
-            {sky_facts}
-
-            Rules:
-            - Use a warm, mystical, and hopeful tone.
-            - Do not make definite predictions.
-            - Avoid fear and exaggeration.
-            - Structure:
-            1) Overall state of the sky
-            2) Energy of the day
-            3) One brief recommendation
-            - Maximum 140 words.
+                {language_instruction("en")}
+                - No definite predictions.
+                - Headings only: Overall outlook / Energy of the day / One recommendation
+                - Max 150 words.
             """
     interpretation = None
     provider = None
@@ -1529,10 +1519,8 @@ def check():
     if not tgid:
         return jsonify({"error": "tgid is required"}), 400
 
-    if horoscopy_model not in ["hafez", "coffee", "tarot"]:
-        return jsonify({
-            "error": "Invalid or missing model. Use hafez, coffee, or tarot."
-        }), 400
+    if horoscopy_model not in ["hafez", "coffee", "tarot", "stars"]:
+        return jsonify({"error": "Invalid or missing model..."}), 400
 
     user = Profile.query.filter_by(tgid=tgid).first()
     if not user:
