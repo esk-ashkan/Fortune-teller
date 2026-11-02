@@ -1093,7 +1093,6 @@ def coffee():
 
     files = request.files.getlist("images")
     names = request.form.getlist("images_name")
-    tgid = request.form.get("tgid", type=int)
 
     if not files:
         return jsonify({"error": "No images uploaded"}), 400

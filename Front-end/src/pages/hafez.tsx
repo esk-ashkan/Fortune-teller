@@ -6,6 +6,7 @@ import { FaBookOpen, FaStar, FaMoon, FaFeatherAlt } from "react-icons/fa";
 import { FaFeatherPointed } from "react-icons/fa6";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getStoredLang } from "../lib/lang";
 import "./hafez.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
@@ -103,7 +104,7 @@ function Hafez() {
 
       try {
         const response = await axios.get(`${API}/hafez`, {
-          params: { goal, tgid },
+          params: { goal, tgid, lang: getStoredLang(), },
           timeout: 120000,
         });
         setPoem(response.data.poem?.poem ?? response.data.poem ?? "");

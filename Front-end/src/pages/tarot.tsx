@@ -9,6 +9,7 @@ import RevealFortune from "./revealfortune";
 import TarotLoading from "./TarotLoading";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getStoredLang } from "../lib/lang";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -132,6 +133,7 @@ function Tarot() {
             cards_list: newSelectedCards,
             kindOfHoroscopy: kindOfHoroscopy,
             tgid,
+            lang: getStoredLang(),
           },
           timeout: 120000,
         });

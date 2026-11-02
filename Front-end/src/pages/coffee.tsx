@@ -4,6 +4,7 @@ import { Button } from "react-bootstrap";
 import axios from "axios";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getStoredLang } from "../lib/lang";
 import "./Coffee.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
@@ -82,6 +83,7 @@ export default function Coffee() {
     formData.append("images", selectedImage);
     formData.append("images_name", `coffee_${Date.now()}`);
     formData.append("tgid", String(tgid));
+    formData.append("lang", getStoredLang());
 
     setIsLoading(true);
     setErrorText("");

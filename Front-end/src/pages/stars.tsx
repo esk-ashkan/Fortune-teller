@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoIosArrowRoundBack } from "react-icons/io";
+import { getStoredLang } from "../lib/lang";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -161,6 +162,7 @@ export default function Stars() {
           long: selectedCity.longitude,
           city: selectedCity.name,
           tgid,
+          lang: getStoredLang(),
         },
         timeout: 60000,
       });
