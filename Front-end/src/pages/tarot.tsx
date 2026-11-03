@@ -10,6 +10,7 @@ import TarotLoading from "./TarotLoading";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getStoredLang } from "../lib/lang";
+import { useTranslation } from "react-i18next";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -45,7 +46,8 @@ function Tarot() {
     type: "info" | "warning" | "danger";
     text: string;
   } | null>(null);
-
+  const dir = getStoredLang() === "fa" ? "rtl" : "ltr";
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const tgid =
@@ -96,12 +98,12 @@ function Tarot() {
 
     (async () => {
       setIsLoading(true);
-      setBanner({ type: "info", text: "در حال بررسی اعتبار..." });
+      setBanner({ type: "info", text: t("tarot.checking") });
 
       if (!tgid) {
         setBanner({
           type: "danger",
-          text: "شناسه کاربر یافت نشد. از ربات وارد شوید.",
+          text: t("tarot.noTgid"),
         });
         setIsLoading(false);
         return;
@@ -110,7 +112,7 @@ function Tarot() {
       const access = await checkAccess("tarot", tgid);
 
       if (access.status === "error") {
-        setBanner({ type: "danger", text: access.message });
+        setBanner({ type: "danger", text: t("common.serverError") });
         setIsLoading(false);
         return;
       }
@@ -118,7 +120,7 @@ function Tarot() {
       if (access.status === "denied") {
         setBanner({
           type: "warning",
-          text: "اعتبار یا سهمیه فال تاروت کافی نیست.",
+          text: t("tarot.denied"),
         });
         setFortuneText("");
         setIsLoading(false);
@@ -143,7 +145,7 @@ function Tarot() {
         console.error(err);
         setBanner({
           type: "danger",
-          text: "خطا در دریافت فال. دوباره تلاش کنید.",
+          text: t("tarot.fetchError"),
         });
       } finally {
         setIsLoading(false);
@@ -152,7 +154,7 @@ function Tarot() {
   };
 
   return (
-    <div dir="rtl" className="tarot-bg">
+    <div dir={dir} className="tarot-bg">
       <Container className="py-3 py-md-4" fluid="sm">
         <div className="return-wrapper mb-2">
           <IoIosArrowRoundBack
@@ -176,7 +178,7 @@ function Tarot() {
                     navigate("/payments", { state: { tgid } })
                   }
                 >
-                  خرید پکیج
+                  {t("common.buyPackage")}
                 </button>
               </div>
             )}
@@ -184,12 +186,10 @@ function Tarot() {
         )}
 
         <div className="tarot-header">
-          <h2 className="tarot-title">فال تاروت</h2>
-          <p className="tarot-subtitle">رویای کهنِ رنگ و رمز</p>
+          <h2 className="tarot-title">{t("tarot.title")}</h2>
+          <p className="tarot-subtitle">{t("tarot.subtitle")}</p>
           <p className="tarot-desc">
-            تعداد کارت را انتخاب کنید، سپس از بین کارت‌های نمایش داده شده روی
-            هر کارت کلیک کنید. وقتی تعداد انتخاب‌ها به پایان رسید، زمان تفسیر
-            فرا می‌رسد.
+            {t("tarot.desc")}
           </p>
 
           <div className="tarot-divider"></div>
@@ -201,11 +201,11 @@ function Tarot() {
               defaultValue=""
               disabled={isLoading}
             >
-              <option value="">لطفا ابتدا تعداد کارت‌ها را انتخاب کنید</option>
-              <option value="1">فال تاروت ۱ کارته</option>
-              <option value="3">فال تاروت ۳ کارته</option>
-              <option value="5">فال تاروت ۵ کارته</option>
-              <option value="7">فال تاروت ۷ کارته</option>
+              <option value="">{t("tarot.selectCount")}</option>
+              <option value="1">{t("tarot.cards1")}</option>
+              <option value="3">{t("tarot.cards3")}</option>
+              <option value="5">{t("tarot.cards5")}</option>
+              <option value="7">{t("tarot.cards7")}</option>
             </Form.Select>
 
             <Form.Select
@@ -214,16 +214,16 @@ function Tarot() {
               defaultValue=""
               disabled={isLoading}
             >
-              <option value="">هدف اصلی این فال</option>
-              <option value="عشقی">عشقی</option>
-              <option value="کاری">کاری</option>
-              <option value="مالی">مالی</option>
-              <option value="سایر">سایر</option>
+              <option value="">{t("tarot.selectGoal")}</option>
+              <option value="عشقی">{t("tarot.goalLove")}</option>
+              <option value="کاری">{t("tarot.goalWork")}</option>
+              <option value="مالی">{t("tarot.goalMoney")}</option>
+              <option value="سایر">{t("tarot.goalOther")}</option>
             </Form.Select>
 
             <div className="tarot-info">
               <div className="tarot-info-box">
-                <div className="tarot-info-label">پیشرفت انتخاب</div>
+                <div className="tarot-info-label">{t("tarot.progress")}</div>
                 <div className="tarot-info-value">
                   {maxNumOfCards
                     ? `${selectedCount} / ${maxNumOfCards}`
@@ -231,7 +231,7 @@ function Tarot() {
                 </div>
               </div>
               <div className="tarot-info-box">
-                <div className="tarot-info-label">تعداد کارت‌های نمایشی</div>
+                <div className="tarot-info-label">{t("tarot.handSize")}</div>
                 <div className="tarot-info-value">{cardsList.length}</div>
               </div>
             </div>
@@ -252,7 +252,7 @@ function Tarot() {
           ))}
         </div>
 
-        <div className="tarot-footer">✨ نقشِ کاغذِ کهن، پیامِ ستارگان</div>
+        <div className="tarot-footer">{t("tarot.footer")}</div>
 
         <RevealFortune
           initiatedShow={revealFortune}

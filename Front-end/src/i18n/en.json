@@ -28,6 +28,65 @@
     "userFallback": "User"
   },
   "common": {
-    "back": "Back"
+    "back": "Back",
+    "retry": "Retry",
+    "buyPackage": "Buy package",
+    "loading": "Please wait...",
+    "noTgid": "User id not found. Please open the app from the bot.",
+    "serverError": "Server did not respond. Please try again."
+  },
+  "tarot": {
+    "title": "Tarot",
+    "subtitle": "An old dream of color and symbol",
+    "desc": "Choose how many cards, then tap cards from the spread. When your selection is complete, the reading begins.",
+    "selectCount": "First choose the number of cards",
+    "cards1": "1-card reading",
+    "cards3": "3-card reading",
+    "cards5": "5-card reading",
+    "cards7": "7-card reading",
+    "selectGoal": "Main focus of this reading",
+    "goalLove": "Love",
+    "goalWork": "Work",
+    "goalMoney": "Money",
+    "goalOther": "Other",
+    "progress": "Selection progress",
+    "handSize": "Cards shown",
+    "checking": "Checking access...",
+    "denied": "Not enough credit or Tarot quota.",
+    "userNotFound": "The Username is invalid, Please Reopen the Page",
+    "fetchError": "Could not load the reading. Please try again.",
+    "footer": "✨ Old paper, star-borne message"
+  },
+  "hafez": {
+    "checking": "Checking access...",
+    "loading": "Drawing a verse...",
+    "denied": "Not enough credit or Hafez quota.",
+    "fetchError": "Could not load the reading. Please try again.",
+    "title": "Hafez of Shiraz",
+    "poemHeading": "The verse",
+    "faalHeading": "The reading",
+    "selectGoal": "Intention / topic",
+    "goalLove": "Love",
+    "goalWork": "Work",
+    "goalMoney": "Money",
+    "goalDaily": "Daily",
+    "goalOther": "Other",
+    "quote": "O Hafez of Shiraz, keeper of every secret…",
+    "footer": "From the wine of love that is Hafez’s, a single sip is enough for us…"
+  },
+  "coffee": {
+    "checking": "Checking access...",
+    "reading": "Checking the image and reading the cup...",
+    "denied": "Not enough coffee quota or credit.",
+    "noTgid": "User id not found. Open the app from the home screen / bot."
+  },
+  "stars": {
+    "checking": "Checking access...",
+    "denied": "Not enough credit.",
+    "noTgid": "User id not found. Please open the app from the bot.",
+    "saveBirth": "Save birth date",
+    "birthSaved": "Birth date saved.",
+    "birthNeedLogin": "Please open the app from the bot first.",
+    "birthNeedDate": "Enter your birth date."
   }
 }

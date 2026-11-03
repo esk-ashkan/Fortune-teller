@@ -7,6 +7,7 @@ import { FaFeatherPointed } from "react-icons/fa6";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getStoredLang } from "../lib/lang";
+import { useTranslation } from "react-i18next";
 import "./hafez.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
@@ -56,6 +57,8 @@ function Hafez() {
   const [error, setError] = useState("");
   const [denied, setDenied] = useState(false);
   const [goal, setGoal] = useState<string | null>("");
+  const dir = getStoredLang() === "fa" ? "rtl" : "ltr";
+  const { t } = useTranslation();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,7 +80,7 @@ function Hafez() {
 
       if (!tgid) {
         if (!cancelled) {
-          setError("شناسه کاربر یافت نشد. لطفاً از طریق ربات وارد شوید.");
+          setError(t("common.noTgid"));
           setChecking(false);
           setLoading(false);
         }
@@ -97,7 +100,7 @@ function Hafez() {
 
       if (access.status === "denied") {
         setDenied(true);
-        setError("اعتبار یا سهمیه فال حافظ کافی نیست.");
+        setError(t("hafez.denied"));
         setLoading(false);
         return;
       }
@@ -111,7 +114,7 @@ function Hafez() {
         setFaal(response.data.ai_faal ?? "");
       } catch (err) {
         console.log(err);
-        setError("خطا در دریافت فال. لطفاً دوباره تلاش کنید.");
+        setError(t("hafez.fetchError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -141,7 +144,7 @@ function Hafez() {
           <div className="hafez-loading-content">
             <FaFeatherAlt className="hafez-loading-icon" />
             <Spinner animation="grow" variant="warning" />
-            <p>{checking ? "در حال بررسی اعتبار..." : "در حال تفأل زدن..."}</p>
+            <p>{checking ? t("hafez.checking") : t("hafez.loading")}</p>
           </div>
         </div>
       </HafezWrapper>
@@ -160,11 +163,11 @@ function Hafez() {
                 navigate("/payments", { state: { tgid } })
               }
             >
-              خرید پکیج
+              {t("common.buyPackage")}
             </button>
           ) : (
             <button type="button" onClick={resetAndRetry}>
-              تلاش مجدد
+              {t("common.retry")}
             </button>
           )}
         </div>
@@ -174,14 +177,14 @@ function Hafez() {
 
   return (
     <HafezWrapper>
-      <Container className="hafez-container">
+      <Container className="hafez-container"  dir={dir}>
         <div className="hafez-header">
           <div className="hafez-header-decoration">
             <FaFeatherPointed className="hafez-header-icon" />
           </div>
           <h1 className="hafez-title">
             <FaBookOpen className="hafez-title-icon" />
-            فال حافظ
+              {t("hafez.title")}
             <FaStar className="hafez-title-star" />
           </h1>
           <div className="hafez-divider">
@@ -190,7 +193,7 @@ function Hafez() {
             <span></span>
           </div>
           <p className="hafez-subtitle">
-            &quot; ای حافظ شیرازی! تو محرم هر رازی!...&quot;
+            &quot;{t("hafez.title")}&quot;
           </p>
         </div>
 
@@ -202,12 +205,12 @@ function Hafez() {
               value={goal || ""}
             >
               <option value="" className="hafez-select-option1">
-                ابتدا نیت کنید و هدف اصلی این فال را انتخاب کنید
+                {t("hafez.selectGoal")}
               </option>
-              <option value="عشقی">❤️عشقی</option>
-              <option value="کاری">📈کاری</option>
-              <option value="مالی">💰مالی</option>
-              <option value="روزانه">🎯روزانه</option>
+              <option value="عشقی">❤️{t("hafez.goalLove")}</option>
+              <option value="کاری">📈{t("hafez.goalWork")}</option>
+              <option value="مالی">💰{t("hafez.goalMoney")}</option>
+              <option value="روزانه">🎯{t("hafez.goalDaily")}</option>
             </Form.Select>
           </div>
         </Row>
@@ -217,7 +220,7 @@ function Hafez() {
             <div className="hafez-poem-card">
               <div className="hafez-poem-header">
                 <FaFeatherAlt className="hafez-poem-icon" />
-                <h3>متن شعر</h3>
+                <h3>{t("hafez.poemHeading")}</h3>
               </div>
               <div className="hafez-poem-content">
                 {poem.split("\n").map((line, index) => (
@@ -235,7 +238,7 @@ function Hafez() {
             <div className="hafez-faal-card">
               <div className="hafez-faal-header">
                 <FaStar className="hafez-faal-icon" />
-                <h3>تعبیر و تفسیر</h3>
+                <h3>{t("hafez.faalHeading")}</h3>
               </div>
               <div className="hafez-faal-content">
                 {faal.split("\n").map((paragraph, index) => {
@@ -303,7 +306,7 @@ function Hafez() {
             ))}
           </div>
           <p className="hafez-footer-text">
-            &quot;زین میِ عشق، که حافظ راست، جرعه‌ای مارا بس ...&quot;
+            &quot{t("hafez.footer")}&quot;
           </p>
         </div>
       </Container>
