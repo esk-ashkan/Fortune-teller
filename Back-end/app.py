@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 from datetime import datetime, timezone
 from google import genai
 import cloudinary
@@ -23,6 +24,9 @@ from datetime import date
 # --------------------------------------------------
 load_dotenv()
 
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+INTERNAL_PAYMENT_SECRET = os.environ.get("INTERNAL_PAYMENT_SECRET", "")
+TG_API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}" if TELEGRAM_BOT_TOKEN else None
 # --------------------------------------------------
 # Variables
 # --------------------------------------------------
@@ -477,6 +481,7 @@ def language_instruction(lang: str) -> str:
         "- Do not mix languages.\n"
     )
 
+
 # -----------------------------
 # Models
 # -----------------------------
@@ -587,6 +592,7 @@ PACKAGES = {
         "description": "یک نوبت فال حافظ",
         "tab": "single",
         "amount_rial": 490_000,
+        "amount_stars": 49,
         "grant": {"remained_hafez": 1},
         "tab": "single",
     },
@@ -596,6 +602,7 @@ PACKAGES = {
         "description": "یک نوبت فال تاروت",
         "tab": "single",
         "amount_rial": 990_000,
+        "amount_stars": 99,
         "grant": {"remained_tarot": 1},
         "tab": "single",
     },
@@ -605,6 +612,7 @@ PACKAGES = {
         "description": "یک نوبت فال قهوه",
         "tab": "single",
         "amount_rial": 1_200_000,
+        "amount_stars": 120,
         "grant": {"remained_coffee": 1},
         "tab": "single",
     },
@@ -625,6 +633,7 @@ PACKAGES = {
         "description": "بسته کوچک حافظ",
         "tab": "pack",
         "amount_rial": 2_250_000,
+        "amount_stars": 225,
         "grant": {"remained_hafez": 5},
         "tab": "pack",
     },
@@ -634,6 +643,7 @@ PACKAGES = {
         "description": "به‌صرفه‌تر از تکی",
         "tab": "pack",
         "amount_rial": 4_200_000,
+        "amount_stars": 420,
         "grant": {"remained_hafez": 10},
         "tab": "pack",
     },
@@ -643,6 +653,7 @@ PACKAGES = {
         "description": "بسته کوچک تاروت",
         "tab": "pack",
         "amount_rial": 4_750_000,
+        "amount_stars": 475,
         "grant": {"remained_tarot": 5},
         "tab": "pack",
     },
@@ -652,6 +663,7 @@ PACKAGES = {
         "description": "بسته متوسط تاروت",
         "tab": "pack",
         "amount_rial": 9_500_000,
+        "amount_stars": 950,
         "grant": {"remained_tarot": 10},
         "tab": "pack",
     },
@@ -661,6 +673,7 @@ PACKAGES = {
         "description": "بسته کوچک قهوه",
         "tab": "pack",
         "amount_rial": 6_000_000,
+        "amount_stars": 600,
         "grant": {"remained_coffee": 5},
         "tab": "pack",
     },
@@ -670,6 +683,7 @@ PACKAGES = {
         "description": "۱ حافظ + ۱ تاروت + ۱ قهوه",
         "tab": "pack",
         "amount_rial": 2_490_000,
+        "amount_stars": 249,
         "grant": {
             "remained_hafez": 1,
             "remained_tarot": 1,
@@ -685,6 +699,7 @@ PACKAGES = {
         "description": "۷ حافظ + ۷ تاروت",
         "tab": "period",
         "amount_rial": 9_000_000,
+        "amount_stars": 900,
         "grant": {"remained_hafez": 7, "remained_tarot": 7},
         "tab": "period",
     },
@@ -694,6 +709,7 @@ PACKAGES = {
         "description": "۳۰ حافظ + ۳۰ تاروت",
         "tab": "period",
         "amount_rial": 2_900_000,
+        "amount_stars": 290,
         "grant": {"remained_hafez": 30, "remained_tarot": 30},
         "tab": "period",
     },
@@ -717,6 +733,7 @@ PACKAGES = {
         "description": "افزایش اعتبار داخلی به میزان ۳ میلیون",
         "tab": "credit",
         "amount_rial": 3_000_000,
+        "amount_stars": 300,
         "grant": {"credit": 3_000_000},
     },
     "credit_500k": {
@@ -725,6 +742,7 @@ PACKAGES = {
         "description": "شارژ بیشتر با تخفیف جزئی",
         "tab": "credit",
         "amount_rial": 5_000_000,
+        "amount_stars": 500,
         "grant": {"credit": 5_000_000},
     },
 }
@@ -1614,6 +1632,142 @@ def save_language():
 def keep_alive():
     logging.info("=====> I'm awake!")
     return "Success"
+
+# -----------------------------
+# Crypto Payment
+# -----------------------------
+@app.route("/payments/stars/create", methods=["POST"])
+def payments_stars_create():
+    """Create a Telegram Stars invoice link for the Mini App (openInvoice)."""
+    if not TELEGRAM_BOT_TOKEN:
+        return jsonify({"error": "TELEGRAM_BOT_TOKEN not configured"}), 503
+
+    data = request.get_json(silent=True) or {}
+    tgid = data.get("tgid")
+    package_id = data.get("package_id")
+
+    if not tgid or not package_id:
+        return jsonify({"error": "tgid and package_id are required"}), 400
+
+    pkg = PACKAGES.get(package_id)
+    if not pkg:
+        return jsonify({"error": "invalid package_id"}), 400
+
+    stars = pkg.get("amount_stars")
+    if not stars or int(stars) < 1:
+        return jsonify({"error": "package has no amount_stars"}), 400
+
+    user = Profile.query.filter_by(tgid=int(tgid)).first()
+    if not user:
+        return jsonify({"error": "User not found. Open app home first."}), 404
+
+    payload = json.dumps(
+        {"tgid": int(tgid), "package_id": package_id},
+        separators=(",", ":"),
+    )
+    if len(payload.encode("utf-8")) > 128:
+        return jsonify({"error": "payload too long"}), 400
+
+    title = str(pkg["title"])[:32]
+    description = str(pkg.get("description") or title)[:255]
+
+    try:
+        r = requests.post(
+            f"{TG_API}/createInvoiceLink",
+            json={
+                "title": title,
+                "description": description,
+                "payload": payload,
+                "provider_token": "",  # required empty for Stars
+                "currency": "XTR",
+                "prices": [{"label": title, "amount": int(stars)}],
+            },
+            timeout=30,
+        )
+        body = r.json()
+    except Exception as e:
+        logger.exception("createInvoiceLink failed")
+        return jsonify({"error": "telegram_error", "details": str(e)}), 502
+
+    if not body.get("ok"):
+        logger.error("createInvoiceLink rejected: %s", body)
+        return jsonify({"error": "invoice_failed", "details": body}), 502
+
+    invoice_link = body["result"]
+
+    inv = PaymentInvoice(
+        tgid=int(tgid),
+        package_id=package_id,
+        amount_rial=int(pkg.get("amount_rial") or 0),
+        status="PENDING_STARS",
+        payment_link=invoice_link,
+    )
+    db.session.add(inv)
+    db.session.commit()
+
+    return jsonify({
+        "ok": True,
+        "invoice_link": invoice_link,
+        "package_id": package_id,
+        "amount_stars": int(stars),
+    })
+
+@app.route("/payments/stars/complete", methods=["POST"])
+def payments_stars_complete():
+    """
+    Called by the bot after successful_payment.
+    Idempotent on charge_id.
+    """
+    data = request.get_json(silent=True) or {}
+
+    if not INTERNAL_PAYMENT_SECRET or data.get("secret") != INTERNAL_PAYMENT_SECRET:
+        return jsonify({"error": "forbidden"}), 403
+
+    tgid = data.get("tgid")
+    package_id = data.get("package_id")
+    charge_id = data.get("charge_id")
+
+    if not tgid or not package_id or not charge_id:
+        return jsonify({"error": "tgid, package_id, charge_id required"}), 400
+
+    if package_id not in PACKAGES:
+        return jsonify({"error": "invalid package_id"}), 400
+
+    existing = PaymentInvoice.query.filter_by(
+        payment_link=str(charge_id),
+        status="PAID_STARS",
+    ).first()
+    if existing:
+        return jsonify({"ok": True, "already": True})
+
+    user = Profile.query.filter_by(tgid=int(tgid)).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    try:
+        grant_package(user, package_id)
+
+        inv = PaymentInvoice(
+            tgid=int(tgid),
+            package_id=package_id,
+            amount_rial=int(PACKAGES[package_id].get("amount_rial") or 0),
+            status="PAID_STARS",
+            payment_link=str(charge_id),  
+            paid_at=datetime.now(timezone.utc),
+        )
+        
+        db.session.add(inv)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.exception("stars complete failed")
+        return jsonify({"error": "grant_failed", "details": str(e)}), 500
+
+    logger.info(
+        "Stars paid package=%s tgid=%s charge_id=%s",
+        package_id, tgid, charge_id,
+    )
+    return jsonify({"ok": True, "package_id": package_id})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
