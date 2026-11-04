@@ -1,16 +1,31 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Form from "react-bootstrap/Form";
-import { Button } from "react-bootstrap";
+import Button from "react-bootstrap/Button";
 import axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
 import { IoIosArrowRoundBack } from "react-icons/io";
-import { useNavigate, useLocation } from "react-router-dom";
-import { getStoredLang } from "../lib/lang";
 import { useTranslation } from "react-i18next";
-import "./Coffee.css";
+import { getStoredLang } from "../lib/lang";
+import { iranCities } from "../../iran_cities";
+import "./stars.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
-const MAX_BYTES = 3 * 1024 * 1024;
-const ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+export interface Cities {
+  name: string;
+  latitude: string;
+  longitude: string;
+  altitude?: number;
+}
+
+type City = {
+  name: string;
+  latitude: string | number;
+  longitude: string | number;
+  province?: string;
+  state?: string;
+  altitude?: number;
+};
 
 async function checkAccess(model: string, tgid: string | number, tries = 3) {
   for (let i = 0; i < tries; i++) {
@@ -28,208 +43,255 @@ async function checkAccess(model: string, tgid: string | number, tries = 3) {
   return { status: "error" as const };
 }
 
-export default function Coffee() {
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [fortuneText, setFortuneText] = useState("");
-  const [errorText, setErrorText] = useState("");
-  const [isDenied, setIsDenied] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [statusLine, setStatusLine] = useState("");
+export default function Stars() {
   const { t } = useTranslation();
   const dir = getStoredLang() === "fa" ? "rtl" : "ltr";
-
   const navigate = useNavigate();
   const location = useLocation();
   const tgid = location.state?.tgid || localStorage.getItem("tgid") || null;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const [province, setProvince] = useState("");
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [denied, setDenied] = useState(false);
+  const [result, setResult] = useState<{
+    interpretation?: string;
+    sky_facts?: Record<string, unknown>;
+    sun_sign?: string;
+    sun_sign_fa?: string;
+  } | null>(null);
 
-    const file = files[0];
+  const [birthDate, setBirthDate] = useState("");
+  const [sunSignFa, setSunSignFa] = useState<string | null>(null);
+  const [birthMsg, setBirthMsg] = useState("");
 
-    if (!ALLOWED.includes(file.type)) {
-      alert(t("coffee.badFormat"));
-      e.target.value = "";
+  const provinces = useMemo(
+    () => iranCities.map((p) => p.name).sort((a, b) => a.localeCompare(b, "fa")),
+    []
+  );
+
+const cities = useMemo(() => {
+  if (!province) return [] as City[];
+  const found = iranCities.find((p) => p.name === province);
+  return found?.cities ?? [];
+}, [province]);
+
+  const canSubmit = !!selectedCity && !loading;
+
+  const saveBirth = async () => {
+    if (!tgid) {
+      setBirthMsg(t("stars.birthNeedLogin"));
       return;
     }
-
-    if (file.size > MAX_BYTES) {
-      alert(t("coffee.tooLarge"));
-      e.target.value = "";
+    if (!birthDate) {
+      setBirthMsg(t("stars.birthNeedDate"));
       return;
     }
-
-    setSelectedImage(file);
-    setPreview(URL.createObjectURL(file));
-    setFortuneText("");
-    setErrorText("");
-    setIsDenied(false);
-    setStatusLine("");
+    try {
+      const res = await axios.post(`${API}/profile/birth`, {
+        tgid: Number(tgid),
+        birth_date: birthDate,
+      });
+      setSunSignFa(res.data.sun_sign_fa || res.data.sun_sign || null);
+      setBirthMsg(t("stars.birthSaved"));
+    } catch (e: unknown) {
+      const msg =
+        (e as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error || t("stars.birthError");
+      setBirthMsg(msg);
+    }
   };
 
-  const handleSendImage = async () => {
-    if (!selectedImage) return;
+  const handleReceive = async () => {
+    if (!selectedCity) return;
+
+    setLoading(true);
+    setError("");
+    setDenied(false);
+    setResult(null);
 
     if (!tgid) {
-      setIsDenied(false);
-      setErrorText(t("coffee.noTgid"));
+      setError(t("stars.noTgid"));
+      setLoading(false);
       return;
     }
 
-    const formData = new FormData();
-    formData.append("images", selectedImage);
-    formData.append("images_name", `coffee_${Date.now()}`);
-    formData.append("tgid", String(tgid));
-    formData.append("lang", getStoredLang());
-
-    setIsLoading(true);
-    setErrorText("");
-    setIsDenied(false);
-    setFortuneText("");
-    setStatusLine(t("coffee.checking"));
+    const access = await checkAccess("stars", tgid);
+    if (access.status === "error") {
+      setError(t("common.serverError"));
+      setLoading(false);
+      return;
+    }
+    if (access.status === "denied") {
+      setDenied(true);
+      setError(t("stars.denied"));
+      setLoading(false);
+      return;
+    }
 
     try {
-      const access = await checkAccess("coffee", tgid);
-
-      if (access.status === "error") {
-        setErrorText(t("common.serverError"));
-        setStatusLine("");
-        return;
-      }
-
-      if (access.status === "denied") {
-        setIsDenied(true);
-        setErrorText(t("coffee.denied"));
-        setStatusLine("");
-        return;
-      }
-
-      setStatusLine(t("coffee.reading"));
-
-      const response = await axios.post(`${API}/coffee`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        timeout: 120000,
+      const response = await axios.get(`${API}/stars`, {
+        params: {
+          lat: selectedCity.latitude,
+          long: selectedCity.longitude,
+          city: selectedCity.name,
+          tgid,
+          lang: getStoredLang(),
+        },
+        timeout: 60000,
       });
-
-      setFortuneText(response.data.interpretation || "");
-      setStatusLine("");
+      setResult(response.data);
+      if (response.data.sun_sign_fa) {
+        setSunSignFa(response.data.sun_sign_fa);
+      } else if (response.data.sun_sign) {
+        setSunSignFa(response.data.sun_sign);
+      }
     } catch (err: unknown) {
       console.error(err);
+      const status = (err as { response?: { status?: number } })?.response
+        ?.status;
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error || t("coffee.fetchError");
-      setIsDenied(false);
-      setErrorText(msg);
-      setStatusLine("");
+          ?.error || t("stars.fetchError");
+      if (status === 403) {
+        setDenied(true);
+        setError(t("stars.denied"));
+      } else {
+        setError(msg);
+      }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="persian-container" dir={dir}>
-      <div className="return-wrapper mb-2">
-        <IoIosArrowRoundBack
-          className="coffee-back-icon"
-          onClick={() => navigate("/")}
+    <div className="stars-page" dir={dir} style={{ padding: "1rem" }}>
+      <div className="mb-2" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+        <IoIosArrowRoundBack size={28} />
+      </div>
+
+      <h1 className="mb-2">{t("stars.title")}</h1>
+      <p className="text-muted mb-3">{t("stars.subtitle")}</p>
+
+      <div className="mb-3 p-3 border rounded">
+        <label className="form-label">{t("stars.birthLabel")}</label>
+        <input
+          type="date"
+          className="form-control mb-2"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
         />
-      </div>
-
-      <div className="header-decoration">
-        <div className="ornament">✦</div>
-        <h1 className="persian-title">☕ {t("coffee.title")}</h1>
-        <div className="ornament">✦</div>
-      </div>
-
-      <div className="divider">
-        <span className="divider-text">✦ ✦ ✦</span>
-      </div>
-
-      <div className="fortune-card">
-        <p className="persian-hint mb-3">{t("coffee.desc")}</p>
-
-        <Form.Group controlId="formFile" className="mb-4">
-          <Form.Label className="persian-label">
-            <span className="label-icon">🖼</span>
-            {t("coffee.upload")}
-          </Form.Label>
-
-          <div className="upload-zone">
-            <Form.Control
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleFileChange}
-              className="persian-file-input"
-              id="fileInput"
-              disabled={isLoading}
-            />
-            <label htmlFor="fileInput" className="upload-label">
-              <span className="upload-icon">📤</span>
-              <span>{t("coffee.upload")}</span>
-              <span className="upload-hint">{t("coffee.uploadHint")}</span>
-            </label>
-          </div>
-
-          {preview && (
-            <div className="selected-files mt-3">
-              <img
-                src={preview}
-                alt="preview"
-                style={{
-                  width: "100%",
-                  maxHeight: 240,
-                  objectFit: "cover",
-                  borderRadius: 12,
-                }}
-              />
-              <div className="file-name mt-2">{selectedImage?.name}</div>
-            </div>
-          )}
-        </Form.Group>
-
         <Button
-          variant="dark"
-          onClick={handleSendImage}
-          disabled={!selectedImage || isLoading}
-          className="persian-submit-btn"
+          type="button"
+          variant="outline-primary"
+          className="w-100"
+          onClick={saveBirth}
         >
-          {isLoading ? (
-            <span className="loading-spinner">
-              <span className="spinner"></span>
-              {statusLine || t("coffee.reading")}
-            </span>
-          ) : (
-            <span>🔮 {t("coffee.send")}</span>
-          )}
+          {t("stars.saveBirth")}
         </Button>
+        {sunSignFa && (
+          <p className="mt-2 mb-0">
+            {t("stars.yourSign")}: <b>{sunSignFa}</b>
+          </p>
+        )}
+        {birthMsg && <p className="mt-2 mb-0 text-muted">{birthMsg}</p>}
       </div>
 
-      {errorText && (
-        <div className="fortune-result" style={{ borderColor: "#ef4444" }}>
-          <p className="fortune-text">{errorText}</p>
-          {isDenied && (
-            <Button
-              variant="warning"
-              className="mt-2"
-              onClick={() => navigate("/payments", { state: { tgid } })}
-            >
-              {t("common.buyPackage")}
-            </Button>
+      <Form.Group className="mb-3">
+        <Form.Label>{t("stars.selectProvince")}</Form.Label>
+        <Form.Select
+          value={province}
+          onChange={(e) => {
+            setProvince(e.target.value);
+            setSelectedCity(null);
+          }}
+        >
+          <option value="">{t("stars.selectProvince")}</option>
+          {provinces.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </Form.Select>
+      </Form.Group>
+
+      <Form.Group className="mb-3">
+        <Form.Label>{t("stars.selectCity")}</Form.Label>
+        <Form.Select
+          value={selectedCity?.name || ""}
+          disabled={!province}
+          onChange={(e) => {
+            const city = cities.find((c) => c.name === e.target.value) || null;
+            setSelectedCity(city);
+          }}
+        >
+          <option value="">{t("stars.selectCity")}</option>
+          {cities.map((c) => (
+            <option key={c.name} value={c.name}>
+              {c.name}
+            </option>
+          ))}
+        </Form.Select>
+      </Form.Group>
+
+      <Button
+        className="w-100 mb-3"
+        onClick={handleReceive}
+        disabled={!canSubmit}
+      >
+        {loading ? t("stars.loading") : t("stars.submit")}
+      </Button>
+
+      {error && (
+        <div className="alert alert-danger">
+          {error}
+          {denied && (
+            <div className="mt-2">
+              <Button
+                size="sm"
+                variant="warning"
+                onClick={() => navigate("/payments", { state: { tgid } })}
+              >
+                {t("common.buyPackage")}
+              </Button>
+            </div>
           )}
         </div>
       )}
 
-      {fortuneText && (
-        <div className="fortune-result">
-          <div className="fortune-header">
-            <span className="fortune-icon">☕</span>
-            <h2 className="fortune-title">{t("coffee.resultHeading")}</h2>
+      {result?.sky_facts && (
+        <div className="mb-3 p-3 border rounded">
+          <div>
+            <b>{t("stars.city")}:</b> {String(result.sky_facts.city ?? "")}
           </div>
-          <div className="fortune-content">
-            <p className="fortune-text">{fortuneText}</p>
+          <div>
+            <b>{t("stars.sunrise")}:</b>{" "}
+            {String(result.sky_facts.sunrise ?? "-")}
           </div>
+          <div>
+            <b>{t("stars.sunset")}:</b>{" "}
+            {String(result.sky_facts.sunset ?? "-")}
+          </div>
+          <div>
+            <b>{t("stars.moonPhase")}:</b>{" "}
+            {String(result.sky_facts.moon_phase ?? "-")}
+          </div>
+          {(sunSignFa || result.sun_sign_fa) && (
+            <div>
+              <b>{t("stars.yourSign")}:</b>{" "}
+              {sunSignFa || result.sun_sign_fa}
+            </div>
+          )}
+        </div>
+      )}
+
+      {result?.interpretation && (
+        <div className="p-3 border rounded">
+          <h5>{t("stars.narrative")}</h5>
+          <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
+            {result.interpretation}
+          </p>
         </div>
       )}
     </div>

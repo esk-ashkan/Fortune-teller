@@ -25,10 +25,7 @@ async function checkAccess(model: string, tgid: string | number, tries = 3) {
       await new Promise((r) => setTimeout(r, 2000 * (i + 1)));
     }
   }
-  return {
-    status: "error" as const,
-    message: "سرور پاسخ نداد. لطفاً دوباره تلاش کنید.",
-  };
+  return { status: "error" as const };
 }
 
 export default function Coffee() {
@@ -44,8 +41,7 @@ export default function Coffee() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const tgid =
-    location.state?.tgid || localStorage.getItem("tgid") || null;
+  const tgid = location.state?.tgid || localStorage.getItem("tgid") || null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -119,11 +115,11 @@ export default function Coffee() {
 
       setFortuneText(response.data.interpretation || "");
       setStatusLine("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       const msg =
-        err?.response?.data?.error ||
-        t("coffee.fetchError");
+        (err as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error || t("coffee.fetchError");
       setIsDenied(false);
       setErrorText(msg);
       setStatusLine("");
@@ -152,9 +148,7 @@ export default function Coffee() {
       </div>
 
       <div className="fortune-card">
-        <p className="persian-hint mb-3">
-          {t("coffee.desc")}
-        </p>
+        <p className="persian-hint mb-3">{t("coffee.desc")}</p>
 
         <Form.Group controlId="formFile" className="mb-4">
           <Form.Label className="persian-label">
@@ -174,7 +168,7 @@ export default function Coffee() {
             <label htmlFor="fileInput" className="upload-label">
               <span className="upload-icon">📤</span>
               <span>{t("coffee.upload")}</span>
-              <span className="upload-hint">"JPG, PNG or WebP — max 3 MB"</span>
+              <span className="upload-hint">{t("coffee.uploadHint")}</span>
             </label>
           </div>
 
@@ -207,7 +201,7 @@ export default function Coffee() {
               {statusLine || t("coffee.reading")}
             </span>
           ) : (
-            <span>🔮 {t("coffee.send")} </span>
+            <span>🔮 {t("coffee.send")}</span>
           )}
         </Button>
       </div>
