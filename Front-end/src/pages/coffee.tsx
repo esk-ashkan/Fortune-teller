@@ -5,6 +5,7 @@ import axios from "axios";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getStoredLang } from "../lib/lang";
+import { useTranslation } from "react-i18next";
 import "./Coffee.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
@@ -38,6 +39,8 @@ export default function Coffee() {
   const [isDenied, setIsDenied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusLine, setStatusLine] = useState("");
+  const { t } = useTranslation();
+  const dir = getStoredLang() === "fa" ? "rtl" : "ltr";
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,13 +54,13 @@ export default function Coffee() {
     const file = files[0];
 
     if (!ALLOWED.includes(file.type)) {
-      alert("فقط فرمت‌های jpg، png یا webp مجاز است.");
+      alert(t("coffee.badFormat"));
       e.target.value = "";
       return;
     }
 
     if (file.size > MAX_BYTES) {
-      alert("حجم تصویر باید کمتر از ۳ مگابایت باشد.");
+      alert(t("coffee.tooLarge"));
       e.target.value = "";
       return;
     }
@@ -75,7 +78,7 @@ export default function Coffee() {
 
     if (!tgid) {
       setIsDenied(false);
-      setErrorText("شناسه کاربر یافت نشد. لطفاً از صفحه اصلی / ربات وارد شوید.");
+      setErrorText(t("coffee.noTgid"));
       return;
     }
 
@@ -89,25 +92,25 @@ export default function Coffee() {
     setErrorText("");
     setIsDenied(false);
     setFortuneText("");
-    setStatusLine("در حال بررسی اعتبار...");
+    setStatusLine(t("coffee.checking"));
 
     try {
       const access = await checkAccess("coffee", tgid);
 
       if (access.status === "error") {
-        setErrorText(access.message);
+        setErrorText(t("common.serverError"));
         setStatusLine("");
         return;
       }
 
       if (access.status === "denied") {
         setIsDenied(true);
-        setErrorText("سهمیه یا اعتبار فال قهوه شما کافی نیست.");
+        setErrorText(t("coffee.denied"));
         setStatusLine("");
         return;
       }
 
-      setStatusLine("در حال بررسی تصویر و گرفتن فال...");
+      setStatusLine(t("coffee.reading"));
 
       const response = await axios.post(`${API}/coffee`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -120,7 +123,7 @@ export default function Coffee() {
       console.error(err);
       const msg =
         err?.response?.data?.error ||
-        "خطا در ارتباط با سرور یا نامعتبر بودن تصویر";
+        t("coffee.fetchError");
       setIsDenied(false);
       setErrorText(msg);
       setStatusLine("");
@@ -130,7 +133,7 @@ export default function Coffee() {
   };
 
   return (
-    <div className="persian-container">
+    <div className="persian-container" dir={dir}>
       <div className="return-wrapper mb-2">
         <IoIosArrowRoundBack
           className="coffee-back-icon"
@@ -140,7 +143,7 @@ export default function Coffee() {
 
       <div className="header-decoration">
         <div className="ornament">✦</div>
-        <h1 className="persian-title">☕ فال قهوه</h1>
+        <h1 className="persian-title">☕ {t("coffee.title")}</h1>
         <div className="ornament">✦</div>
       </div>
 
@@ -150,13 +153,13 @@ export default function Coffee() {
 
       <div className="fortune-card">
         <p className="persian-hint mb-3">
-          لطفاً یک عکس واضح از <b>کف فنجان قهوه از بالا</b> بفرستید.
+          {t("coffee.desc")}
         </p>
 
         <Form.Group controlId="formFile" className="mb-4">
           <Form.Label className="persian-label">
             <span className="label-icon">🖼</span>
-            یک تصویر انتخاب کنید
+            {t("coffee.upload")}
           </Form.Label>
 
           <div className="upload-zone">
@@ -170,8 +173,8 @@ export default function Coffee() {
             />
             <label htmlFor="fileInput" className="upload-label">
               <span className="upload-icon">📤</span>
-              <span>برای انتخاب فایل کلیک کنید</span>
-              <span className="upload-hint">(jpg, png, webp — حداکثر ۳MB)</span>
+              <span>{t("coffee.upload")}</span>
+              <span className="upload-hint">"JPG, PNG or WebP — max 3 MB"</span>
             </label>
           </div>
 
@@ -201,10 +204,10 @@ export default function Coffee() {
           {isLoading ? (
             <span className="loading-spinner">
               <span className="spinner"></span>
-              {statusLine || "در حال پردازش..."}
+              {statusLine || t("coffee.reading")}
             </span>
           ) : (
-            <span>🔮 دریافت فال</span>
+            <span>🔮 {t("coffee.send")} </span>
           )}
         </Button>
       </div>
@@ -218,7 +221,7 @@ export default function Coffee() {
               className="mt-2"
               onClick={() => navigate("/payments", { state: { tgid } })}
             >
-              خرید پکیج
+              {t("common.buyPackage")}
             </Button>
           )}
         </div>
@@ -228,7 +231,7 @@ export default function Coffee() {
         <div className="fortune-result">
           <div className="fortune-header">
             <span className="fortune-icon">☕</span>
-            <h2 className="fortune-title">فال شما</h2>
+            <h2 className="fortune-title">{t("coffee.resultHeading")}</h2>
           </div>
           <div className="fortune-content">
             <p className="fortune-text">{fortuneText}</p>

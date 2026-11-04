@@ -1,21 +1,16 @@
+import { useState } from "react";
 import Form from "react-bootstrap/Form";
-import Stack from "react-bootstrap/Stack";
-import Button from "react-bootstrap/Button";
-import { iranCities } from "../../iran_cities";
-import { useMemo, useState } from "react";
+import { Button } from "react-bootstrap";
 import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
 import { IoIosArrowRoundBack } from "react-icons/io";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getStoredLang } from "../lib/lang";
+import { useTranslation } from "react-i18next";
+import "./Coffee.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
-
-export interface Cities {
-  name: string;
-  latitude: string;
-  longitude: string;
-  altitude: number;
-}
+const MAX_BYTES = 3 * 1024 * 1024;
+const ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 async function checkAccess(model: string, tgid: string | number, tries = 3) {
   for (let i = 0; i < tries; i++) {
@@ -30,278 +25,211 @@ async function checkAccess(model: string, tgid: string | number, tries = 3) {
       await new Promise((r) => setTimeout(r, 2000 * (i + 1)));
     }
   }
-  return {
-    status: "error" as const,
-    message: "سرور پاسخ نداد. لطفاً دوباره تلاش کنید.",
-  };
+  return { status: "error" as const };
 }
 
-export default function Stars() {
+export default function Coffee() {
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [fortuneText, setFortuneText] = useState("");
+  const [errorText, setErrorText] = useState("");
+  const [isDenied, setIsDenied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [statusLine, setStatusLine] = useState("");
+  const { t } = useTranslation();
+  const dir = getStoredLang() === "fa" ? "rtl" : "ltr";
+
   const navigate = useNavigate();
   const location = useLocation();
-  const tgid = location.state?.tgid || localStorage.getItem("tgid");
+  const tgid = location.state?.tgid || localStorage.getItem("tgid") || null;
 
-  const [cities, setCities] = useState<Cities[]>([]);
-  const [selectedCity, setSelectedCity] = useState<Cities | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [denied, setDenied] = useState(false);
-  const [result, setResult] = useState<{
-    interpretation?: string;
-    sky_facts?: Record<string, unknown>;
-    sun_sign_fa?: string | null;
-  } | null>(null);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-  const [birthDate, setBirthDate] = useState("");
-  const [sunSignFa, setSunSignFa] = useState<string | null>(null);
-  const [birthMsg, setBirthMsg] = useState("");
+    const file = files[0];
 
-  const canSubmit = useMemo(
-    () => !!selectedCity && !loading,
-    [selectedCity, loading]
-  );
-
-  const saveBirth = async () => {
-    if (!tgid) {
-      setBirthMsg("ابتدا از طریق ربات وارد شوید.");
-      return;
-    }
-    if (!birthDate) {
-      setBirthMsg("تاریخ تولد را وارد کنید.");
+    if (!ALLOWED.includes(file.type)) {
+      alert(t("coffee.badFormat"));
+      e.target.value = "";
       return;
     }
 
-    try {
-      const res = await axios.post(`${API}/profile/birth`, {
-        tgid: Number(tgid),
-        birth_date: birthDate,
-      });
-      setSunSignFa(res.data.sun_sign_fa);
-      setBirthMsg("تاریخ تولد ذخیره شد.");
-    } catch (e: any) {
-      setBirthMsg(e?.response?.data?.error || "خطا در ذخیره تاریخ تولد");
-    }
-  };
-
-  const handleSelectProvince = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const province = iranCities.find((p) => p.name === e.target.value);
-    setCities(province?.cities || []);
-    setSelectedCity(null);
-    setResult(null);
-  };
-
-  const handleSelectCity = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const city = cities.find((c) => c.name === e.target.value) || null;
-    setSelectedCity(city);
-    setResult(null);
-  };
-
-  const handleCoordFinder = () => {
-    if (!navigator.geolocation) {
-      alert("مرورگر شما از موقعیت مکانی پشتیبانی نمی‌کند.");
+    if (file.size > MAX_BYTES) {
+      alert(t("coffee.tooLarge"));
+      e.target.value = "";
       return;
     }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setSelectedCity({
-          name: "موقعیت فعلی من",
-          latitude: String(position.coords.latitude),
-          longitude: String(position.coords.longitude),
-          altitude: Math.round(position.coords.altitude ?? 0),
-        });
-        setResult(null);
-      },
-      (err) => {
-        if (err.code === err.PERMISSION_DENIED) {
-          alert("دسترسی به موقعیت مکانی رد شد.");
-        } else {
-          alert("دریافت موقعیت ممکن نشد.");
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+
+    setSelectedImage(file);
+    setPreview(URL.createObjectURL(file));
+    setFortuneText("");
+    setErrorText("");
+    setIsDenied(false);
+    setStatusLine("");
   };
 
-  const handleReceive = async () => {
-    if (!selectedCity) return;
-
-    setLoading(true);
-    setError("");
-    setDenied(false);
-    setResult(null);
+  const handleSendImage = async () => {
+    if (!selectedImage) return;
 
     if (!tgid) {
-      setError("شناسه کاربر یافت نشد. از ربات وارد شوید.");
-      setLoading(false);
+      setIsDenied(false);
+      setErrorText(t("coffee.noTgid"));
       return;
     }
 
-    // Prefer /check if backend supports model=stars; otherwise still safe:
-    // denied/error are explicit, 403 from /stars is treated as deny.
-    const access = await checkAccess("stars", tgid);
+    const formData = new FormData();
+    formData.append("images", selectedImage);
+    formData.append("images_name", `coffee_${Date.now()}`);
+    formData.append("tgid", String(tgid));
+    formData.append("lang", getStoredLang());
 
-    if (access.status === "error") {
-      // Fallback: try /stars anyway only if check endpoint doesn't know "stars"
-      // Safer UX: show network error, not "no credit"
-      setError(access.message);
-      setLoading(false);
-      return;
-    }
-
-    if (access.status === "denied") {
-      setDenied(true);
-      setError("اعتبار کافی نیست.");
-      setLoading(false);
-      return;
-    }
+    setIsLoading(true);
+    setErrorText("");
+    setIsDenied(false);
+    setFortuneText("");
+    setStatusLine(t("coffee.checking"));
 
     try {
-      const response = await axios.get(`${API}/stars`, {
-        params: {
-          lat: selectedCity.latitude,
-          long: selectedCity.longitude,
-          city: selectedCity.name,
-          tgid,
-          lang: getStoredLang(),
-        },
-        timeout: 60000,
+      const access = await checkAccess("coffee", tgid);
+
+      if (access.status === "error") {
+        setErrorText(t("common.serverError"));
+        setStatusLine("");
+        return;
+      }
+
+      if (access.status === "denied") {
+        setIsDenied(true);
+        setErrorText(t("coffee.denied"));
+        setStatusLine("");
+        return;
+      }
+
+      setStatusLine(t("coffee.reading"));
+
+      const response = await axios.post(`${API}/coffee`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 120000,
       });
-      setResult(response.data);
-      if (response.data.sun_sign_fa) {
-        setSunSignFa(response.data.sun_sign_fa);
-      }
-    } catch (err: any) {
-      const status = err?.response?.status;
-      if (status === 403) {
-        setDenied(true);
-        setError("اعتبار کافی نیست.");
-      } else {
-        setDenied(false);
-        setError(err?.response?.data?.error || "خطا در دریافت طالع");
-      }
+
+      setFortuneText(response.data.interpretation || "");
+      setStatusLine("");
+    } catch (err: unknown) {
+      console.error(err);
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error || t("coffee.fetchError");
+      setIsDenied(false);
+      setErrorText(msg);
+      setStatusLine("");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="p-3" style={{ maxWidth: 480, margin: "0 auto" }}>
-      <IoIosArrowRoundBack
-        size={28}
-        onClick={() => navigate("/")}
-        style={{ cursor: "pointer" }}
-      />
-
-      <h2 className="mt-2 mb-3">✨ آسمان همین حالا</h2>
-      <p className="text-muted">
-        موقعیتت را بده تا وضعیت آسمان و یک روایت کوتاه برایت ساخته شود.
-      </p>
-
-      <div className="mb-3 p-3 border rounded">
-        <label className="form-label">
-          تاریخ تولد (اختیاری، برای طالع شخصی‌تر)
-        </label>
-        <input
-          type="date"
-          className="form-control mb-2"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
+    <div className="persian-container" dir={dir}>
+      <div className="return-wrapper mb-2">
+        <IoIosArrowRoundBack
+          className="coffee-back-icon"
+          onClick={() => navigate("/")}
         />
-        <Button variant="outline-primary" className="w-100" onClick={saveBirth}>
-          ذخیره تاریخ تولد
-        </Button>
-        {sunSignFa && (
-          <p className="mt-2 mb-0">
-            برج شما: <b>{sunSignFa}</b>
-          </p>
-        )}
-        {birthMsg && <p className="mt-2 mb-0 text-muted">{birthMsg}</p>}
       </div>
 
-      <Button onClick={handleCoordFinder} className="mb-3 w-100" disabled={loading}>
-        یافتن خودکار موقعیت من
-      </Button>
+      <div className="header-decoration">
+        <div className="ornament">✦</div>
+        <h1 className="persian-title">☕ {t("coffee.title")}</h1>
+        <div className="ornament">✦</div>
+      </div>
 
-      <Form.Select onChange={handleSelectProvince} className="mb-2" disabled={loading}>
-        <option>استان را انتخاب کنید</option>
-        {iranCities.map((ic) => (
-          <option value={ic.name} key={ic.name}>
-            {ic.name}
-          </option>
-        ))}
-      </Form.Select>
+      <div className="divider">
+        <span className="divider-text">✦ ✦ ✦</span>
+      </div>
 
-      {cities.length > 0 && (
-        <Form.Select onChange={handleSelectCity} className="mb-3" disabled={loading}>
-          <option>شهر را انتخاب کنید</option>
-          {cities.map((ct) => (
-            <option value={ct.name} key={ct.name}>
-              {ct.name}
-            </option>
-          ))}
-        </Form.Select>
-      )}
+      <div className="fortune-card">
+        <p className="persian-hint mb-3">{t("coffee.desc")}</p>
 
-      {selectedCity && (
-        <Stack direction="horizontal" gap={2} className="mb-3">
-          <Form.Control value={selectedCity.latitude} disabled readOnly />
-          <Form.Control value={selectedCity.longitude} disabled readOnly />
-        </Stack>
-      )}
+        <Form.Group controlId="formFile" className="mb-4">
+          <Form.Label className="persian-label">
+            <span className="label-icon">🖼</span>
+            {t("coffee.upload")}
+          </Form.Label>
 
-      <Button
-        onClick={handleReceive}
-        disabled={!canSubmit}
-        className="w-100 mb-3"
-      >
-        {loading ? "در حال بررسی اعتبار / خواندن آسمان..." : "دریافت طالع من"}
-      </Button>
+          <div className="upload-zone">
+            <Form.Control
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileChange}
+              className="persian-file-input"
+              id="fileInput"
+              disabled={isLoading}
+            />
+            <label htmlFor="fileInput" className="upload-label">
+              <span className="upload-icon">📤</span>
+              <span>{t("coffee.upload")}</span>
+              <span className="upload-hint">{t("coffee.uploadHint")}</span>
+            </label>
+          </div>
 
-      {error && (
-        <div className={`alert ${denied ? "alert-warning" : "alert-danger"}`}>
-          {error}
-          {denied && (
-            <div className="mt-2">
-              <Button
-                size="sm"
-                variant="warning"
-                onClick={() => navigate("/payments", { state: { tgid } })}
-              >
-                خرید پکیج
-              </Button>
+          {preview && (
+            <div className="selected-files mt-3">
+              <img
+                src={preview}
+                alt="preview"
+                style={{
+                  width: "100%",
+                  maxHeight: 240,
+                  objectFit: "cover",
+                  borderRadius: 12,
+                }}
+              />
+              <div className="file-name mt-2">{selectedImage?.name}</div>
             </div>
+          )}
+        </Form.Group>
+
+        <Button
+          variant="dark"
+          onClick={handleSendImage}
+          disabled={!selectedImage || isLoading}
+          className="persian-submit-btn"
+        >
+          {isLoading ? (
+            <span className="loading-spinner">
+              <span className="spinner"></span>
+              {statusLine || t("coffee.reading")}
+            </span>
+          ) : (
+            <span>🔮 {t("coffee.send")}</span>
+          )}
+        </Button>
+      </div>
+
+      {errorText && (
+        <div className="fortune-result" style={{ borderColor: "#ef4444" }}>
+          <p className="fortune-text">{errorText}</p>
+          {isDenied && (
+            <Button
+              variant="warning"
+              className="mt-2"
+              onClick={() => navigate("/payments", { state: { tgid } })}
+            >
+              {t("common.buyPackage")}
+            </Button>
           )}
         </div>
       )}
 
-      {result?.sky_facts && (
-        <div className="mb-3 p-3 border rounded">
-          <div>
-            <b>شهر:</b> {String(result.sky_facts.city ?? "")}
+      {fortuneText && (
+        <div className="fortune-result">
+          <div className="fortune-header">
+            <span className="fortune-icon">☕</span>
+            <h2 className="fortune-title">{t("coffee.resultHeading")}</h2>
           </div>
-          <div>
-            <b>طلوع خورشید:</b> {String(result.sky_facts.sunrise ?? "-")}
+          <div className="fortune-content">
+            <p className="fortune-text">{fortuneText}</p>
           </div>
-          <div>
-            <b>غروب خورشید:</b> {String(result.sky_facts.sunset ?? "-")}
-          </div>
-          <div>
-            <b>فاز ماه:</b> {String(result.sky_facts.moon_phase ?? "-")}
-          </div>
-          {(result.sun_sign_fa || sunSignFa) && (
-            <div>
-              <b>برج شما:</b> {result.sun_sign_fa || sunSignFa}
-            </div>
-          )}
-        </div>
-      )}
-
-      {result?.interpretation && (
-        <div className="p-3 border rounded">
-          <h5>روایت آسمان</h5>
-          <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
-            {result.interpretation}
-          </p>
         </div>
       )}
     </div>

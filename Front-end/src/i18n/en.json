@@ -75,12 +75,24 @@
     "footer": "From the wine of love that is Hafez’s, a single sip is enough for us…"
   },
   "coffee": {
+    "title": "Coffee reading",
+    "subtitle": "Secrets in the cup",
+    "desc": "Upload a clear photo of the coffee grounds in the cup for a short reading.",
+    "upload": "Choose image",
+    "send": "Send and get reading",
     "checking": "Checking access...",
     "reading": "Checking the image and reading the cup...",
     "denied": "Not enough coffee quota or credit.",
-    "noTgid": "User id not found. Open the app from the home screen / bot."
+    "noTgid": "User id not found. Open the app from the home screen / bot.",
+    "fetchError": "Could not complete the coffee reading. Please try again.",
+    "emptyFile": "The image file is empty.",
+    "badFormat": "Unsupported image format. Use JPG, PNG, or WebP only.",
+    "tooLarge": "Image must be under 3 MB.",
+    "notCup": "This does not look like coffee grounds in a cup. Please send a clear photo of the cup bottom.",
+    "resultHeading": "The reading"
   },
   "stars": {
+    "uploadHint": "JPG, PNG or WebP — max 3 MB",
     "checking": "Checking access...",
     "denied": "Not enough credit.",
     "noTgid": "User id not found. Please open the app from the bot.",
