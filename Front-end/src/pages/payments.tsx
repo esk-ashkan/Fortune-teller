@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { Tab, Tabs } from "react-bootstrap";
 import BackButton from "./BackButton";
 import "./payments.css";
+import { payWithStars } from "../lib/starsPay";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -93,6 +94,33 @@ export default function PaymentsPage() {
     }
   };
 
+  const buyStars = async (packageId: string) => {
+    if (!tgid) {
+      setError("ابتدا از طریق ربات وارد شوید.");
+      return;
+    }
+    setLoadingId(packageId);
+    setError("");
+    setStatusText("");
+    try {
+      const status = await payWithStars(packageId, tgid);
+      if (status === "paid") {
+        sessionStorage.removeItem("profile_cache");
+        setStatusText("پرداخت استارز موفق ✅");
+      } else {
+        setStatusText(`وضعیت استارز: ${status}`);
+      }
+    } catch (e: any) {
+      setError(
+        e?.response?.data?.error ||
+          e?.message ||
+          "خطا در پرداخت استارز"
+      );
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   const checkStatus = async () => {
     if (!lastInvoiceId) return;
     try {
@@ -114,24 +142,43 @@ export default function PaymentsPage() {
     if (list.length === 0) return <p className="pkg-empty">پکیجی در این دسته وجود ندارد.</p>;
     
     return list.map((p) => (
-      <div
-        key={p.id}
-        className={`pay-pkg-card ${preselectId === p.id ? "pay-pkg-card--selected" : ""}`}
-      >
-        <h5 className="pay-pkg-title">{p.title}</h5>
-        <p className="pay-pkg-desc">{p.description}</p>
-        
-        <div className="pay-pkg-price">
-          {p.amount_toman.toLocaleString("fa-IR")} <span>تومان</span>
-        </div>
-
-        <button
-          className="pay-btn"
-          disabled={!!loadingId}
-          onClick={() => buy(p.id)}
+      <div>
+        <div
+          key={p.id}
+          className={`pay-pkg-card ${preselectId === p.id ? "pay-pkg-card--selected" : ""}`}
         >
-          {loadingId === p.id ? "در حال ایجاد فاکتور..." : "پرداخت"}
-        </button>
+          <h5 className="pay-pkg-title">{p.title}</h5>
+          <p className="pay-pkg-desc">{p.description}</p>
+          
+          <div className="pay-pkg-price">
+            {p.amount_toman.toLocaleString("fa-IR")} <span>تومان</span>
+          </div>
+
+          <button
+            className="pay-btn"
+            disabled={!!loadingId}
+            onClick={() => buy(p.id)}
+          >
+            {loadingId === p.id ? "در حال ایجاد فاکتور..." : "پرداخت"}
+          </button>
+        </div>
+        <div className="pay-pkg-actions" style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+          <button
+            className="pay-btn"
+            disabled={!!loadingId}
+            onClick={() => buy(p.id)}
+          >
+            {loadingId === p.id ? "..." : "پرداخت ریالی"}
+          </button>
+
+          <button
+            className="pay-btn pay-btn--outline"
+            disabled={!!loadingId}
+            onClick={() => buyStars(p.id)}
+          >
+            {loadingId === p.id ? "..." : "پرداخت با استارز ⭐"}
+          </button>
+        </div>
       </div>
     ));
   };
