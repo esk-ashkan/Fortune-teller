@@ -15,7 +15,7 @@ from telegram.ext import (
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 WEB_APP_URL = os.getenv("WEB_APP_URL")
 API_BASE = os.getenv("API_BASE", "https://fortune-teller-nhy4.onrender.com")
 INTERNAL_PAYMENT_SECRET = os.getenv("INTERNAL_PAYMENT_SECRET", "")
