@@ -105,7 +105,10 @@ def main():
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, on_successful_payment))
 
     print("✅ Bot is starting...")
-    app.run_polling(drop_pending_updates=True)
+    app.run_polling(
+        drop_pending_updates=True,
+        stop_signals=None,
+    )
 
 
 if __name__ == "__main__":
