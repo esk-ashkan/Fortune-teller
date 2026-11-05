@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import asyncio
 import requests
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -20,26 +21,48 @@ WEB_APP_URL = os.getenv("WEB_APP_URL")
 API_BASE = os.getenv("API_BASE", "https://fortune-teller-nhy4.onrender.com")
 INTERNAL_PAYMENT_SECRET = os.getenv("INTERNAL_PAYMENT_SECRET", "")
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("bot")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("telegram.ext._httpxrequest").setLevel(logging.WARNING)
+
+logger = logging.getLogger("bot")  # ← required
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info(
+        "START from user_id=%s",
+        update.effective_user.id if update.effective_user else None,
+    )
+
+    if not update.message:
+        return
+
+    if not WEB_APP_URL:
+        await update.message.reply_text(
+            "Bot is online, but WEB_APP_URL is not set on the server."
+        )
+        return
+
     keyboard = [
-        [InlineKeyboardButton("✨ Open Mystic Oracle ✨", web_app={"url": WEB_APP_URL})]
+        [
+            InlineKeyboardButton(
+                "✨ Open Mystic Oracle ✨",
+                web_app={"url": WEB_APP_URL},
+            )
+        ]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
-        "🌟 Welcome to the **Mystic Oracle**! 🌟\n\n"
-        "Click the button below to open the Fortune Teller:",
-        reply_markup=reply_markup,
-        parse_mode="Markdown",
+        "Bot is online.\nOpen the app:",
+        reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
 
 async def on_pre_checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.pre_checkout_query
-    # Optional: validate payload JSON / package_id here
     await q.answer(ok=True)
 
 
@@ -55,7 +78,9 @@ async def on_successful_payment(update: Update, context: ContextTypes.DEFAULT_TY
         package_id = payload["package_id"]
     except Exception:
         logger.exception("Bad invoice payload: %s", pay.invoice_payload)
-        await msg.reply_text("Payment received but order data was invalid. Contact support.")
+        await msg.reply_text(
+            "Payment received but order data was invalid. Contact support."
+        )
         return
 
     charge_id = pay.telegram_payment_charge_id
@@ -74,17 +99,19 @@ async def on_successful_payment(update: Update, context: ContextTypes.DEFAULT_TY
         data = r.json() if r.content else {}
         if r.status_code >= 400:
             logger.error("Grant failed: %s %s", r.status_code, data)
-            await msg.reply_text("Payment OK, but activating the package failed. Contact support.")
+            await msg.reply_text(
+                "Payment OK, but activating the package failed. Contact support."
+            )
             return
     except Exception:
         logger.exception("Grant request failed")
-        await msg.reply_text("Payment OK, but server error while activating. Contact support.")
+        await msg.reply_text(
+            "Payment OK, but server error while activating. Contact support."
+        )
         return
 
     await msg.reply_text("✅ Payment successful. Your package is active.")
 
-
-import asyncio
 
 def main():
     if not BOT_TOKEN:

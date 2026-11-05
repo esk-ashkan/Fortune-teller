@@ -25,10 +25,10 @@ def start_health_server():
 
 
 if __name__ == "__main__":
-    # Port for Render Web Service — must not block the main thread forever alone
+    
     t = threading.Thread(target=start_health_server, daemon=True)
     t.start()
 
-    # Bot MUST run on main thread
+    
     from bot import main as bot_main
     bot_main()
