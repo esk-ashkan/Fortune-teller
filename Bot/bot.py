@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-
 import requests
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup

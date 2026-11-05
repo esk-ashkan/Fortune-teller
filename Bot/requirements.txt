@@ -7,3 +7,4 @@ idna==3.18
 python-dotenv==1.0.1
 python-telegram-bot==21.4
 typing_extensions==4.15.0
+requests
