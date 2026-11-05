@@ -84,10 +84,20 @@ async def on_successful_payment(update: Update, context: ContextTypes.DEFAULT_TY
     await msg.reply_text("✅ Payment successful. Your package is active.")
 
 
+import asyncio
+
 def main():
     if not BOT_TOKEN:
-        print("❌ BOT_TOKEN not found in .env!")
+        print("❌ TELEGRAM_BOT_TOKEN not found in env!")
         return
+
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            raise RuntimeError
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -95,7 +105,7 @@ def main():
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, on_successful_payment))
 
     print("✅ Bot is starting...")
-    app.run_polling()
+    app.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
