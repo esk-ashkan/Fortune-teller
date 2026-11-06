@@ -60,11 +60,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
-
 async def on_pre_checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.pre_checkout_query
     await q.answer(ok=True)
-
 
 async def on_successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
@@ -113,15 +111,23 @@ async def on_successful_payment(update: Update, context: ContextTypes.DEFAULT_TY
     await msg.reply_text("✅ Payment successful. Your package is active.")
 
 async def terms(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message:
+        return
     await update.message.reply_text(
-        "Digital fortune readings (Hafez, Tarot, etc.). "
-        "No physical goods. Paid access is non-transferable."
+        "شرایط استفاده:\n"
+        "این سرویس محتوای سرگرمی (فال و طالع) ارائه می‌دهد و جایگزین مشاوره تخصصی نیست.\n"
+        "خریدها دیجیتال‌اند و قابل انتقال به حساب دیگر نیستند.\n"
+        "در صورت مشکل پرداخت از /paysupport استفاده کنید."
     )
 
+
 async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message:
+        return
     await update.message.reply_text(
-        "Payment support: contact @YourSupportUsername "
-        "with your Telegram id and approximate payment time."
+        "پشتیبانی پرداخت:\n"
+        "آیدی عددی تلگرام و زمان تقریبی پرداخت را ارسال کنید.\n"
+        "مثال: tgid + تاریخ/ساعت تقریبی خرید استارز."
     )
 
 def main():
@@ -138,11 +144,19 @@ def main():
         asyncio.set_event_loop(loop)
 
     app = Application.builder().token(BOT_TOKEN).build()
+
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(PreCheckoutQueryHandler(on_pre_checkout))
-    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, on_successful_payment))
     app.add_handler(CommandHandler("terms", terms))
     app.add_handler(CommandHandler("paysupport", paysupport))
+
+    app.add_handler(PreCheckoutQueryHandler(on_pre_checkout))
+    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, on_successful_payment))
+
+    print("✅ Bot is starting...")
+    app.run_polling(
+        drop_pending_updates=True,
+        stop_signals=None,
+    )
 
     print("✅ Bot is starting...")
     app.run_polling(
