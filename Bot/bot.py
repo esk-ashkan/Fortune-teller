@@ -117,9 +117,9 @@ async def terms(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "شرایط استفاده:\n"
         "این سرویس محتوای سرگرمی (فال و طالع) ارائه می‌دهد و جایگزین مشاوره تخصصی نیست.\n"
         "خریدها دیجیتال‌اند و قابل انتقال به حساب دیگر نیستند.\n"
+        "برای خرید استارز می‌توانید از ایرانیکارت، یا ربات @TronKavbot استفاده کنید.\n"
         "در صورت مشکل پرداخت از /paysupport استفاده کنید."
     )
-
 
 async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
