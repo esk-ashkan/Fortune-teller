@@ -4,9 +4,11 @@ import { useLocation } from "react-router-dom";
 import { Tab, Tabs } from "react-bootstrap";
 import BackButton from "./BackButton";
 import "./payments.css";
-import { payWithStars } from "../lib/starsPay";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
+
+/** Set true later to show Blupal again — do not delete Blupal code */
+const BLUPAL_ENABLED = false;
 
 type Package = {
   id: string;
@@ -14,6 +16,7 @@ type Package = {
   description: string;
   amount_rial: number;
   amount_toman: number;
+  amount_stars?: number;
   grant: Record<string, number>;
   tab: "single" | "pack" | "period" | "credit" | string;
 };
@@ -24,6 +27,35 @@ const TAB_META: { key: string; title: string }[] = [
   { key: "period", title: "دوره‌ای" },
   { key: "credit", title: "اعتبار" },
 ];
+
+async function payWithStars(packageId: string, tgid: string | number) {
+  const tg = (window as any).Telegram?.WebApp;
+
+  const { data } = await axios.post(`${API}/payments/stars/create`, {
+    tgid: Number(tgid),
+    package_id: packageId,
+  });
+
+  const link = data?.invoice_link;
+  if (!link) {
+    throw new Error(data?.error || data?.message || "No invoice_link");
+  }
+
+  if (tg && typeof tg.openInvoice === "function") {
+    return new Promise<"paid" | "cancelled" | "failed" | "pending">((resolve) => {
+      tg.openInvoice(link, (status: string) => {
+        resolve((status as any) || "failed");
+      });
+    });
+  }
+
+  if (tg && typeof tg.openTelegramLink === "function") {
+    tg.openTelegramLink(link);
+    return "pending" as const;
+  }
+
+  throw new Error("WebApp API missing. Open from the bot button inside Telegram.");
+}
 
 export default function PaymentsPage() {
   const location = useLocation();
@@ -38,29 +70,19 @@ export default function PaymentsPage() {
   const [activeTab, setActiveTab] = useState("single");
 
   useEffect(() => {
-      axios
-        .get(`${API}/payments/packages`)
-        .then((res) => {
-          const list: Package[] = res.data.packages || [];
-          setPackages(list);
-          if (preselectId) {
-            const found = list.find((p) => p.id === preselectId);
-            if (found?.tab) setActiveTab(found.tab);
-          }
-        })
-        .catch(() => setError("خطا در دریافت لیست پکیج‌ها"));
-    }, [preselectId]);
+    axios
+      .get(`${API}/payments/packages`)
+      .then((res) => {
+        const list: Package[] = res.data.packages || [];
+        setPackages(list);
+        if (preselectId) {
+          const found = list.find((p) => p.id === preselectId);
+          if (found?.tab) setActiveTab(found.tab);
+        }
+      })
+      .catch(() => setError("خطا در دریافت لیست پکیج‌ها"));
+  }, [preselectId]);
 
-    useEffect(() => {
-    const tg = (window as any).Telegram?.WebApp;
-    console.log("Telegram", (window as any).Telegram);
-    console.log("WebApp", tg);
-    console.log("initData", tg?.initData?.length);
-    setStatusText(
-      `TG=${!!(window as any).Telegram} WebApp=${!!tg} openInvoice=${typeof tg?.openInvoice}`
-    );
-  }, []);
-  
   const byTab = useMemo(() => {
     const map: Record<string, Package[]> = {};
     for (const p of packages) {
@@ -71,7 +93,12 @@ export default function PaymentsPage() {
     return map;
   }, [packages]);
 
+  /** Blupal — kept for later, hidden while BLUPAL_ENABLED is false */
   const buy = async (packageId: string) => {
+    if (!BLUPAL_ENABLED) {
+      setError("پرداخت ریالی موقتاً غیرفعال است.");
+      return;
+    }
     if (!tgid) {
       setError("ابتدا از طریق ربات وارد شوید.");
       return;
@@ -91,7 +118,9 @@ export default function PaymentsPage() {
         const tg = (window as any).Telegram?.WebApp;
         if (tg?.openLink) tg.openLink(link);
         else window.open(link, "_blank");
-        setStatusText(`فاکتور ${invoiceId} ساخته شد. مبلغ نهایی را دقیق واریز کنید.`);
+        setStatusText(
+          `فاکتور ${invoiceId} ساخته شد. مبلغ نهایی را دقیق واریز کنید.`
+        );
       }
     } catch (e: any) {
       setError(
@@ -122,7 +151,8 @@ export default function PaymentsPage() {
       }
     } catch (e: any) {
       setError(
-        e?.response?.data?.error ||
+        e?.response?.data?.message ||
+          e?.response?.data?.error ||
           e?.message ||
           "خطا در پرداخت استارز"
       );
@@ -149,44 +179,52 @@ export default function PaymentsPage() {
   };
 
   const renderList = (list: Package[] = []) => {
-    if (list.length === 0) return <p className="pkg-empty">پکیجی در این دسته وجود ندارد.</p>;
-    
+    if (list.length === 0) {
+      return <p className="pkg-empty">پکیجی در این دسته وجود ندارد.</p>;
+    }
+
     return list.map((p) => (
-      <div>
-        <div
-          key={p.id}
-          className={`pay-pkg-card ${preselectId === p.id ? "pay-pkg-card--selected" : ""}`}
-        >
-          <h5 className="pay-pkg-title">{p.title}</h5>
-          <p className="pay-pkg-desc">{p.description}</p>
-          
+      <div
+        key={p.id}
+        className={`pay-pkg-card ${
+          preselectId === p.id ? "pay-pkg-card--selected" : ""
+        }`}
+      >
+        <h5 className="pay-pkg-title">{p.title}</h5>
+        <p className="pay-pkg-desc">{p.description}</p>
+
+        {typeof p.amount_stars === "number" && (
+          <div className="pay-pkg-price">
+            {p.amount_stars.toLocaleString("fa-IR")} <span>استارز ⭐</span>
+          </div>
+        )}
+
+        {BLUPAL_ENABLED && (
           <div className="pay-pkg-price">
             {p.amount_toman.toLocaleString("fa-IR")} <span>تومان</span>
           </div>
+        )}
+
+        <div
+          className="pay-pkg-actions"
+          style={{ display: "flex", flexDirection: "column", gap: 8 }}
+        >
+          {BLUPAL_ENABLED && (
+            <button
+              className="pay-btn"
+              disabled={!!loadingId}
+              onClick={() => buy(p.id)}
+            >
+              {loadingId === p.id ? "در حال ایجاد فاکتور..." : "پرداخت ریالی"}
+            </button>
+          )}
 
           <button
             className="pay-btn"
-            disabled={!!loadingId}
-            onClick={() => buy(p.id)}
-          >
-            {loadingId === p.id ? "در حال ایجاد فاکتور..." : "پرداخت"}
-          </button>
-        </div>
-        <div className="pay-pkg-actions" style={{ display: "flex", gap: 8, flexDirection: "column" }}>
-          <button
-            className="pay-btn"
-            disabled={!!loadingId}
-            onClick={() => buy(p.id)}
-          >
-            {loadingId === p.id ? "..." : "پرداخت ریالی"}
-          </button>
-
-          <button
-            className="pay-btn pay-btn--outline"
             disabled={!!loadingId}
             onClick={() => buyStars(p.id)}
           >
-            {loadingId === p.id ? "..." : "پرداخت با استارز ⭐"}
+            {loadingId === p.id ? "صبر کنید..." : "پرداخت با استارز ⭐"}
           </button>
         </div>
       </div>
@@ -196,15 +234,21 @@ export default function PaymentsPage() {
   return (
     <div className="payments-page">
       <BackButton to="/" />
-      
+
       <div className="payments-content">
         <header className="payments-header">
           <h2 className="payments-title">خرید پکیج</h2>
-          <p className="payments-subtitle">از تکی و ارزان تا بسته‌های دوره‌ای</p>
+          <p className="payments-subtitle">
+            {BLUPAL_ENABLED
+              ? "از تکی و ارزان تا بسته‌های دوره‌ای"
+              : "فعلاً فقط پرداخت با تلگرام استارز فعال است"}
+          </p>
         </header>
 
         {error && <div className="pay-alert pay-alert--error">{error}</div>}
-        {statusText && <div className="pay-alert pay-alert--info">{statusText}</div>}
+        {statusText && (
+          <div className="pay-alert pay-alert--info">{statusText}</div>
+        )}
 
         <Tabs
           activeKey={activeTab}
@@ -214,15 +258,16 @@ export default function PaymentsPage() {
         >
           {TAB_META.map((t) => (
             <Tab eventKey={t.key} title={t.title} key={t.key}>
-              <div className="payments-grid pt-3">
-                {renderList(byTab[t.key])}
-              </div>
+              <div className="payments-grid pt-3">{renderList(byTab[t.key])}</div>
             </Tab>
           ))}
         </Tabs>
 
-        {lastInvoiceId && (
-          <button className="pay-btn pay-btn--outline mt-3" onClick={checkStatus}>
+        {BLUPAL_ENABLED && lastInvoiceId && (
+          <button
+            className="pay-btn pay-btn--outline mt-3"
+            onClick={checkStatus}
+          >
             بررسی وضعیت پرداخت
           </button>
         )}
