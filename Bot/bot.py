@@ -130,6 +130,13 @@ async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "مثال: tgid + تاریخ/ساعت تقریبی خرید استارز."
     )
 
+async def any_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info(
+        "MSG chat=%s text=%s",
+        update.effective_chat.id if update.effective_chat else None,
+        update.message.text if update.message else None,
+    )
+
 def main():
     if not BOT_TOKEN:
         print("❌ TELEGRAM_BOT_TOKEN not found in env!")
@@ -151,6 +158,8 @@ def main():
 
     app.add_handler(PreCheckoutQueryHandler(on_pre_checkout))
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, on_successful_payment))
+
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, any_message))
 
     print("✅ Bot is starting...")
     app.run_polling(
