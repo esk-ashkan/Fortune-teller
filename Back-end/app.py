@@ -584,6 +584,8 @@ with app.app_context():
 BLUPAL_API_KEY = os.environ.get("BLUPAL_API_KEY", "")
 BLUPAL_BASE_URL = os.environ.get("BLUPAL_BASE_URL", "https://blupal.top/api")
 
+BLUPAL_ENABLED = os.environ.get("BLUPAL_ENABLED", "false").lower() in ("1", "true", "yes")
+
 PACKAGES = {
     # --- تکی ---
     "hafez_1": {
@@ -822,13 +824,19 @@ def payments_packages():
             "description": p["description"],
             "amount_rial": p["amount_rial"],
             "amount_toman": p["amount_rial"] // 10,
+            "amount_stars": p.get("amount_stars"),
             "grant": p["grant"],
-            "tab": p["tab"]
+            "tab": p["tab"],
         })
     return jsonify({"packages": items})
 
 @app.route("/payments/create", methods=["POST"])
 def payments_create():
+    if not BLUPAL_ENABLED:
+        return jsonify({
+            "error": "rial_payments_disabled",
+            "message": "پرداخت ریالی موقتاً غیرفعال است. از استارز استفاده کنید."
+        }), 503
     if not BLUPAL_API_KEY:
         return jsonify({"error": "Payment gateway not configured"}), 503
 
