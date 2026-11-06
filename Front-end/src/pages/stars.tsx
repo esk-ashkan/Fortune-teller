@@ -7,7 +7,7 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 import { useTranslation } from "react-i18next";
 import { getStoredLang } from "../lib/lang";
 import { iranCities } from "../../iran_cities";
-import "./stars.css";
+
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 

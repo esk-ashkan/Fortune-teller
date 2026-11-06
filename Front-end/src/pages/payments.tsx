@@ -38,19 +38,29 @@ export default function PaymentsPage() {
   const [activeTab, setActiveTab] = useState("single");
 
   useEffect(() => {
-    axios
-      .get(`${API}/payments/packages`)
-      .then((res) => {
-        const list: Package[] = res.data.packages || [];
-        setPackages(list);
-        if (preselectId) {
-          const found = list.find((p) => p.id === preselectId);
-          if (found?.tab) setActiveTab(found.tab);
-        }
-      })
-      .catch(() => setError("خطا در دریافت لیست پکیج‌ها"));
-  }, [preselectId]);
+      axios
+        .get(`${API}/payments/packages`)
+        .then((res) => {
+          const list: Package[] = res.data.packages || [];
+          setPackages(list);
+          if (preselectId) {
+            const found = list.find((p) => p.id === preselectId);
+            if (found?.tab) setActiveTab(found.tab);
+          }
+        })
+        .catch(() => setError("خطا در دریافت لیست پکیج‌ها"));
+    }, [preselectId]);
 
+    useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    console.log("Telegram", (window as any).Telegram);
+    console.log("WebApp", tg);
+    console.log("initData", tg?.initData?.length);
+    setStatusText(
+      `TG=${!!(window as any).Telegram} WebApp=${!!tg} openInvoice=${typeof tg?.openInvoice}`
+    );
+  }, []);
+  
   const byTab = useMemo(() => {
     const map: Record<string, Package[]> = {};
     for (const p of packages) {

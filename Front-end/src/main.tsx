@@ -4,7 +4,12 @@ import App from "./App";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./i18n";
 
+const tg = window.Telegram?.WebApp;
+tg?.ready();
+tg?.expand();
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
+  
   <BrowserRouter>
     <App />
   </BrowserRouter>

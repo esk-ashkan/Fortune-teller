@@ -112,6 +112,17 @@ async def on_successful_payment(update: Update, context: ContextTypes.DEFAULT_TY
 
     await msg.reply_text("✅ Payment successful. Your package is active.")
 
+async def terms(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Digital fortune readings (Hafez, Tarot, etc.). "
+        "No physical goods. Paid access is non-transferable."
+    )
+
+async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Payment support: contact @YourSupportUsername "
+        "with your Telegram id and approximate payment time."
+    )
 
 def main():
     if not BOT_TOKEN:
@@ -130,6 +141,8 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(PreCheckoutQueryHandler(on_pre_checkout))
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, on_successful_payment))
+    app.add_handler(CommandHandler("terms", terms))
+    app.add_handler(CommandHandler("paysupport", paysupport))
 
     print("✅ Bot is starting...")
     app.run_polling(
