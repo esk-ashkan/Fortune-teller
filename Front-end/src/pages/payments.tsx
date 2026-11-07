@@ -72,6 +72,7 @@ export default function PaymentsPage() {
   const [activeTab, setActiveTab] = useState("single");
   const { t, i18n } = useTranslation();
   const isEn = i18n.language?.startsWith("en");
+  const numLocale = isEn ? "en-US" : "fa-IR";
 
   const TAB_META = [
     { key: "single", title: t("payments.tabSingle") },
@@ -209,7 +210,8 @@ export default function PaymentsPage() {
 
         {typeof p.amount_stars === "number" && (
           <div className="pay-pkg-price">
-            {p.amount_stars.toLocaleString("fa-IR")} <span>{t("payments.stars")} ⭐</span>
+            <span>⭐ {t("payments.stars")}</span>{" "}
+            {p.amount_stars.toLocaleString(numLocale)}
           </div>
         )}
 

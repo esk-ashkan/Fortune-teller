@@ -7,7 +7,8 @@ import { getStoredLang, setStoredLang } from "../lib/lang";
 import { useNavigate } from 'react-router-dom';
 import './user.css';
 import axios from "axios";
-import i18n from "../i18n";
+import { useTranslation } from "react-i18next";
+
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
@@ -44,12 +45,20 @@ const TeleUserData: React.FC = () => {
   const [lang, setLang] = useState<"fa" | "en">(getStoredLang());
   const [langMsg, setLangMsg] = useState("");
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     if (!data?.user?.id) return;
     localStorage.setItem("tgid", String(data.user.id));
     loadWallet(false);
   }, [data?.user?.id]);
+
+  useEffect(() => {
+    const cur = getStoredLang();
+    setLang(cur);
+    void i18n.changeLanguage(cur);
+    document.documentElement.dir = cur === "fa" ? "rtl" : "ltr";
+  }, []);
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
@@ -96,7 +105,7 @@ const TeleUserData: React.FC = () => {
     }
 
     setError(
-      "اطلاعات تلگرام در دسترس نیست. لطفاً اپ را از داخل ربات باز کنید."
+      t("common.noTgid")
     );
   }, []);
 
@@ -146,20 +155,22 @@ const TeleUserData: React.FC = () => {
       localStorage.getItem("tgid") ||
       (data?.user?.id ? String(data.user.id) : null);
     if (!tgid) {
-      setLangMsg("ابتدا از ربات وارد شوید.");
+      setLangMsg(t("common.serverError"));
       return;
     }
 
     setLang(next);
     setStoredLang(next);
     void i18n.changeLanguage(next);
+    document.documentElement.dir = next === "fa" ? "rtl" : "ltr";
+    document.documentElement.lang = next;
 
     try {
       await axios.post(`${API}/profile/language`, {
         tgid: Number(tgid),
         language: next,
       });
-      setLangMsg(next === "fa" ? "زبان ذخیره شد: فارسی" : "Language saved: English");
+      setLangMsg(next === "fa" ? t("user.langSavedFa") : t("user.langSavedEn"));
       sessionStorage.removeItem("profile_cache");
     } catch {
       setLangMsg(next === "fa" ? "خطا در ذخیره زبان" : "Failed to save language");
@@ -211,10 +222,9 @@ const TeleUserData: React.FC = () => {
           <div key={i} className={`cosmic-particle cosmic-particle-${i % 5}`} />
         ))}
       </div>
-      <div className="user-lang-row">
-        <span className="user-lang-label">
-          {lang === "fa" ? "زبان" : "Language"}
-        </span>
+      <div className="user-top-bar">
+        
+
         <div className="user-lang-toggle" role="group" aria-label="Language">
           <button
             type="button"
@@ -245,8 +255,7 @@ const TeleUserData: React.FC = () => {
           </div>
 
           <h1 className="cosmic-title">
-            <span className="cosmic-title-line">پروفایل</span>
-            <span className="cosmic-title-accent">کاربری</span>
+            <h1>{t("user.title")}</h1>
           </h1>
 
           <div className="cosmic-divider">
@@ -255,7 +264,7 @@ const TeleUserData: React.FC = () => {
             <span className="cosmic-divider-line"></span>
           </div>
 
-          <p className="cosmic-subtitle">اطلاعات حساب کاربری شما</p>
+          <p className="cosmic-subtitle">{t("user.userPageTitle")}</p>
         </div>
 
         <Row className={`cosmic-cards-row user-cards-row ${mounted ? 'cosmic-slide-up' : ''}`}>
@@ -314,27 +323,27 @@ const TeleUserData: React.FC = () => {
             <div className="user-expense-card">
               <div className="user-expense-header">
                 <GiRingedPlanet className="user-expense-icon" />
-                <h3>کیف پول و سهمیه</h3>
+                <h3>{t("user.walletTitle")}</h3>
               </div>
 
               <div className="user-expense-content">
                 <div className="mb-3 user-wallet">
                   <div className="d-flex justify-content-between mb-2">
-                    <span>اعتبار</span>
+                    <span>{t("user.credit")}</span>
                     <strong>
                       {(wallet?.credit ?? 0).toLocaleString("fa-IR")}
                     </strong>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span>فال حافظ باقی‌مانده</span>
+                    <span>{t("user.hafezLeft")}</span>
                     <strong>{wallet?.remained_hafez ?? 0}</strong>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span>فال تاروت باقی‌مانده</span>
+                    <span>{t("user.tarotLeft")}</span>
                     <strong>{wallet?.remained_tarot ?? 0}</strong>
                   </div>
                   <div className="d-flex justify-content-between mb-3">
-                    <span>فال قهوه باقی‌مانده</span>
+                    <span>{t("user.coffeeLeft")}</span>
                     <strong>{wallet?.remained_coffee ?? 0}</strong>
                   </div>
                 </div>
@@ -352,7 +361,7 @@ const TeleUserData: React.FC = () => {
                     })
                   }
                 >
-                  خرید پکیج و افزایش اعتبار
+                  {t("user.buyPackages")}
                 </Button>
 
                 <Button
@@ -360,7 +369,7 @@ const TeleUserData: React.FC = () => {
                   className="w-100"
                   onClick={() => loadWallet(true)}
                 >
-                  بروزرسانی موجودی
+                  {t("user.refreshWallet")}
                 </Button>
               </div>
             </div>
@@ -369,7 +378,7 @@ const TeleUserData: React.FC = () => {
 
         <div className={`cosmic-footer ${mounted ? 'cosmic-fade-in-delay' : ''}`}>
           <p className="cosmic-footer-text">
-            اطلاعات این صفحه از حساب تلگرام شما دریافت شده است
+            {t("user.footer")}
           </p>
           <div className="cosmic-footer-stars">
             {[...Array(5)].map((_, i) => (

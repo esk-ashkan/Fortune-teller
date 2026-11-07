@@ -121,5 +121,20 @@
     "starsOk": "پرداخت استارز موفق ✅",
     "starsStatus": "وضعیت استارز: {{status}}",
     "starsError": "خطا در پرداخت استارز"
+  },
+  "user": {
+    "title": "پروفایل",
+    "credit": "اعتبار",
+    "hafezLeft": "حافظ باقی‌مانده",
+    "tarotLeft": "تاروت باقی‌مانده",
+    "coffeeLeft": "قهوه باقی‌مانده",
+    "buyPackages": "خرید پکیج و افزایش اعتبار",
+    "refreshWallet": "بروزرسانی موجودی",
+    "footer": "اطلاعات این صفحه از حساب تلگرام شما دریافت شده است",
+    "langSavedFa": "زبان ذخیره شد: فارسی",
+    "langSavedEn": "Language saved: English",
+    "langError": "خطا در ذخیره زبان",
+    "userPageTitle":"اطلاعات حساب کاربری شما",
+    "walletTitle":"کیف پول"
   }
 }

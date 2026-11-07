@@ -121,5 +121,20 @@
     "starsOk": "Stars payment successful ✅",
     "starsStatus": "Stars status: {{status}}",
     "starsError": "Stars payment error"
+  },
+    "user": {
+    "title": "Profile",
+    "credit": "Credit",
+    "hafezLeft": "Hafez left",
+    "tarotLeft": "Tarot left",
+    "coffeeLeft": "Coffee left",
+    "buyPackages": "Buy packages & top up",
+    "refreshWallet": "Refresh balance",
+    "footer": "This page uses data from your Telegram account",
+    "langSavedFa": "زبان ذخیره شد: فارسی",
+    "langSavedEn": "Language saved: English",
+    "langError": "Failed to save language",
+    "userPageTitle":"Your Info",
+    "walletTitle":"Wallet"
   }
 }
