@@ -13,7 +13,9 @@ const BLUPAL_ENABLED = false;
 type Package = {
   id: string;
   title: string;
+  title_en?: string;
   description: string;
+  description_en?: string;
   amount_rial: number;
   amount_toman: number;
   amount_stars?: number;
@@ -50,6 +52,14 @@ async function payWithStars(packageId: string, tgid: string | number) {
   throw new Error("WebApp API missing. Open from the bot button inside Telegram.");
 }
 
+function packageTitle(p: Package, en: boolean) {
+  return en && p.title_en ? p.title_en : p.title;
+}
+
+function packageDesc(p: Package, en: boolean) {
+  return en && p.description_en ? p.description_en : p.description;
+}
+
 export default function PaymentsPage() {
   const location = useLocation();
   const tgid = location.state?.tgid || localStorage.getItem("tgid");
@@ -61,6 +71,7 @@ export default function PaymentsPage() {
   const [statusText, setStatusText] = useState("");
   const [activeTab, setActiveTab] = useState("single");
   const { t, i18n } = useTranslation();
+  const isEn = i18n.language?.startsWith("en");
 
   const TAB_META = [
     { key: "single", title: t("payments.tabSingle") },
@@ -193,8 +204,8 @@ export default function PaymentsPage() {
           preselectId === p.id ? "pay-pkg-card--selected" : ""
         }`}
       >
-        <h5 className="pay-pkg-title">{p.title}</h5>
-        <p className="pay-pkg-desc">{p.description}</p>
+        <h5 className="pay-pkg-title">{packageTitle(p, isEn)}</h5>
+        <p className="pay-pkg-desc">{packageDesc(p, isEn)}</p>
 
         {typeof p.amount_stars === "number" && (
           <div className="pay-pkg-price">
