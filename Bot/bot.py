@@ -4,7 +4,7 @@ import logging
 import asyncio
 import requests
 from dotenv import load_dotenv
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -36,6 +36,29 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(
         "START from user_id=%s",
         update.effective_user.id if update.effective_user else None,
+    )
+    if not update.message:
+        return
+
+    url = (WEB_APP_URL or "").strip()
+    if not url.startswith("https://"):
+        await update.message.reply_text("WEB_APP_URL must start with https://")
+        return
+
+    lang = (update.effective_user.language_code or "en").lower()
+    is_fa = lang.startswith("fa")
+
+    text = (
+        "به فال‌نامه جام‌جم خوش آمدید.\nبرای ورود روی دکمه زیر بزنید:"
+        if is_fa
+        else "Welcome to Jam-e-Jam Fortune.\nTap the button below to open the app:"
+    )
+    btn = "✨ باز کردن برنامه" if is_fa else "✨ Open app"
+
+    keyboard = [[InlineKeyboardButton(btn, web_app=WebAppInfo(url=url))]]
+    await update.message.reply_text(
+        text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
     if not update.message:
@@ -130,12 +153,6 @@ async def paysupport(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "مثال: tgid + تاریخ/ساعت تقریبی خرید استارز."
     )
 
-async def any_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info(
-        "MSG chat=%s text=%s",
-        update.effective_chat.id if update.effective_chat else None,
-        update.message.text if update.message else None,
-    )
 
 def main():
     if not BOT_TOKEN:
@@ -159,7 +176,6 @@ def main():
     app.add_handler(PreCheckoutQueryHandler(on_pre_checkout))
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, on_successful_payment))
 
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, any_message))
 
     print("✅ Bot is starting...")
     app.run_polling(
