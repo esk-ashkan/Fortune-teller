@@ -731,3 +731,47 @@
 .user-wallet {
   color: #ffffff;
 }
+.user-lang-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-lang-label {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.user-lang-toggle {
+  display: inline-flex;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.user-lang-chip {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-lang-chip.is-active {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+}
+
+.user-lang-msg {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin: 4px 0 0;
+}

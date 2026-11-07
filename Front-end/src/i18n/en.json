@@ -100,5 +100,26 @@
     "birthSaved": "Birth date saved.",
     "birthNeedLogin": "Please open the app from the bot first.",
     "birthNeedDate": "Enter your birth date."
+  },
+  "payments": {
+    "title": "Buy a package",
+    "subtitleStarsOnly": "Only Telegram Stars payments are available for now",
+    "subtitleFull": "From single readings to period packs",
+    "tabSingle": "Single",
+    "tabPack": "Packs",
+    "tabPeriod": "Periods",
+    "tabCredit": "Credit",
+    "empty": "No packages in this category.",
+    "stars": "Stars",
+    "toman": "Toman",
+    "payStars": "Pay with Stars ⭐",
+    "payRial": "Pay in Rial",
+    "loading": "Please wait...",
+    "needLogin": "Please open the app from the bot first.",
+    "rialDisabled": "Rial payment is temporarily disabled.",
+    "listError": "Could not load packages",
+    "starsOk": "Stars payment successful ✅",
+    "starsStatus": "Stars status: {{status}}",
+    "starsError": "Stars payment error"
   }
 }

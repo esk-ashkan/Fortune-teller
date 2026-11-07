@@ -3,11 +3,11 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import { Tab, Tabs } from "react-bootstrap";
 import BackButton from "./BackButton";
+import { useTranslation } from "react-i18next";
 import "./payments.css";
 
 const API = "https://fortune-teller-nhy4.onrender.com";
 
-/** Set true later to show Blupal again — do not delete Blupal code */
 const BLUPAL_ENABLED = false;
 
 type Package = {
@@ -20,13 +20,6 @@ type Package = {
   grant: Record<string, number>;
   tab: "single" | "pack" | "period" | "credit" | string;
 };
-
-const TAB_META: { key: string; title: string }[] = [
-  { key: "single", title: "تکی" },
-  { key: "pack", title: "بسته" },
-  { key: "period", title: "دوره‌ای" },
-  { key: "credit", title: "اعتبار" },
-];
 
 async function payWithStars(packageId: string, tgid: string | number) {
   const tg = (window as any).Telegram?.WebApp;
@@ -61,13 +54,24 @@ export default function PaymentsPage() {
   const location = useLocation();
   const tgid = location.state?.tgid || localStorage.getItem("tgid");
   const preselectId: string | undefined = location.state?.package_id;
-
   const [packages, setPackages] = useState<Package[]>([]);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [lastInvoiceId, setLastInvoiceId] = useState<number | null>(null);
   const [statusText, setStatusText] = useState("");
   const [activeTab, setActiveTab] = useState("single");
+  const { t, i18n } = useTranslation();
+
+  const TAB_META = [
+    { key: "single", title: t("payments.tabSingle") },
+    { key: "pack", title: t("payments.tabPack") },
+    { key: "period", title: t("payments.tabPeriod") },
+    { key: "credit", title: t("payments.tabCredit") },
+  ];
+
+  useEffect(() => {
+    document.documentElement.dir = i18n.language === "fa" ? "rtl" : "ltr";
+  }, [i18n.language]);
 
   useEffect(() => {
     axios
@@ -80,7 +84,7 @@ export default function PaymentsPage() {
           if (found?.tab) setActiveTab(found.tab);
         }
       })
-      .catch(() => setError("خطا در دریافت لیست پکیج‌ها"));
+      .catch(() => setError(t("payments.listError")));
   }, [preselectId]);
 
   const byTab = useMemo(() => {
@@ -93,14 +97,13 @@ export default function PaymentsPage() {
     return map;
   }, [packages]);
 
-  /** Blupal — kept for later, hidden while BLUPAL_ENABLED is false */
   const buy = async (packageId: string) => {
     if (!BLUPAL_ENABLED) {
-      setError("پرداخت ریالی موقتاً غیرفعال است.");
+      setError(t("payments.rialDisabled"));
       return;
     }
     if (!tgid) {
-      setError("ابتدا از طریق ربات وارد شوید.");
+      setError(t("payments.needLogin"));
       return;
     }
     setLoadingId(packageId);
@@ -135,7 +138,7 @@ export default function PaymentsPage() {
 
   const buyStars = async (packageId: string) => {
     if (!tgid) {
-      setError("ابتدا از طریق ربات وارد شوید.");
+      setError(t("payments.needLogin"));
       return;
     }
     setLoadingId(packageId);
@@ -145,16 +148,16 @@ export default function PaymentsPage() {
       const status = await payWithStars(packageId, tgid);
       if (status === "paid") {
         sessionStorage.removeItem("profile_cache");
-        setStatusText("پرداخت استارز موفق ✅");
+        setStatusText(t("payments.starsOk"));
       } else {
-        setStatusText(`وضعیت استارز: ${status}`);
+        setStatusText(t("payments.starsStatus", { status }));
       }
     } catch (e: any) {
       setError(
         e?.response?.data?.message ||
           e?.response?.data?.error ||
           e?.message ||
-          "خطا در پرداخت استارز"
+          t("payments.starsError")
       );
     } finally {
       setLoadingId(null);
@@ -180,7 +183,7 @@ export default function PaymentsPage() {
 
   const renderList = (list: Package[] = []) => {
     if (list.length === 0) {
-      return <p className="pkg-empty">پکیجی در این دسته وجود ندارد.</p>;
+      return <p className="pkg-empty">{t("payments.empty")}</p>
     }
 
     return list.map((p) => (
@@ -195,13 +198,13 @@ export default function PaymentsPage() {
 
         {typeof p.amount_stars === "number" && (
           <div className="pay-pkg-price">
-            {p.amount_stars.toLocaleString("fa-IR")} <span>استارز ⭐</span>
+            {p.amount_stars.toLocaleString("fa-IR")} <span>{t("payments.stars")} ⭐</span>
           </div>
         )}
 
         {BLUPAL_ENABLED && (
           <div className="pay-pkg-price">
-            {p.amount_toman.toLocaleString("fa-IR")} <span>تومان</span>
+            {p.amount_toman.toLocaleString("fa-IR")} <span>{t("payments.toman")}</span>
           </div>
         )}
 
@@ -215,7 +218,7 @@ export default function PaymentsPage() {
               disabled={!!loadingId}
               onClick={() => buy(p.id)}
             >
-              {loadingId === p.id ? "در حال ایجاد فاکتور..." : "پرداخت ریالی"}
+              {loadingId === p.id ? t("payments.loading") : t("payments.payRial")}
             </button>
           )}
 
@@ -224,7 +227,7 @@ export default function PaymentsPage() {
             disabled={!!loadingId}
             onClick={() => buyStars(p.id)}
           >
-            {loadingId === p.id ? "صبر کنید..." : "پرداخت با استارز ⭐"}
+            {loadingId === p.id ? t("payments.loading") : t("payments.payStars")}
           </button>
         </div>
       </div>
@@ -237,11 +240,9 @@ export default function PaymentsPage() {
 
       <div className="payments-content">
         <header className="payments-header">
-          <h2 className="payments-title">خرید پکیج</h2>
+          <h2 className="payments-title">{t("payments.title")}</h2>
           <p className="payments-subtitle">
-            {BLUPAL_ENABLED
-              ? "از تکی و ارزان تا بسته‌های دوره‌ای"
-              : "فعلاً فقط پرداخت با تلگرام استارز فعال است"}
+            {BLUPAL_ENABLED ? t("payments.subtitleFull") : t("payments.subtitleStarsOnly")}
           </p>
         </header>
 

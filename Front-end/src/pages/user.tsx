@@ -211,26 +211,28 @@ const TeleUserData: React.FC = () => {
           <div key={i} className={`cosmic-particle cosmic-particle-${i % 5}`} />
         ))}
       </div>
-      <div className="mb-3">
-        <div className="mb-2">زبان / Language</div>
-        <div className="d-flex gap-2">
-          <Button
-            variant={lang === "fa" ? "warning" : "outline-light"}
-            className="flex-fill"
+      <div className="user-lang-row">
+        <span className="user-lang-label">
+          {lang === "fa" ? "زبان" : "Language"}
+        </span>
+        <div className="user-lang-toggle" role="group" aria-label="Language">
+          <button
+            type="button"
+            className={`user-lang-chip ${lang === "fa" ? "is-active" : ""}`}
             onClick={() => saveLanguage("fa")}
           >
-            فارسی
-          </Button>
-          <Button
-            variant={lang === "en" ? "warning" : "outline-light"}
-            className="flex-fill"
+            FA
+          </button>
+          <button
+            type="button"
+            className={`user-lang-chip ${lang === "en" ? "is-active" : ""}`}
             onClick={() => saveLanguage("en")}
           >
-            English
-          </Button>
+            EN
+          </button>
         </div>
-        {langMsg && <p className="mt-2 mb-0 text-muted">{langMsg}</p>}
       </div>
+      {langMsg && <p className="user-lang-msg">{langMsg}</p>}
       <div className="user-back-wrapper" onClick={() => navigate(-1)}>
         <IoIosArrowRoundBack className="user-back-icon" />
       </div>
