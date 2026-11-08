@@ -1,59 +1,36 @@
-name: Keep Render Service Alive (Enhanced)
+name: Keep Render Service Alive
 
 on:
   schedule:
-    # Runs every 10 minutes
-    - cron: '*/10 * * * *'
-  workflow_dispatch:
+    # Every 5 minutes (UTC)
+    - cron: "*/5 * * * *"
+  workflow_dispatch: # manual run from Actions tab
 
 jobs:
   ping-service:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Ping Render Service with Detailed Logging
+      - name: Ping Render API
         id: ping
         run: |
-          echo "⏰ Timestamp: $(date)"
-          echo "📡 Pinging: https://fortune-teller-nhy4.onrender.com/keepitawake"
-          
-          # Get HTTP status code and response time
-          start_time=$(date +%s%N)
-          response_code=$(curl -s -o /dev/null -w "%{http_code}" -m 30 \
-            https://fortune-teller-nhy4.onrender.com/keepitawake)
-          end_time=$(date +%s%N)
-          
-          duration=$(( (end_time - start_time) / 1000000000 ))
-          
-          echo "status_code=$response_code" >> $GITHUB_OUTPUT
-          echo "duration=$duration" >> $GITHUB_OUTPUT
-          
-          echo "📊 Response: HTTP $response_code (${duration}s)"
-          
-          if [ "$response_code" = "200" ]; then
-            echo "✅ Service is awake and responsive"
-          else
-            echo "⚠️ Service returned non-200 status: $response_code"
+          echo "Timestamp: $(date -u)"
+          URL="https://fortune-teller-nhy4.onrender.com/keepitawake"
+
+          code=$(curl -s -o /tmp/body.txt -w "%{http_code}" -m 45 "$URL" || echo "000")
+          echo "HTTP $code"
+          echo "Body: $(head -c 200 /tmp/body.txt 2>/dev/null || true)"
+
+          echo "status_code=$code" >> "$GITHUB_OUTPUT"
+
+          if [ "$code" = "200" ]; then
+            echo "Service awake"
+            exit 0
           fi
-          
-          # Store response for email notification
-          echo "response=$response_code" >> $GITHUB_OUTPUT
-      
-      - name: Send Failure Alert (Optional)
-        if: steps.ping.outputs.status_code != '200'
+
+          echo "Non-200 response"
+          exit 1
+
+      - name: On failure
+        if: failure()
         run: |
-          echo "🚨 WARNING: Service is not responding correctly!"
-          echo "Status code: ${{ steps.ping.outputs.status_code }}"
-          echo "Response time: ${{ steps.ping.outputs.duration }}s"
-          
-          # Example: Send to Slack (if you want to set up notifications)
-          # curl -X POST -H 'Content-type: application/json' \
-          #   --data "{\"text\":\"🚨 Render service is down! Status: ${{ steps.ping.outputs.status_code }}\"}" \
-          #   ${{ secrets.SLACK_WEBHOOK }}
-      
-      - name: Log Success
-        if: steps.ping.outputs.status_code == '200'
-        run: |
-          echo "✅ Service is awake at $(date)"
-          echo "   Status: HTTP ${{ steps.ping.outputs.status_code }}"
-          echo "   Response time: ${{ steps.ping.outputs.duration }}s"
+          echo "Ping failed — check Render logs / cold start"
