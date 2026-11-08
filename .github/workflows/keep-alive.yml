@@ -1,36 +1,42 @@
-name: Keep Render Service Alive
+name: Keep Render Services Alive
 
 on:
   schedule:
-    # Every 5 minutes (UTC)
     - cron: "*/5 * * * *"
-  workflow_dispatch: # manual run from Actions tab
+  workflow_dispatch:
 
 jobs:
-  ping-service:
+  ping-services:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Render API
-        id: ping
+      - name: Ping API + Bot
         run: |
+          set -e
           echo "Timestamp: $(date -u)"
-          URL="https://fortune-teller-nhy4.onrender.com/keepitawake"
 
-          code=$(curl -s -o /tmp/body.txt -w "%{http_code}" -m 45 "$URL" || echo "000")
-          echo "HTTP $code"
-          echo "Body: $(head -c 200 /tmp/body.txt 2>/dev/null || true)"
+          ping_one() {
+            name="$1"
+            url="$2"
+            echo "---- $name ----"
+            echo "URL: $url"
+            code=$(curl -s -o /tmp/body.txt -w "%{http_code}" -m 45 "$url" || echo "000")
+            echo "HTTP $code"
+            echo "Body: $(head -c 200 /tmp/body.txt 2>/dev/null || true)"
+            if [ "$code" != "200" ]; then
+              echo "FAIL: $name"
+              return 1
+            fi
+            echo "OK: $name"
+            return 0
+          }
 
-          echo "status_code=$code" >> "$GITHUB_OUTPUT"
+          fail=0
+          ping_one "API" "https://fortune-teller-nhy4.onrender.com/keepitawake" || fail=1
+          # Bot web service root (health / main.py returns 200 on GET /)
+          ping_one "BOT" "https://fortune-teller-1.onrender.com/" || fail=1
 
-          if [ "$code" = "200" ]; then
-            echo "Service awake"
-            exit 0
+          if [ "$fail" -ne 0 ]; then
+            echo "One or more pings failed"
+            exit 1
           fi
-
-          echo "Non-200 response"
-          exit 1
-
-      - name: On failure
-        if: failure()
-        run: |
-          echo "Ping failed — check Render logs / cold start"
+          echo "All services responded 200"
